@@ -10,7 +10,7 @@ These instructions guide Copilot to generate code that aligns with **Laravel 12*
 
 ## ✅ General PHP Coding Standards
 
-- Always use `declare(strict_types=1);` at the top of all PHP files.
+- Always use `declare(strict_types=1);` at the top of all PHP files after the `<?php` starting tag.
 - Follow **PSR-12** coding standards.
 - Prioritize clear, readable, and expressive code.
 - Use **descriptive, meaningful** names for variables, functions, classes, and files.
