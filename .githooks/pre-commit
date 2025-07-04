@@ -1,0 +1,18 @@
+#!/bin/sh
+
+echo "Running Pint on changed files..."
+
+# Get the list of PHP files that are about to be committed
+FILES=$(git diff --cached --name-only --diff-filter=ACM -- "*.php")
+
+# Run Pint on the PHP files
+
+# Iterate through the list of files and add them to the staging area one by one
+for FILE in $FILES; do
+  ./vendor/bin/pint $FILE
+  git add "$FILE"
+done
+
+echo "Pint done..."
+
+exit 0

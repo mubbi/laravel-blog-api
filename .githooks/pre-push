@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# This script runs Laravel PHPUnit tests before pushing to the remote repository.
+
+# Define the Laravel test command.
+TEST_COMMAND="php artisan test --parallel --recreate-databases"
+
+# Run the tests.
+echo "Running PHPUnit tests..."
+$TEST_COMMAND
+
+# Check the exit status of the test command.
+if [ $? -eq 0 ]; then
+  echo "Tests passed. Proceeding with the push."
+  exit 0
+else
+  echo "Tests failed. Aborting the push."
+  exit 1
+fi
+
