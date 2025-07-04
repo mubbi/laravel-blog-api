@@ -18,7 +18,7 @@ A clean, production-ready latest Laravel and PHP support, latest security improv
 ## PHPUnit Testing & Coverage
 
 -   Read PEST Docs before writing tests: `https://pestphp.com/docs/expectations`
--   Before running any tests setup testing env by using make command `make setup-testing` or follow these steps `cp .env.testing.example .env.testing`, create db `mg_db_test`, and migrate+seed `php artisan --env=testing migrate --seed`
+-   Before running any tests setup testing env by using make command `make setup-testing` or follow these steps `cp .env.testing.example .env.testing`, create db `laravel_blog_testing`, and migrate+seed `php artisan --env=testing migrate --seed`
 -   Run all tests: `make php-tests` OR `php artisan test --parallel --recreate-databases`
 -   Perform single file test: `php artisan test --filter Events/UserRegistered`
 -   Find the slowest running tests: `make php-tests-profile` OR `php artisan test --profile`
@@ -31,7 +31,6 @@ A clean, production-ready latest Laravel and PHP support, latest security improv
     reports/
       coverage/index.html
       coverage.xml
-      junit_result.xml
     ```
 
 ## Lint/Pint Format Fixing files
