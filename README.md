@@ -1,6 +1,6 @@
-## Laravel Blog
+## Laravel Blog API
 
-A clean, production-ready latest Laravel and PHP support, latest security improvements, modern folder structure. Perfect for building scalable web apps with Laravel's newest features.
+A clean, production-ready latest Laravel and PHP support, latest security improvements, modern folder structure. Perfect for building scalable web apps with Laravel's newest features. This project contains only API and the backend for the Laravel Blog. Its front-end will be built on NextJS and will be linked here.
 
 ## Git Hooks for Local Automation
 
@@ -8,7 +8,8 @@ A clean, production-ready latest Laravel and PHP support, latest security improv
 -   copy files to git hooks: `cp -r .githooks/* .git/hooks/`
 -   make these files executable: `chmod +x .git/hooks/pre-commit && chmod +x .git/hooks/pre-push && chmod +x .git/hooks/prepare-commit-msg`
 
-### Larastan for Static Code Analysis
+## Larastan for Static Code Analysis
+
 -   Run Static Analysis: `make larastan-project` OR `./vendor/bin/phpstan analyse --memory-limit=2G`
 
 ## PHPUnit Testing & Coverage
