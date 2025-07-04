@@ -34,3 +34,7 @@ lint-changes:
 # Lint full project
 lint-project:
 	./vendor/bin/pint
+
+# Larastan Analyze Project
+larastan-project:
+	./vendor/bin/phpstan analyse --memory-limit=2G
