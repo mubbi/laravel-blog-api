@@ -1,20 +1,28 @@
 #!/bin/sh
 
-# This script runs Laravel PHPUnit tests before pushing to the remote repository.
+# This script runs Laravel PHPUnit tests and Larastan analysis before pushing to the remote repository.
 
-# Define the Laravel test command.
+# Define commands
 TEST_COMMAND="php artisan test --parallel --recreate-databases"
+LARASTAN_COMMAND="./vendor/bin/phpstan analyse --memory-limit=2G"
 
-# Run the tests.
+# Run tests
 echo "Running PHPUnit tests..."
 $TEST_COMMAND
 
-# Check the exit status of the test command.
-if [ $? -eq 0 ]; then
-  echo "Tests passed. Proceeding with the push."
-  exit 0
-else
+if [ $? -ne 0 ]; then
   echo "Tests failed. Aborting the push."
   exit 1
 fi
 
+# Run Larastan
+echo "Running Larastan (PHPStan) analysis..."
+$LARASTAN_COMMAND
+
+if [ $? -ne 0 ]; then
+  echo "Larastan found errors. Aborting the push."
+  exit 1
+fi
+
+echo "All checks passed. Proceeding with the push."
+exit 0
