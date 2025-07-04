@@ -2,6 +2,9 @@
 
 A clean, production-ready latest Laravel and PHP support, latest security improvements, modern folder structure. Perfect for building scalable web apps with Laravel's newest features. This project contains only API and the backend for the Laravel Blog. Its front-end will be built on NextJS and will be linked here.
 
+## API Documentation
+-   Visit this URL to view all API Documentations: `{APP_URL}/docs/api`
+
 ## Git Hooks for Local Automation
 
 -   Setup Hooks using make: `make setup-git-hooks` or follow below steps.
