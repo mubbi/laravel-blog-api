@@ -5,15 +5,15 @@ A clean, production-ready latest Laravel and PHP support, latest security improv
 ## API Documentation
 -   Visit this URL to view all API Documentations: `{APP_URL}/docs/api`
 
+## Setup Localhost
+
+-   Run this command `make setup-localhost` or follow these steps `cp .env.example .env`, create db `laravel_blog`, and migrate+seed `php artisan migrate --seed`
+
 ## Git Hooks for Local Automation
 
 -   Setup Hooks using make: `make setup-git-hooks` or follow below steps.
 -   copy files to git hooks: `cp -r .githooks/* .git/hooks/`
 -   make these files executable: `chmod +x .git/hooks/pre-commit && chmod +x .git/hooks/pre-push && chmod +x .git/hooks/prepare-commit-msg`
-
-## Larastan for Static Code Analysis
-
--   Run Static Analysis: `make larastan-project` OR `./vendor/bin/phpstan analyse --memory-limit=2G`
 
 ## PHPUnit Testing & Coverage
 
@@ -42,3 +42,7 @@ A clean, production-ready latest Laravel and PHP support, latest security improv
 -   Get Detailed Linting: `./vendor/bin/pint -v`
 -   Check if files have lint issues: `./vendor/bin/pint --test`
 -   Only Lint uncommitted changed files: `make lint-changes` OR `./vendor/bin/pint --dirty`
+
+## Larastan for Static Code Analysis
+
+-   Run Static Analysis: `make larastan-project` OR `./vendor/bin/phpstan analyse --memory-limit=2G`
