@@ -1,48 +1,228 @@
-## Laravel Blog API
 
-A clean, production-ready latest Laravel and PHP support, latest security improvements, modern folder structure. Perfect for building scalable web apps with Laravel's newest features. This project contains only API and the backend for the Laravel Blog. Its front-end will be built on NextJS and will be linked here.
+# Laravel Blog API
+
+A clean, modern, and production-ready Laravel Blog API built with the latest versions of Laravel and PHP. This project follows a modern folder structure, applies the latest security best practices, and is designed for scalability. It serves as the backend API for a blog platform whose frontend will be built separately using Next.js.
+
+---
+
+## Table of Contents
+
+1. [API Documentation](#api-documentation)
+2. [Local Setup](#local-setup)
+3. [Git Hooks Automation](#git-hooks-automation)
+4. [Running Tests & Coverage](#running-tests--coverage)
+5. [Linting & Code Formatting](#linting--code-formatting)
+6. [Static Code Analysis with Larastan](#static-code-analysis-with-larastan)
+
+---
 
 ## API Documentation
--   Visit this URL to view all API Documentations: `{APP_URL}/docs/api`
 
-## Setup Localhost
+- Access the API documentation at:
 
--   Run this command `make setup-localhost` or follow these steps `cp .env.example .env`, create db `laravel_blog`, and migrate+seed `php artisan migrate --seed`
+  ```
+  {APP_URL}/docs/api
+  ```
 
-## Git Hooks for Local Automation
+---
 
--   Setup Hooks using make: `make setup-git-hooks` or follow below steps.
--   copy files to git hooks: `cp -r .githooks/* .git/hooks/`
--   make these files executable: `chmod +x .git/hooks/pre-commit && chmod +x .git/hooks/pre-push && chmod +x .git/hooks/prepare-commit-msg`
+## Local Setup
 
-## PHPUnit Testing & Coverage
+To set up the project on your local machine:
 
--   Read PEST Docs before writing tests: `https://pestphp.com/docs/expectations`
--   Before running any tests setup testing env by using make command `make setup-testing` or follow these steps `cp .env.testing.example .env.testing`, create db `laravel_blog_testing`, and migrate+seed `php artisan --env=testing migrate --seed`
--   Run all tests: `make php-tests` OR `php artisan test --parallel --recreate-databases`
--   Perform single file test: `php artisan test --filter Events/UserRegistered`
--   Find the slowest running tests: `make php-tests-profile` OR `php artisan test --profile`
--   Get coverage report, Install and Enable XDebug then run this command: `make php-tests-report` OR `php artisan test --parallel --recreate-databases --coverage-html reports/coverage --coverage-clover reports/coverage.xml`
+1. Run the following Make command:
 
-##### Test Reports can be found in `reports/` folder.
+   ```bash
+   make setup-localhost
+   ```
 
--   Reports folder structure:
-    ```
-    reports/
-      coverage/index.html
-      coverage.xml
-    ```
+   **Or perform manually:**
 
-## Lint/Pint Format Fixing files
+   - Copy the example environment file:
 
--   If you have setup local automation for git hook then lint will be auto performed on changed files
--   Lint All files: `make lint-project` OR `./vendor/bin/pint`
--   Lint Specific Folder: `./vendor/bin/pint app/Models`
--   Lint Specific File: `./vendor/bin/pint app/Models/User.php`
--   Get Detailed Linting: `./vendor/bin/pint -v`
--   Check if files have lint issues: `./vendor/bin/pint --test`
--   Only Lint uncommitted changed files: `make lint-changes` OR `./vendor/bin/pint --dirty`
+     ```bash
+     cp .env.example .env
+     ```
 
-## Larastan for Static Code Analysis
 
--   Run Static Analysis: `make larastan-project` OR `./vendor/bin/phpstan analyse --memory-limit=2G`
+   - Copy the example environment file:
+
+     ```bash
+     php artisan key:generate
+     ```
+
+   - Create the database named `laravel_blog`.
+
+   - Run migrations and seed the database:
+
+     ```bash
+     php artisan migrate --seed
+     ```
+
+---
+
+## Git Hooks Automation
+
+Automate common Git tasks using hooks:
+
+1. Set up using Make:
+
+   ```bash
+   make setup-git-hooks
+   ```
+
+2. **Or manually:**
+
+   - Copy the Git hooks:
+
+     ```bash
+     cp -r .githooks/* .git/hooks/
+     ```
+
+   - Make them executable:
+
+     ```bash
+     chmod +x .git/hooks/pre-commit
+     chmod +x .git/hooks/pre-push
+     chmod +x .git/hooks/prepare-commit-msg
+     ```
+
+---
+
+## Running Tests & Coverage
+
+- Review PEST documentation before writing tests:
+
+  [PEST PHP Expectations](https://pestphp.com/docs/expectations)
+
+### Setup for Testing Environment
+
+1. Run:
+
+   ```bash
+   make setup-testing
+   ```
+
+2. **Or manually:**
+
+   - Copy the testing environment file:
+
+     ```bash
+     cp .env.testing.example .env.testing
+     ```
+
+   - Create the database named `laravel_blog_testing`.
+
+   - Run migrations and seed:
+
+     ```bash
+     php artisan --env=testing migrate --seed
+     ```
+
+### Running Tests
+
+- Run all tests:
+
+  ```bash
+  make php-tests
+  # or
+  php artisan test --parallel --recreate-databases
+  ```
+
+- Run a specific test:
+
+  ```bash
+  php artisan test --filter Events/UserRegistered
+  ```
+
+- Profile slow running tests:
+
+  ```bash
+  make php-tests-profile
+  # or
+  php artisan test --profile
+  ```
+
+- Generate code coverage report (requires XDebug):
+
+  ```bash
+  make php-tests-report
+  # or
+  php artisan test --parallel --recreate-databases --coverage-html reports/coverage --coverage-clover reports/coverage.xml
+  ```
+
+#### Code Coverage Reports path:
+
+```
+reports/
+  coverage/index.html
+  coverage.xml
+```
+
+---
+
+## Linting & Code Formatting
+
+### Automated Linting with Git Hooks
+
+- If Git hooks are set up, linting will automatically run on changed files.
+
+### Manually Linting Codes
+
+- Lint entire project:
+
+  ```bash
+  make lint-project
+  # or
+  ./vendor/bin/pint
+  ```
+
+- Lint specific folder:
+
+  ```bash
+  ./vendor/bin/pint app/Models
+  ```
+
+- Lint specific file:
+
+  ```bash
+  ./vendor/bin/pint app/Models/User.php
+  ```
+
+- Detailed linting:
+
+  ```bash
+  ./vendor/bin/pint -v
+  ```
+
+- Check for lint issues without fixing:
+
+  ```bash
+  ./vendor/bin/pint --test
+  ```
+
+- Lint only changed files:
+
+  ```bash
+  make lint-changes
+  # or
+  ./vendor/bin/pint --dirty
+  ```
+
+---
+
+## Static Code Analysis with Larastan
+
+- Run static analysis with memory limit adjustment:
+
+  ```bash
+  make larastan-project
+  # or
+  ./vendor/bin/phpstan analyse --memory-limit=2G
+  ```
+
+---
+
+**Note:**
+- For best results, ensure you have all required PHP extensions and dependencies installed.
+- The frontend of this project will be built using Next.js and linked here in the future.
