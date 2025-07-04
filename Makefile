@@ -6,9 +6,9 @@ setup-git-hooks:
 # Setup Local project
 setup-localhost:
 	cp .env.example .env
-    php artisan key:generate
+	php artisan key:generate
 	composer install
-    php artisan migrate --seed
+	php artisan migrate --seed
 
 # Setup PHP Unit Tests
 setup-testing:
