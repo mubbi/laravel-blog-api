@@ -20,7 +20,15 @@ rm -f /var/www/html/storage/laravel_ready
 
 # Wait for database to be ready
 echo "[MAIN] WAITING: Database connection..."
-until php artisan migrate:status >/dev/null 2>&1; do
+until php -r "
+try {
+    \$pdo = new PDO('mysql:host=mysql;port=3306;dbname=laravel_blog', 'laravel_user', 'laravel_password');
+    echo 'OK';
+    exit(0);
+} catch (Exception \$e) {
+    exit(1);
+}
+" >/dev/null 2>&1; do
     echo "Database not ready, waiting..."
     sleep 5
 done
