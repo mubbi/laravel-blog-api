@@ -15,9 +15,14 @@ setup-testing:
 	cp .env.testing.example .env.testing
 	php artisan --env=testing migrate:fresh --seed
 
-# Run PHP Unit Tests
+# Run PHP Unit Tests (local MySQL)
 php-tests:
-	php artisan test --parallel --recreate-databases
+	php artisan test --env=testing
+
+# Run PHP Unit Tests (local MySQL) with backup .env.testing
+php-tests-local:
+	cp .env.testing.local .env.testing
+	php artisan test --env=testing
 
 # Run PHP Unit Tests & profile
 php-tests-profile:
@@ -25,7 +30,7 @@ php-tests-profile:
 
 # Generate PHP Unit Tests Coverage Report
 php-tests-report:
-	php artisan test --parallel --recreate-databases --coverage-html reports/coverage --coverage-clover reports/coverage.xml
+	php artisan test --parallel --coverage-html reports/coverage --coverage-clover reports/coverage.xml
 
 # Lint recent changes
 lint-changes:
@@ -56,12 +61,26 @@ docker-cleanup:
 	-docker network prune -f
 	@echo "SUCCESS: Docker cleanup completed!"
 
+# Cleanup only test containers
+docker-cleanup-testing:
+	@echo "CLEANUP: Docker test environment..."
+	@echo "Stopping and removing test containers..."
+	-cd containers && docker-compose -f docker-compose.test.yml down --remove-orphans
+	@echo "SUCCESS: Docker test cleanup completed!"
+
+# Cleanup only main containers
+docker-cleanup-main:
+	@echo "CLEANUP: Docker main environment..."
+	@echo "Stopping and removing main containers..."
+	-cd containers && docker-compose down --remove-orphans
+	@echo "SUCCESS: Docker main cleanup completed!"
+
 # Setup Docker environment files
 docker-setup-env:
 	bash containers/setup-env.sh
 
-# Setup Docker environment for local development
-docker-setup-local: docker-cleanup docker-setup-env
+# Setup Docker environment for local development (without affecting test containers)
+docker-setup-local: docker-cleanup-main docker-setup-env
 	cd containers && docker-compose up -d
 	@echo ">> Waiting for containers to be ready..."
 	@echo ">> Main app will automatically:"
@@ -80,12 +99,12 @@ docker-setup-local: docker-cleanup docker-setup-env
 	@echo ">> Use 'make docker-logs' to view detailed logs"
 
 # Build and start containers only (for debugging)
-docker-build-only: docker-cleanup docker-setup-env
+docker-build-only: docker-cleanup-main docker-setup-env
 	cd containers && docker-compose up -d
 	@echo "INFO: Containers started in detached mode"
 
-# Setup Docker environment for testing
-docker-setup-testing: docker-cleanup docker-setup-env
+# Setup Docker environment for testing (without affecting main containers)
+docker-setup-testing: docker-cleanup-testing docker-setup-env
 	cd containers && docker-compose -f docker-compose.test.yml up -d
 	docker-compose -f containers/docker-compose.test.yml exec laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader
 	docker-compose -f containers/docker-compose.test.yml exec laravel_blog_api_test cp .env.testing.docker .env.testing
