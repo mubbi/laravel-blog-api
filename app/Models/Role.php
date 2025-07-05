@@ -13,6 +13,10 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $slug
  *
  * @mixin \Eloquent
+ *
+ * @use HasFactory<Role>
+ *
+ * @phpstan-use HasFactory<Role>
  */
 final class Role extends Model
 {

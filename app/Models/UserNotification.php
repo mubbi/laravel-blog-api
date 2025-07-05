@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool $is_read
  *
  * @mixin \Eloquent
+ *
+ * @phpstan-use HasFactory<UserNotification>
  */
 final class UserNotification extends Model
 {
@@ -34,11 +36,17 @@ final class UserNotification extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<User,UserNotification>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsTo<Notification,UserNotification>
+     */
     public function notification(): BelongsTo
     {
         return $this->belongsTo(Notification::class);

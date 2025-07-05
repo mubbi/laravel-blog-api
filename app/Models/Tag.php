@@ -13,6 +13,10 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $slug
  *
  * @mixin \Eloquent
+ *
+ * @use HasFactory<Tag>
+ *
+ * @phpstan-use HasFactory<Tag>
  */
 final class Tag extends Model
 {

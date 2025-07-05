@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $slug
  *
  * @mixin \Eloquent
+ *
+ * @phpstan-use HasFactory<Category>
  */
 final class Category extends Model
 {
@@ -31,6 +33,9 @@ final class Category extends Model
         return [];
     }
 
+    /**
+     * @return HasMany<ArticleCategory,Category>
+     */
     public function articles(): HasMany
     {
         return $this->hasMany(ArticleCategory::class);

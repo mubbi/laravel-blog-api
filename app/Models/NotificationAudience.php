@@ -14,6 +14,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $user_id
  *
  * @mixin \Eloquent
+ *
+ * @use HasFactory<NotificationAudience>
+ *
+ * @phpstan-use HasFactory<NotificationAudience>
  */
 final class NotificationAudience extends Model
 {
@@ -31,11 +35,17 @@ final class NotificationAudience extends Model
         return [];
     }
 
+    /**
+     * @return BelongsTo<Notification,NotificationAudience>
+     */
     public function notification(): BelongsTo
     {
         return $this->belongsTo(Notification::class);
     }
 
+    /**
+     * @return BelongsTo<User,NotificationAudience>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

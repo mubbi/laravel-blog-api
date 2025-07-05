@@ -13,6 +13,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $category_id
  *
  * @mixin \Eloquent
+ *
+ * @use HasFactory<ArticleCategory>
+ *
+ * @phpstan-use HasFactory<ArticleCategory>
  */
 final class ArticleCategory extends Model
 {
@@ -32,11 +36,17 @@ final class ArticleCategory extends Model
         return [];
     }
 
+    /**
+     * @return BelongsTo<Article,ArticleCategory>
+     */
     public function article(): BelongsTo
     {
         return $this->belongsTo(Article::class);
     }
 
+    /**
+     * @return BelongsTo<Category,ArticleCategory>
+     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);

@@ -16,6 +16,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $parent_comment_id
  *
  * @mixin \Eloquent
+ *
+ * @use HasFactory<Comment>
+ *
+ * @phpstan-use HasFactory<Comment>
  */
 final class Comment extends Model
 {
@@ -33,16 +37,25 @@ final class Comment extends Model
         return [];
     }
 
+    /**
+     * @return BelongsTo<Article,Comment>
+     */
     public function article(): BelongsTo
     {
         return $this->belongsTo(Article::class);
     }
 
+    /**
+     * @return BelongsTo<User,Comment>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsTo<Comment,Comment>
+     */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Comment::class, 'parent_comment_id');

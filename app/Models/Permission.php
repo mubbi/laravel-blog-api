@@ -13,6 +13,10 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $slug
  *
  * @mixin \Eloquent
+ *
+ * @use HasFactory<Permission>
+ *
+ * @phpstan-use HasFactory<Permission>
  */
 final class Permission extends Model
 {

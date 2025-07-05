@@ -28,6 +28,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $updated_by
  *
  * @mixin \Eloquent
+ *
+ * @use HasFactory<Article>
  */
 final class Article extends Model
 {
@@ -48,21 +50,33 @@ final class Article extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<User,Article>
+     */
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * @return BelongsTo<User,Article>
+     */
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
 
+    /**
+     * @return BelongsTo<User,Article>
+     */
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    /**
+     * @return HasMany<Comment,Article>
+     */
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);

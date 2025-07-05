@@ -13,6 +13,11 @@ parameters:
         - '#Call to an undefined method Illuminate\\.*#'
         - '#Access to an undefined property Illuminate\\.*#'
         - '#PHPDoc tag @var#'
+        # Ignore missingType.generics and return.type for Eloquent HasFactory and Relations
+        - '#uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types#'
+        - '#should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo<.*> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo<.*>\.#'
+        - '#should return Illuminate\\Database\\Eloquent\\Relations\\HasMany<.*> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany<.*>\.#'
+        - '#@use has invalid value \(HasFactory<.*>\):#'
 
 includes:
     - vendor/larastan/larastan/extension.neon

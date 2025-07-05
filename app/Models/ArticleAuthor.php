@@ -15,6 +15,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ArticleAuthorRole|null $role
  *
  * @mixin \Eloquent
+ *
+ * @use HasFactory<ArticleAuthor>
+ *
+ * @phpstan-use HasFactory<ArticleAuthor>
  */
 final class ArticleAuthor extends Model
 {
@@ -36,11 +40,17 @@ final class ArticleAuthor extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Article,ArticleAuthor>
+     */
     public function article(): BelongsTo
     {
         return $this->belongsTo(Article::class);
     }
 
+    /**
+     * @return BelongsTo<User,ArticleAuthor>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -18,6 +18,10 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $remember_token
  *
  * @mixin \Eloquent
+ *
+ * @use HasFactory<User>
+ *
+ * @phpstan-use HasFactory<User>
  */
 final class User extends Authenticatable
 {

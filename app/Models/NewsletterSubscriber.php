@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Illuminate\Support\Carbon $subscribed_at
  *
  * @mixin \Eloquent
+ *
+ * @phpstan-use HasFactory<NewsletterSubscriber>
  */
 final class NewsletterSubscriber extends Model
 {
@@ -36,6 +38,9 @@ final class NewsletterSubscriber extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<User,NewsletterSubscriber>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

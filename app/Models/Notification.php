@@ -11,9 +11,13 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * @property int $id
  * @property NotificationType $type
- * @property array $message
+ * @property array<string, mixed> $message
  *
  * @mixin \Eloquent
+ *
+ * @use HasFactory<Notification>
+ *
+ * @phpstan-use HasFactory<Notification>
  */
 final class Notification extends Model
 {

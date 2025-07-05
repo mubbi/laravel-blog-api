@@ -13,6 +13,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $tag_id
  *
  * @mixin \Eloquent
+ *
+ * @use HasFactory<ArticleTag>
+ *
+ * @phpstan-use HasFactory<ArticleTag>
  */
 final class ArticleTag extends Model
 {
@@ -32,11 +36,17 @@ final class ArticleTag extends Model
         return [];
     }
 
+    /**
+     * @return BelongsTo<Article,ArticleTag>
+     */
     public function article(): BelongsTo
     {
         return $this->belongsTo(Article::class);
     }
 
+    /**
+     * @return BelongsTo<Tag,ArticleTag>
+     */
     public function tag(): BelongsTo
     {
         return $this->belongsTo(Tag::class);
