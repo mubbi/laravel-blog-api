@@ -19,18 +19,17 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         $data = [
-            'id' => $this->id,
-            'token' => $this->token,
-            'name' => $this->name,
-            'email' => $this->email,
-            'email_verified_at' => $this->email_verified_at,
-            'bio' => $this->bio,
-            'avatar_url' => $this->avatar_url,
-            'twitter' => $this->twitter,
-            'facebook' => $this->facebook,
-            'linkedin' => $this->linkedin,
-            'github' => $this->github,
-            'website' => $this->website,
+            'id' => $this->resource->id,
+            'name' => $this->resource->name,
+            'email' => $this->resource->email,
+            'email_verified_at' => $this->resource->email_verified_at,
+            'bio' => $this->resource->bio,
+            'avatar_url' => $this->resource->avatar_url,
+            'twitter' => $this->resource->twitter,
+            'facebook' => $this->resource->facebook,
+            'linkedin' => $this->resource->linkedin,
+            'github' => $this->resource->github,
+            'website' => $this->resource->website,
         ];
 
         return $data;

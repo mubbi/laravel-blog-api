@@ -17,6 +17,13 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $email_verified_at
  * @property string $password
  * @property string|null $remember_token
+ * @property string|null $avatar_url
+ * @property string|null $bio
+ * @property string|null $twitter
+ * @property string|null $facebook
+ * @property string|null $linkedin
+ * @property string|null $github
+ * @property string|null $website
  *
  * @mixin \Eloquent
  *
