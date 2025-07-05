@@ -1,0 +1,49 @@
+services:
+  # Laravel App for Testing
+  laravel_blog_api_test:
+    build:
+      context: .
+      dockerfile: php/Dockerfile
+    container_name: laravel_blog_api_test
+    working_dir: /var/www/html
+    volumes:
+      - ../:/var/www/html
+      - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - ./php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+    environment:
+      - XDEBUG_MODE=${XDEBUG_MODE:-coverage}
+      - APP_ENV=testing
+    depends_on:
+      - mysql_test
+      - redis_test
+    networks:
+      - laravel_blog_api_test_network
+
+  # MySQL Database for Testing
+  mysql_test:
+    image: mysql:8.0
+    container_name: laravel_blog_api_mysql_test
+    environment:
+      MYSQL_DATABASE: laravel_blog_test
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_USER: laravel_user
+      MYSQL_PASSWORD: laravel_password
+    ports:
+      - "3307:3306"
+    tmpfs:
+      - /var/lib/mysql
+    networks:
+      - laravel_blog_api_test_network
+
+  # Redis Cache for Testing
+  redis_test:
+    image: redis:alpine
+    container_name: laravel_blog_api_redis_test
+    ports:
+      - "6380:6379"
+    networks:
+      - laravel_blog_api_test_network
+
+networks:
+  laravel_blog_api_test_network:
+    driver: bridge

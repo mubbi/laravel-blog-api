@@ -45,37 +45,42 @@ class AuthServiceProvider extends ServiceProvider
         }
 
         // Dynamically register gates for all permissions in the database
-        // Only proceed if the permissions table exists
-        if (Schema::hasTable('permissions')) {
-            // Cache permissions for 1 hour to avoid repeated DB hits
-            $permissions = cache()->remember('all_permissions', 3600, function () {
-                return \App\Models\Permission::pluck('name')->toArray();
-            });
-
-            foreach ($permissions as $permission) {
-                if (! is_string($permission) || isset($policyPermissions[$permission])) {
-                    continue;
-                }
-                Gate::define($permission, function (User $user) use ($permission) {
-                    // Eager load roles and permissions to avoid N+1 queries
-                    if (! $user->relationLoaded('roles')) {
-                        $user->loadMissing('roles.permissions');
-                    }
-                    // If user has no roles, return false immediately
-                    if (count($user->roles) === 0) {
-                        return false;
-                    }
-                    // Eager load permissions for all roles
-                    foreach ($user->roles as $role) {
-                        if (! $role->relationLoaded('permissions')) {
-                            $user->loadMissing('roles.permissions');
-                            break;
-                        }
-                    }
-
-                    return $user->hasPermission($permission);
+        // Only proceed if the permissions table exists and database is accessible
+        try {
+            if (Schema::hasTable('permissions')) {
+                // Cache permissions for 1 hour to avoid repeated DB hits
+                $permissions = cache()->remember('all_permissions', 3600, function () {
+                    return \App\Models\Permission::pluck('name')->toArray();
                 });
+
+                foreach ($permissions as $permission) {
+                    if (! is_string($permission) || isset($policyPermissions[$permission])) {
+                        continue;
+                    }
+                    Gate::define($permission, function (User $user) use ($permission) {
+                        // Eager load roles and permissions to avoid N+1 queries
+                        if (! $user->relationLoaded('roles')) {
+                            $user->loadMissing('roles.permissions');
+                        }
+                        // If user has no roles, return false immediately
+                        if (count($user->roles) === 0) {
+                            return false;
+                        }
+                        // Eager load permissions for all roles
+                        foreach ($user->roles as $role) {
+                            if (! $role->relationLoaded('permissions')) {
+                                $user->loadMissing('roles.permissions');
+                                break;
+                            }
+                        }
+
+                        return $user->hasPermission($permission);
+                    });
+                }
             }
+        } catch (\Exception $e) {
+            // Database not ready or connection failed, skip permission gates
+            // This can happen during initial setup or when database is not available
         }
     }
 }

@@ -1,0 +1,59 @@
+# Git
+.git
+.gitignore
+.gitattributes
+.githooks
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+README.md
+*.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Laravel
+/vendor
+/node_modules
+/storage/logs/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/framework/testing/*
+/bootstrap/cache/*
+
+# Environment files
+.env*
+!.env.example
+!.env.testing.example
+
+# Testing
+/tests/Feature
+/tests/Unit
+/reports
+/.phpunit.result.cache
+phpunit.xml
+
+# Build artifacts
+/public/hot
+/public/storage
+/public/mix-manifest.json
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencies
+composer.lock
