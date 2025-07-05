@@ -6,7 +6,7 @@ echo "[MAIN] Starting Laravel main application..."
 shutdown() {
     echo "Shutting down services..."
     # Remove ready marker on shutdown
-    rm -f /tmp/laravel_ready
+    rm -f /var/www/html/storage/laravel_ready
     pkill nginx
     pkill php-fpm
     exit 0
@@ -16,7 +16,7 @@ shutdown() {
 trap shutdown SIGTERM SIGINT
 
 # Remove any existing ready marker
-rm -f /tmp/laravel_ready
+rm -f /var/www/html/storage/laravel_ready
 
 # Wait for database to be ready
 echo "[MAIN] WAITING: Database connection..."
@@ -61,7 +61,7 @@ php artisan route:cache
 
 # Create ready marker to signal that the app is fully set up
 echo "[MAIN] SUCCESS: Application setup complete! Creating ready marker..."
-touch /tmp/laravel_ready
+touch /var/www/html/storage/laravel_ready
 
 echo "[MAIN] STARTING: Web services..."
 

@@ -32,7 +32,7 @@ services:
     healthcheck:
       test: |
         # Check if ready marker exists and HTTP endpoint is accessible
-        if [ -f /tmp/laravel_ready ]; then
+        if [ -f /var/www/html/storage/laravel_ready ]; then
           curl -f http://localhost:80/api/health -H "Accept: application/json" >/dev/null 2>&1
         else
           exit 1
@@ -112,7 +112,7 @@ services:
     healthcheck:
       test: |
         # Check if queue worker process is running and ready marker exists
-        if [ -f /tmp/laravel_ready ] && pgrep -f "queue:work" >/dev/null; then
+        if [ -f /var/www/html/storage/laravel_ready ] && pgrep -f "queue:work" >/dev/null; then
           exit 0
         else
           exit 1

@@ -24,3 +24,5 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /reports
+/laravel_ready
+/storage/laravel_ready

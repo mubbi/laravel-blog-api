@@ -5,7 +5,7 @@ echo "[QUEUE] Waiting for main Laravel application to be ready..."
 # Function to check if main application is ready
 check_main_app_ready() {
     # Check for the ready marker file created by the main app
-    if [ -f /tmp/laravel_ready ]; then
+    if [ -f /var/www/html/storage/laravel_ready ]; then
         return 0
     fi
 
@@ -34,7 +34,7 @@ while [ $WAIT_TIME -lt $MAX_WAIT ]; do
     echo "[QUEUE] WAITING: Main application not ready yet, waiting... (${WAIT_TIME}s/${MAX_WAIT}s)"
 
     # Check if ready marker exists
-    if [ -f /tmp/laravel_ready ]; then
+    if [ -f /var/www/html/storage/laravel_ready ]; then
         echo "[QUEUE] INFO: Ready marker found!"
     else
         echo "[QUEUE] INFO: Ready marker not found, checking database..."
