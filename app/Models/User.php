@@ -4,15 +4,24 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string|null $email_verified_at
+ * @property string $password
+ * @property string|null $remember_token
+ *
+ * @mixin \Eloquent
+ */
+final class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<\\Database\\Factories\\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
