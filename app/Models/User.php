@@ -75,4 +75,20 @@ final class User extends Authenticatable
 
         return $relation;
     }
+
+    /**
+     * Check if the user has a given permission via their roles.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        foreach ($this->roles as $role) {
+            /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permission> $permissions */
+            $permissions = $role->permissions;
+            if ($permissions->contains('name', $permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
