@@ -1,3 +1,5 @@
+name: laravel_blog_test
+
 services:
   # Laravel App for Testing
   laravel_blog_api_test:

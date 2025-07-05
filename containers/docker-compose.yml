@@ -1,3 +1,5 @@
+name: laravel_blog
+
 services:
   # Laravel App with Nginx + PHP-FPM
   laravel_blog_api:
