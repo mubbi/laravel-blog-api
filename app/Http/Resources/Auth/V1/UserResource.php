@@ -14,11 +14,11 @@ class UserResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function toArray(Request $request): array
     {
-        $data = [
+        return [
             'id' => $this->resource->id,
             'name' => $this->resource->name,
             'email' => $this->resource->email,
@@ -30,8 +30,9 @@ class UserResource extends JsonResource
             'linkedin' => $this->resource->linkedin,
             'github' => $this->resource->github,
             'website' => $this->resource->website,
+            $this->mergeWhen(isset($this->resource->token), [
+                'token' => $this->resource->token,
+            ]),
         ];
-
-        return $data;
     }
 }

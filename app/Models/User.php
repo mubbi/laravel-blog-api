@@ -24,6 +24,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $linkedin
  * @property string|null $github
  * @property string|null $website
+ * @property string|null $token Dynamic property set by auth service
  *
  * @mixin \Eloquent
  *
