@@ -1,6 +1,6 @@
 # Laravel Blog API - Docker Setup Guide for Windows
 
-This guide will help you set up the fully automated Docker development environment for the Laravel Blog API project on Windows.
+This guide will help you set up the **fully automated** Docker development environment for the Laravel Blog API project on Windows. **Zero manual configuration required!**
 
 ## Prerequisites
 
@@ -20,45 +20,83 @@ This guide will help you set up the fully automated Docker development environme
    - Or install manually from: http://gnuwin32.sourceforge.net/packages/make.htm
    - Alternative: Use Git Bash for all make commands
 
-## Quick Start (Automated Setup)
+## 🚀 Quick Start (Fully Automated)
 
-The Docker environment is fully automated with robust startup orchestration and race condition prevention.
-
-### Option 1: Complete Automated Setup (Recommended)
+### ⚡ One-Command Complete Setup (Recommended)
 
 Open Git Bash, PowerShell, or Command Prompt in the project root:
 
 ```bash
-# One-command setup - this does everything!
-make docker-setup-local
+# Complete automated setup - main + testing environments
+make docker-setup-complete
 ```
 
-This single command will:
-- Clean up any existing containers and images
-- Create environment files (.env.docker)
-- Build and start all containers in correct order
-- Wait for database connectivity
-- Install composer dependencies automatically
-- Run database migrations and seeders
-- Start the queue worker after main app is ready
-- Display clean, Windows-terminal-compatible status messages
+**🎉 That's it! This single command will:**
+- ✅ **Clean up** any existing Docker containers and images
+- ✅ **Auto-generate APP_KEY** using OpenSSL (unique keys for dev/test)
+- ✅ **Copy and configure** all environment files automatically
+- ✅ **Start main environment** (API on http://localhost:8081)
+- ✅ **Start testing environment** (isolated test database)
+- ✅ **Install dependencies** automatically
+- ✅ **Run migrations and seeders** for both environments
+- ✅ **Setup queue workers** with smart readiness detection
+- ✅ **Display access URLs** and next steps
 
-### Option 2: Step-by-Step Setup
+### Alternative Options
 
-If you prefer to see each step:
-
+**Development environment only:**
 ```bash
-# 1. Setup environment files
-make docker-setup-env
-
-# 2. Start containers with full automation
 make docker-setup-local
-
-# 3. Verify everything is working
-make docker-status
 ```
 
-## Monitoring Your Setup
+**Testing environment only:**
+```bash
+make docker-setup-testing
+```
+
+## 🔑 Automatic APP_KEY Generation
+
+**No more manual key generation or environment file editing!**
+
+- Uses OpenSSL (included with Git Bash) to generate secure keys
+- Creates different unique keys for development and testing
+- Automatically replaces empty `APP_KEY=` in all environment files
+- Works seamlessly on Windows (Git Bash), WSL, or PowerShell
+
+### Step-by-Step Process (All Automated)
+
+1. **Environment File Creation:**
+   - `.env.docker.example` → `.env.docker` (development config)
+   - `.env.testing.docker.example` → `.env.testing.docker` (testing config)
+   - `.env.docker` → `.env` (main application file)
+
+2. **APP_KEY Generation:**
+   - Development: `APP_KEY=base64:xxxxxxxxxxxx` 
+   - Testing: `APP_KEY=base64:yyyyyyyyyyyy` (different key)
+
+3. **Container Orchestration:**
+   - MySQL and Redis start first (with health checks)
+   - Laravel app waits for database connectivity
+## 📊 After Setup - Access Points
+
+**🎯 Your applications are ready at:**
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Main API** | http://localhost:8081 | Laravel application |
+| **API Health** | http://localhost:8081/api/health | Health check endpoint |
+| **API Docs** | http://localhost:8081/docs/api | API documentation |
+| **MySQL Main** | localhost:3306 | Development database |
+| **MySQL Test** | localhost:3307 | Testing database |
+| **Redis** | localhost:6379 | Cache/sessions |
+
+**🔐 Database Credentials:**
+- Username: `laravel_user`
+- Password: `laravel_password`
+- Main DB: `laravel_blog`
+- Test DB: `laravel_blog_test`
+
+## 🔧 Monitoring & Management
 
 ### Real-time Status Monitoring
 
@@ -66,55 +104,57 @@ make docker-status
 # Check if everything is running and healthy
 make docker-status
 
-# Detailed readiness check
+# Detailed readiness check  
 make docker-check-ready
 
-# View live logs from all containers
+# View live logs from all containers (Ctrl+C to exit)
 make docker-logs
 
 # Check queue worker status specifically
 make docker-queue-status
 ```
 
-### Health Check Endpoint
+## 📋 Available Commands (Windows Compatible)
 
-Once setup is complete, access the health check at:
-http://localhost:8081/api/health
+All commands work perfectly in **Windows Command Prompt**, **PowerShell**, and **Git Bash**:
 
-## Available Commands (Windows Compatible)
-
-All commands have been tested and work perfectly in Windows Command Prompt, PowerShell, and Git Bash:
-
-### Essential Commands
+### 🚀 Setup Commands
 ```cmd
-rem Complete setup (run this first)
-make docker-setup-local
+rem Complete setup - main + testing (RECOMMENDED)
+make docker-setup-complete
 
-rem Check status and health
-make docker-status
-make docker-check-ready
-
-rem View logs and troubleshoot
-make docker-logs
-make docker-queue-status
-
-rem Stop and cleanup
-make docker-down
-make docker-cleanup
+rem Individual environment setup
+make docker-setup-local        rem Development only
+make docker-setup-testing      rem Testing only
+make docker-setup-env          rem Environment files only
 ```
 
-### Development Commands
+### 📊 Monitoring Commands
 ```cmd
-rem Access container shells
-make docker-bash
-make docker-test-bash
+rem Status and health monitoring
+make docker-status             rem Container status + URLs
+make docker-check-ready        rem Application readiness
+make docker-logs               rem Live logs (Ctrl+C to exit)
+make docker-queue-status       rem Queue worker status
+```
 
-rem Restart services
-make docker-rebuild
+### 🛠️ Management Commands  
+```cmd
+rem Container management
+make docker-up                 rem Start containers only
+make docker-down               rem Stop all containers
+make docker-cleanup            rem Complete cleanup
 
-rem Setup testing environment
-make docker-setup-testing
-make docker-tests
+rem Container access
+make docker-bash               rem Access main container
+make docker-test-bash          rem Access test container
+```
+
+### 🧪 Testing Commands
+```cmd
+rem Automated testing
+make docker-tests              rem Run tests with fresh DB
+make docker-tests-coverage     rem Tests with coverage report
 ```
 
 ## Windows-Specific Considerations

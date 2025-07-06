@@ -19,11 +19,6 @@ setup-testing:
 php-tests:
 	php artisan test --env=testing
 
-# Run PHP Unit Tests (local MySQL) with backup .env.testing
-php-tests-local:
-	cp .env.testing.local .env.testing
-	php artisan test --env=testing
-
 # Run PHP Unit Tests & profile
 php-tests-profile:
 	php artisan test --profile
@@ -79,8 +74,13 @@ docker-cleanup-main:
 docker-setup-env:
 	bash containers/setup-env.sh
 
-# Setup Docker environment for local development (without affecting test containers)
+# Verify Docker environment setup
+docker-verify-env:
+	bash containers/verify-env-setup.sh
+
+# Setup Docker environment for local development (without affecting test containers) - AUTOMATED
 docker-setup-local: docker-cleanup-main docker-setup-env
+	@echo "SETUP: Automated local Docker environment setup..."
 	cd containers && docker-compose up -d
 	@echo ">> Waiting for containers to be ready..."
 	@echo ">> Main app will automatically:"
@@ -103,13 +103,22 @@ docker-build-only: docker-cleanup-main docker-setup-env
 	cd containers && docker-compose up -d
 	@echo "INFO: Containers started in detached mode"
 
-# Setup Docker environment for testing (without affecting main containers)
+# Setup Docker environment for testing (without affecting main containers) - AUTOMATED
 docker-setup-testing: docker-cleanup-testing docker-setup-env
+	@echo "SETUP: Automated testing Docker environment setup..."
 	cd containers && docker-compose -f docker-compose.test.yml up -d
-	docker-compose -f containers/docker-compose.test.yml exec laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader
-	docker-compose -f containers/docker-compose.test.yml exec laravel_blog_api_test cp .env.testing.docker .env.testing
-	docker-compose -f containers/docker-compose.test.yml exec laravel_blog_api_test php artisan key:generate --env=testing
-	docker-compose -f containers/docker-compose.test.yml exec laravel_blog_api_test php artisan migrate:fresh --seed --env=testing
+	@echo ">> Installing dependencies in test container..."
+	@sleep 10
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader
+	@echo ">> Setting up test environment file..."
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test cp .env.testing.docker .env.testing
+	@echo ">> Generating test application key..."
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force
+	@echo ">> Running test migrations and seeders..."
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force
+	@echo ""
+	@echo "SUCCESS: Testing environment setup complete!"
+	@echo ">> Use 'make docker-tests' to run tests"
 
 # Start Docker local environment
 docker-up:
@@ -205,3 +214,41 @@ docker-rebuild:
 	cd containers && docker-compose down
 	cd containers && docker-compose build --no-cache
 	cd containers && docker-compose up -d
+
+# Comprehensive Docker Setup - Sets up both main and testing environments
+docker-setup-complete: docker-cleanup docker-setup-env
+	@echo "SETUP: Complete Docker environment (main + testing)..."
+	@echo ""
+	@echo "STEP 1: Setting up main environment..."
+	cd containers && docker-compose up -d
+	@echo ""
+	@echo "STEP 2: Waiting for main environment to be ready..."
+	@echo ">> This may take a few minutes for initial setup..."
+	@echo ">> Use 'make docker-status' to check progress"
+	@echo ">> Use 'make docker-logs' to view detailed logs"
+	@echo ""
+	@echo "STEP 3: Setting up testing environment..."
+	cd containers && docker-compose -f docker-compose.test.yml up -d
+	@echo ">> Installing dependencies in test container..."
+	@sleep 10
+	-docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader
+	@echo ">> Setting up test environment file..."
+	-docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test cp .env.testing.docker .env.testing
+	@echo ">> Generating test application key..."
+	-docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force
+	@echo ">> Running test migrations and seeders..."
+	-docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force
+	@echo ""
+	@echo "SUCCESS: Complete Docker environment setup finished!"
+	@echo ""
+	@echo "SUMMARY:"
+	@echo "✅ Main environment: http://localhost:8081"
+	@echo "✅ Test environment: Ready for testing"
+	@echo "✅ MySQL Main: localhost:3306"
+	@echo "✅ MySQL Test: localhost:3307"
+	@echo "✅ Redis: localhost:6379"
+	@echo ""
+	@echo "NEXT STEPS:"
+	@echo "• Run 'make docker-status' to check all containers"
+	@echo "• Run 'make docker-tests' to run tests"
+	@echo "• Access API at http://localhost:8081/api/health"

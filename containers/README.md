@@ -2,39 +2,72 @@
 
 This directory contains all Docker configuration files for local development and testing of the Laravel Blog API project.
 
-## Quick Start
+## � Environment Files
+
+This project uses a clean environment file structure:
+
+### Tracked Files (in Git)
+- `.env.docker.example` - Main development environment template
+- `.env.testing.docker.example` - Testing environment template
+
+### Generated Files (Ignored by Git)
+- `.env.docker` - Main development environment (auto-generated)
+- `.env.testing.docker` - Testing environment (auto-generated)
+- `.env` - Laravel main environment file (copy of .env.docker)
+
+The automation scripts automatically create the working environment files from the example templates with proper APP_KEY generation.
+
+## �🚀 Quick Start
 
 ### Prerequisites
 - Docker and Docker Compose installed
 - Git (for hooks)
 - Make (for Windows users: install via Chocolatey or use Git Bash)
 
-### Automated Setup
+### ⚡ Fully Automated Setup
 
-The Docker environment is fully automated with proper startup orchestration, health checks, and race condition prevention.
+The Docker environment is **completely automated** with intelligent startup orchestration, automatic APP_KEY generation, and zero manual configuration required.
 
-1. **Setup local development environment:**
-   ```bash
-   make docker-setup-local
-   ```
-   This command will:
-   - Clean up any existing containers
-   - Set up environment files (.env.docker)
-   - Start all containers in correct order
-   - Wait for database readiness
-   - Install composer dependencies
-   - Run migrations and seeders
-   - Start the queue worker after main app is ready
+#### **Option 1: Complete Setup (Recommended)**
+```bash
+make docker-setup-complete
+```
+**What this does:**
+- 🧹 Cleans up any existing containers and images
+- 🔑 **Auto-generates unique APP_KEY** for all environments
+- 📝 **Copies and configures** all environment files automatically
+- 🐳 Starts both **main AND testing** environments
+- 📦 Installs Composer dependencies
+- 🗄️ Runs database migrations and seeders
+- ⚡ Sets up queue workers with readiness detection
+- ✅ Provides complete development and testing setup
 
-2. **Setup git hooks (optional but recommended):**
-   ```bash
-   make setup-git-hooks
-   ```
+#### **Option 2: Development Only**
+```bash
+make docker-setup-local
+```
 
-3. **Setup testing environment:**
-   ```bash
-   make docker-setup-testing
-   ```
+#### **Option 3: Testing Only**
+```bash
+make docker-setup-testing
+```
+
+### 🔑 Automatic APP_KEY Generation
+
+**No more manual key generation!**
+- Uses OpenSSL to generate secure base64-encoded keys
+- Different unique keys for development and testing
+- Automatically replaces empty APP_KEY in environment files
+- Cross-platform compatible (Windows, macOS, Linux)
+
+### 📁 Environment File Automation
+
+**Intelligent environment file management:**
+- `.env.docker.example` → `.env.docker` (development)
+- `.env.testing.docker.example` → `.env.testing.docker` (testing)  
+- `.env.docker` → `.env` (main application)
+- Overwrites existing files for consistent setup
+- Preserves custom configurations where appropriate
 
 ## Architecture
 
@@ -65,41 +98,54 @@ The system includes robust startup orchestration:
 - **Database Readiness**: Main app waits for MySQL connection before running migrations
 - **Ready Marker**: Main app creates `/tmp/laravel_ready` marker when fully initialized
 
-## Available Commands
+## 🛠️ Available Commands
 
-### Main Operations
+### 🚀 Setup Commands (Fully Automated)
 ```bash
-# Complete automated setup (recommended)
-make docker-setup-local
+# Complete setup - main + testing environments (RECOMMENDED)
+make docker-setup-complete
 
-# Quick container management
-make docker-up          # Start containers only
-make docker-down        # Stop containers
-make docker-cleanup     # Complete cleanup (containers, images, volumes)
-
-# Monitoring and debugging
-make docker-status       # Check container status and health
-make docker-logs         # View all container logs
-make docker-check-ready  # Check if application is fully ready
-make docker-queue-status # Check queue worker status
-
-# Container access
-make docker-bash         # Access main container shell
+# Individual environment setup
+make docker-setup-local      # Development environment only  
+make docker-setup-testing    # Testing environment only
+make docker-setup-env        # Environment files only (no containers)
 ```
 
-### Testing
+### 📊 Monitoring & Status
 ```bash
-# Automated testing setup and execution
-make docker-setup-testing       # Setup test environment
-make docker-tests               # Run tests in Docker
-make docker-tests-coverage      # Run tests with coverage report
-make docker-test-bash          # Access test container shell
+make docker-status           # Container status and access URLs
+make docker-logs             # View all container logs (Ctrl+C to exit)
+make docker-check-ready      # Check application readiness
+make docker-queue-status     # Check queue worker status
 ```
 
-### Advanced Operations
+### 🔧 Container Management
 ```bash
-# Build and debugging
-make docker-build-only     # Build containers without full setup
+make docker-up               # Start containers only (no setup)
+make docker-down             # Stop all containers
+make docker-cleanup          # Complete cleanup (containers, images, volumes)
+make docker-cleanup-main     # Cleanup main environment only
+make docker-cleanup-testing  # Cleanup testing environment only
+```
+
+### 🧪 Testing Operations
+```bash
+make docker-tests            # Run tests with fresh database
+make docker-tests-coverage   # Run tests with HTML coverage report
+make docker-test-up          # Start test containers only
+make docker-test-down        # Stop test containers only
+```
+
+### 🐚 Container Access
+```bash
+make docker-bash             # Access main container shell
+make docker-test-bash        # Access test container shell
+```
+
+### 🔨 Advanced/Development
+```bash
+make docker-build-only       # Build containers without full setup
+make docker-rebuild          # Rebuild images from scratch
 make docker-rebuild        # Rebuild Docker images from scratch
 
 # Environment management
