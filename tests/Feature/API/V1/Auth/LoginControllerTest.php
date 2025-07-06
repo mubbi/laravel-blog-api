@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 use App\Models\User;
 use App\Services\Interfaces\AuthServiceInterface;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\UnauthorizedException;
 use Mockery\MockInterface;
-
-uses(RefreshDatabase::class);
 
 describe('API/V1/Auth/LoginController', function () {
     it('can login with valid credentials', function () {
