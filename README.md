@@ -205,7 +205,7 @@ The automated setup creates:
   ```bash
   make php-tests-report
   # or
-  php artisan test --parallel --recreate-databases --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
+  php artisan test --parallel --recreate-databases --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
   ```
 
 #### Code Coverage Reports path:

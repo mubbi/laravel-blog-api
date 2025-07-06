@@ -25,7 +25,7 @@ php-tests-profile:
 
 # Generate PHP Unit Tests Coverage Report
 php-tests-report:
-	php artisan test --parallel --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
+	php artisan test --parallel --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
 
 # Lint recent changes
 lint-changes:
@@ -145,7 +145,7 @@ docker-tests:
 # Run tests with coverage in Docker
 docker-tests-coverage:
 	cd containers && docker-compose -f docker-compose.test.yml up -d
-	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
 	cd containers && docker-compose -f docker-compose.test.yml down
 
 # Bash into main container
