@@ -38,7 +38,13 @@ echo "[MAIN] SUCCESS: Database connection established!"
 # Check if this is the first run or if we need to set up
 if [ ! -f .env ]; then
     echo "[MAIN] SETUP: Environment file..."
-    cp .env.docker .env
+    if [ -f .env.docker.example ]; then
+        cp .env.docker.example .env
+        echo "[MAIN] WARNING: Using .env.docker.example as template. Run setup-env.sh to generate proper configuration."
+    else
+        echo "[MAIN] ERROR: No environment file found. Please run setup-env.sh first."
+        exit 1
+    fi
 fi
 
 # Install dependencies if needed

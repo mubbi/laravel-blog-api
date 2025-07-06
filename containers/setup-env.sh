@@ -67,31 +67,20 @@ echo "INFO: Setting up environment files automatically..."
 
 # Setup development environment
 echo ""
-echo "1. Development Environment (.env.docker)"
-setup_env_file ".env.docker.example" ".env.docker" "development"
+echo "1. Development Environment (.env)"
+setup_env_file ".env.docker.example" ".env" "development"
 
 # Setup testing environment
 echo ""
-echo "2. Testing Environment (.env.testing.docker)"
-setup_env_file ".env.testing.docker.example" ".env.testing.docker" "testing"
-
-# Setup main .env file if it doesn't exist or if it needs to be updated
-echo ""
-echo "3. Main Environment File (.env)"
-if [ -f ".env.docker" ]; then
-    cp ".env.docker" ".env"
-    echo "SUCCESS: Updated main .env file from .env.docker"
-else
-    echo "WARNING: .env.docker not found, cannot update main .env file"
-fi
+echo "2. Testing Environment (.env.testing)"
+setup_env_file ".env.testing.docker.example" ".env.testing" "testing"
 
 echo ""
 echo "SUCCESS: Environment setup complete!"
 echo ""
 echo "SUMMARY:"
-echo "✅ Development environment configured (.env.docker)"
-echo "✅ Testing environment configured (.env.testing.docker)"
-echo "✅ Main environment file updated (.env)"
+echo "✅ Main environment configured (.env) - connects to production database"
+echo "✅ Testing environment configured (.env.testing) - connects to test database"
 echo "✅ APP_KEY automatically generated for all environments"
 echo "✅ Database and Redis configurations set"
 echo ""
