@@ -23,9 +23,13 @@ php-tests:
 php-tests-profile:
 	php artisan test --profile --stop-on-failure --coverage --min=80
 
-# Generate PHP Unit Tests Coverage Report
+# Run PHP Unit Tests in parallel (fast, no coverage threshold)
+php-tests-parallel:
+	php artisan test --parallel --recreate-databases --stop-on-failure
+
+# Generate PHP Unit Tests Coverage Report (sequential for proper coverage aggregation)
 php-tests-report:
-	php artisan test --parallel --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
+	php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
 
 # Lint recent changes
 lint-changes:
@@ -136,16 +140,16 @@ docker-test-up:
 docker-test-down:
 	cd containers && docker-compose -f docker-compose.test.yml down
 
-# Run tests in Docker
+# Run tests in Docker (fast parallel tests)
 docker-tests:
 	cd containers && docker-compose -f docker-compose.test.yml up -d
-	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure --coverage --min=80
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure
 	cd containers && docker-compose -f docker-compose.test.yml down
 
-# Run tests with coverage in Docker
+# Run tests with coverage in Docker (sequential for proper coverage aggregation)
 docker-tests-coverage:
 	cd containers && docker-compose -f docker-compose.test.yml up -d
-	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
 	cd containers && docker-compose -f docker-compose.test.yml down
 
 # Bash into main container
