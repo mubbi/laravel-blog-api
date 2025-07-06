@@ -66,9 +66,8 @@ make docker-setup-testing
 ### Step-by-Step Process (All Automated)
 
 1. **Environment File Creation:**
-   - `.env.docker.example` → `.env.docker` (development config)
-   - `.env.testing.docker.example` → `.env.testing.docker` (testing config)
-   - `.env.docker` → `.env` (main application file)
+   - `.env.docker.example` → `.env` (main development environment)
+   - `.env.testing.docker.example` → `.env.testing` (testing environment)
 
 2. **APP_KEY Generation:**
    - Development: `APP_KEY=base64:xxxxxxxxxxxx` 

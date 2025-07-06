@@ -38,9 +38,8 @@ This project maintains a clean environment file structure:
 - `.env.testing.docker.example` - Testing environment template
 
 **Generated automatically (ignored by Git):**
-- `.env.docker` - Main development environment
-- `.env.testing.docker` - Testing environment  
-- `.env` - Laravel main environment file (copy of .env.docker)
+- `.env` - Main development environment (Laravel's default)
+- `.env.testing` - Testing environment (Laravel's testing default)
 
 All working environment files are automatically generated from templates with proper APP_KEY generation.
 
@@ -94,9 +93,8 @@ After setup completion:
 
 The automated setup handles all environment files:
 
-- **`.env.docker.example`** → **`.env.docker`** (development)
-- **`.env.testing.docker.example`** → **`.env.testing.docker`** (testing)
-- **`.env.docker`** → **`.env`** (main application file)
+- **`.env.docker.example`** → **`.env`** (main development environment)
+- **`.env.testing.docker.example`** → **`.env.testing`** (testing environment)
 
 **🔑 APP_KEY Generation:**
 - Unique keys automatically generated using OpenSSL
@@ -200,7 +198,7 @@ make php-tests-report
 The automated setup creates:
 - **Test Database**: `laravel_blog_test` on `mysql_test:3306` (external port 3307)
 - **Test Redis**: Isolated instance on port 6380
-- **Environment File**: `.env.testing.docker` → `.env.testing`
+- **Environment File**: `.env.testing` (generated from `.env.testing.docker.example`)
 - **Dependencies**: Composer packages installed automatically
 - **APP_KEY**: Unique key generated for test environment
 

@@ -28,14 +28,13 @@ generate_app_key() {
 
 ```bash
 # Automated file processing pipeline
-.env.docker.example → .env.docker → .env (main app)
-.env.testing.docker.example → .env.testing.docker → .env.testing (tests)
+.env.docker.example → .env (main app)
+.env.testing.docker.example → .env.testing (tests)
 ```
 
 **Intelligence Features:**
 - **Auto-detection**: Identifies empty or missing APP_KEY values
 - **Overwrite protection**: Configurable overwrite behavior for different scenarios
-- **Cross-reference updates**: Main .env automatically synced with .env.docker
 - **Validation**: Ensures all required environment variables are present
 - **Backup handling**: Preserves custom configurations when appropriate
 

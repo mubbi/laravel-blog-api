@@ -11,9 +11,8 @@ This project uses a clean environment file structure:
 - `.env.testing.docker.example` - Testing environment template
 
 ### Generated Files (Ignored by Git)
-- `.env.docker` - Main development environment (auto-generated)
-- `.env.testing.docker` - Testing environment (auto-generated)
-- `.env` - Laravel main environment file (copy of .env.docker)
+- `.env` - Main development environment (Laravel's default, auto-generated)
+- `.env.testing` - Testing environment (Laravel's testing default, auto-generated)
 
 The automation scripts automatically create the working environment files from the example templates with proper APP_KEY generation.
 
@@ -63,9 +62,8 @@ make docker-setup-testing
 ### 📁 Environment File Automation
 
 **Intelligent environment file management:**
-- `.env.docker.example` → `.env.docker` (development)
-- `.env.testing.docker.example` → `.env.testing.docker` (testing)  
-- `.env.docker` → `.env` (main application)
+- `.env.docker.example` → `.env` (main development environment)
+- `.env.testing.docker.example` → `.env.testing` (testing environment)
 - Overwrites existing files for consistent setup
 - Preserves custom configurations where appropriate
 
@@ -158,8 +156,8 @@ make docker-setup-env      # Setup environment files only
 
 The setup automatically creates and manages:
 
-- **`.env.docker`** - Production-like local development environment
-- **`.env.testing.docker`** - Testing environment configuration
+- **`.env`** - Production-like local development environment (Laravel's default)
+- **`.env.testing`** - Testing environment configuration (Laravel's testing default)
 
 Environment files are created via `make docker-setup-env` or automatically during `make docker-setup-local`.
 

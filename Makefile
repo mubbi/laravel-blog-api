@@ -110,8 +110,8 @@ docker-setup-testing: docker-cleanup-testing docker-setup-env
 	@echo ">> Installing dependencies in test container..."
 	@sleep 10
 	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader
-	@echo ">> Setting up test environment file..."
-	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test cp .env.testing.docker .env.testing
+	@echo ">> Verifying test environment file exists..."
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test test -f .env.testing || { echo "ERROR: .env.testing not found. Run 'make docker-setup-env' first."; exit 1; }
 	@echo ">> Generating test application key..."
 	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force
 	@echo ">> Running test migrations and seeders..."
@@ -232,8 +232,8 @@ docker-setup-complete: docker-cleanup docker-setup-env
 	@echo ">> Installing dependencies in test container..."
 	@sleep 10
 	-docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader
-	@echo ">> Setting up test environment file..."
-	-docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test cp .env.testing.docker .env.testing
+	@echo ">> Verifying test environment file exists..."
+	-docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test test -f .env.testing || echo "WARNING: .env.testing not found, tests may fail"
 	@echo ">> Generating test application key..."
 	-docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force
 	@echo ">> Running test migrations and seeders..."
