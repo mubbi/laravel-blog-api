@@ -16,8 +16,16 @@ services:
       - XDEBUG_MODE=${XDEBUG_MODE:-coverage}
       - APP_ENV=testing
     depends_on:
-      - mysql_test
-      - redis_test
+      mysql_test:
+        condition: service_healthy
+      redis_test:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "php", "-r", "echo 'ok';"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     networks:
       - laravel_blog_api_test_network
 
@@ -34,6 +42,12 @@ services:
       - "3307:3306"
     tmpfs:
       - /var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "laravel_user", "-plaravel_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - laravel_blog_api_test_network
 

@@ -28,36 +28,36 @@ A clean, modern, and production-ready Laravel Blog API built with the latest ver
 
 ## Local Setup
 
-To set up the project on your local machine:
+This project uses Docker for both development and testing environments to ensure consistency.
 
-1. Run the following Make command:
+### Development Environment
+
+1. Set up the Docker development environment:
 
    ```bash
-   make setup-localhost
+   make docker-setup-local
    ```
 
-   **Or perform manually:**
+   This will:
+   - Copy `.env.docker.example` to `.env.docker` (if needed)
+   - Build and start Docker containers
+   - Install dependencies
+   - Generate application key
+   - Run migrations and seeders
 
-   - Copy the example environment file:
+2. **Access the application:**
+   - API: http://localhost:8081
+   - Database: localhost:3306
+   - Redis: localhost:6379
 
-     ```bash
-     cp .env.example .env
-     ```
+### Environment Files
 
+The project uses these environment files:
 
-   - Copy the example environment file:
-
-     ```bash
-     php artisan key:generate
-     ```
-
-   - Create the database named `laravel_blog`.
-
-   - Run migrations and seed the database:
-
-     ```bash
-     php artisan migrate --seed
-     ```
+- **`.env.docker.example`** - Template for development environment
+- **`.env.docker`** - Development environment (auto-generated, git-ignored)
+- **`.env.testing.docker.example`** - Template for testing environment  
+- **`.env.testing.docker`** - Testing environment (auto-generated, git-ignored)
 
 ---
 
@@ -97,27 +97,28 @@ Automate common Git tasks using hooks:
 
 ### Setup for Testing Environment
 
-1. Run:
+1. Set up the Docker testing environment:
 
    ```bash
-   make setup-testing
+   make docker-setup-testing
    ```
 
-2. **Or manually:**
+   This will:
+   - Copy `.env.testing.docker.example` to `.env.testing.docker` (if needed)
+   - Build and start test containers with isolated services
+   - Install dependencies and run migrations
 
-   - Copy the testing environment file:
+2. **Run tests:**
 
-     ```bash
-     cp .env.testing.example .env.testing
-     ```
+   ```bash
+   make docker-test
+   ```
 
-   - Create the database named `laravel_blog_testing`.
+   Or manually:
 
-   - Run migrations and seed:
-
-     ```bash
-     php artisan --env=testing migrate --seed
-     ```
+   ```bash
+   docker-compose -f containers/docker-compose.test.yml exec laravel_blog_api_test php artisan test
+   ```
 
 ### Running Tests
 
