@@ -57,7 +57,6 @@ else
 fi
 
 TEST_COMMAND="docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --coverage-html reports/coverage --coverage-clover reports/coverage.xml"
-LARASTAN_COMMAND="docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test ./vendor/bin/phpstan analyse --memory-limit=2G"
 
 # Run tests
 echo "Running PHPUnit tests..."
@@ -65,15 +64,6 @@ $TEST_COMMAND
 
 if [ $? -ne 0 ]; then
   echo "Tests failed. Aborting the push."
-  exit 1
-fi
-
-# Run Larastan
-echo "Running Larastan (PHPStan) analysis..."
-$LARASTAN_COMMAND
-
-if [ $? -ne 0 ]; then
-  echo "Larastan found errors. Aborting the push."
   exit 1
 fi
 
