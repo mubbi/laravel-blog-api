@@ -56,7 +56,7 @@ else
     setup_test_environment
 fi
 
-TEST_COMMAND="docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --coverage-html reports/coverage --coverage-clover reports/coverage.xml"
+TEST_COMMAND="docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80"
 
 # Run tests
 echo "Running PHPUnit tests..."

@@ -17,15 +17,15 @@ setup-testing:
 
 # Run PHP Unit Tests (local MySQL)
 php-tests:
-	php artisan test --env=testing
+	php artisan test --env=testing --stop-on-failure --coverage --min=80
 
 # Run PHP Unit Tests & profile
 php-tests-profile:
-	php artisan test --profile
+	php artisan test --profile --stop-on-failure --coverage --min=80
 
 # Generate PHP Unit Tests Coverage Report
 php-tests-report:
-	php artisan test --parallel --coverage-html reports/coverage --coverage-clover reports/coverage.xml
+	php artisan test --parallel --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
 
 # Lint recent changes
 lint-changes:
@@ -139,13 +139,13 @@ docker-test-down:
 # Run tests in Docker
 docker-tests:
 	cd containers && docker-compose -f docker-compose.test.yml up -d
-	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure --coverage --min=80
 	cd containers && docker-compose -f docker-compose.test.yml down
 
 # Run tests with coverage in Docker
 docker-tests-coverage:
 	cd containers && docker-compose -f docker-compose.test.yml up -d
-	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --coverage-html reports/coverage
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
 	cd containers && docker-compose -f docker-compose.test.yml down
 
 # Bash into main container

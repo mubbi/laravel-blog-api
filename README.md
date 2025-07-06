@@ -180,16 +180,16 @@ make docker-tests-coverage
 
 **Run tests locally** (requires local setup):
 ```bash
-# Run all tests
+# Run all tests with 80% minimum coverage requirement
 make php-tests
 
-# Run specific test
-php artisan test --filter Events/UserRegistered
+# Run specific test with coverage validation
+php artisan test --filter Events/UserRegistered --stop-on-failure --coverage --min=80
 
-# Profile slow tests
+# Profile slow tests with coverage requirements
 make php-tests-profile
 
-# Generate coverage report
+# Generate coverage report with 80% minimum requirement
 make php-tests-report
 ```
 
@@ -205,7 +205,7 @@ The automated setup creates:
   ```bash
   make php-tests-report
   # or
-  php artisan test --parallel --recreate-databases --coverage-html reports/coverage --coverage-clover reports/coverage.xml
+  php artisan test --parallel --recreate-databases --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
   ```
 
 #### Code Coverage Reports path:
@@ -215,6 +215,25 @@ reports/
   coverage/index.html
   coverage.xml
 ```
+
+#### Code Coverage Requirements
+
+All test commands now enforce a **minimum of 80% code coverage**. Tests will fail if coverage falls below this threshold:
+
+- `--min=80`: Enforces 80% minimum coverage requirement
+- `--stop-on-failure`: Stops execution on first test failure for faster feedback
+- `--coverage`: Enables coverage analysis
+
+**Coverage enforcement is active in:**
+- Local test commands (`make php-tests`, `make php-tests-profile`, `make php-tests-report`)
+- Docker test commands (`make docker-tests`, `make docker-tests-coverage`)
+- Git hooks (pre-push hook)
+- Composer test script (`composer test`)
+
+**If tests fail due to insufficient coverage:**
+1. Review the coverage report at `reports/coverage/index.html`
+2. Add tests for uncovered code paths
+3. Ensure critical business logic is properly tested
 
 ---
 
