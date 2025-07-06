@@ -1,45 +1,81 @@
-#!/bin/bash
+#!/bin/sh
 
-echo "Running pre-push tests in Docker..."
+# This script runs Laravel PHPUnit tests and Larastan analysis before pushing to the remote repository.
 
-# Check if Docker is running
-if ! docker info > /dev/null 2>&1; then
-    echo "Docker is not running. Please start Docker and try again."
-    exit 1
+# Function to setup test environment in existing container
+setup_test_environment() {
+    echo "Setting up test environment in existing container..."
+    cd containers
+    docker-compose -f docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader
+    docker-compose -f docker-compose.test.yml exec -T laravel_blog_api_test bash -c "cp .env.testing.docker .env"
+    docker-compose -f docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear
+    docker-compose -f docker-compose.test.yml exec -T laravel_blog_api_test php artisan cache:clear
+    docker-compose -f docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --force
+    docker-compose -f docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed
+    cd ..
+}
+
+# Always use Docker test environment - set it up if not running
+if docker ps --format "table {{.Names}}" | grep -q "laravel_blog_api_test"; then
+    echo "Docker test container detected..."
+
+    # Check if container is healthy and has proper environment
+    if docker inspect laravel_blog_api_test --format='{{.State.Health.Status}}' 2>/dev/null | grep -q "healthy"; then
+        echo "Container is healthy, checking if environment is set up..."
+        # Quick check to see if basic Laravel setup is working
+        cd containers
+        if docker-compose -f docker-compose.test.yml exec -T laravel_blog_api_test test -f .env; then
+            echo "Using existing Docker test environment..."
+            cd ..
+        else
+            echo "Environment not set up, configuring..."
+            cd ..
+            setup_test_environment
+        fi
+    else
+        echo "Container not healthy, setting up environment..."
+        setup_test_environment
+    fi
+else
+    echo "Setting up Docker test environment..."
+    cd containers
+    docker-compose -f docker-compose.test.yml up -d
+    echo "Waiting for containers to be healthy..."
+    timeout 120 bash -c '
+        while ! docker inspect laravel_blog_api_mysql_test --format="{{.State.Health.Status}}" 2>/dev/null | grep -q "healthy"; do
+            echo "Waiting for MySQL to be healthy..."
+            sleep 5
+        done
+        echo "MySQL is healthy!"
+    '
+    if [ $? -ne 0 ]; then
+        echo "ERROR: MySQL failed to become healthy"
+        exit 1
+    fi
+    cd ..
+    setup_test_environment
 fi
 
-# Navigate to containers directory
-cd "$(dirname "$0")/../containers"
+TEST_COMMAND="docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test"
+LARASTAN_COMMAND="docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test ./vendor/bin/phpstan analyse --memory-limit=2G"
 
-# Run tests in Docker environment
-echo "Starting test containers..."
-docker-compose -f docker-compose.test.yml up -d
+# Run tests
+echo "Running PHPUnit tests..."
+$TEST_COMMAND
 
-echo "Waiting for services to be ready..."
-sleep 10
-
-echo "Running tests..."
-docker-compose -f docker-compose.test.yml exec -T laravel_blog_api_test bash -c "
-    composer install --no-interaction --prefer-dist --optimize-autoloader
-    cp .env.testing.docker .env.testing
-    php artisan config:clear --env=testing
-    php artisan cache:clear --env=testing
-    php artisan migrate:fresh --seed --env=testing
-    php artisan test --parallel --recreate-databases --coverage-html reports/coverage
-    ./vendor/bin/phpstan analyse --memory-limit=2G
-"
-
-# Get the exit code from the tests
-TEST_EXIT_CODE=$?
-
-# Stop the test containers
-echo "Stopping test containers..."
-docker-compose -f docker-compose.test.yml down
-
-if [ $TEST_EXIT_CODE -ne 0 ]; then
-    echo "Tests or analysis failed. Push aborted."
-    exit 1
+if [ $? -ne 0 ]; then
+  echo "Tests failed. Aborting the push."
+  exit 1
 fi
 
-echo "All checks passed. Proceeding with push..."
+# Run Larastan
+echo "Running Larastan (PHPStan) analysis..."
+$LARASTAN_COMMAND
+
+if [ $? -ne 0 ]; then
+  echo "Larastan found errors. Aborting the push."
+  exit 1
+fi
+
+echo "All checks passed. Proceeding with the push."
 exit 0
