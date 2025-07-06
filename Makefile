@@ -182,7 +182,7 @@ docker-check-ready:
 	@echo "CHECK: Application readiness..."
 	@echo ""
 	@echo "INFO: Main App Ready Marker:"
-	@if docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api test -f /tmp/laravel_ready; then \
+	@if docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api test -f storage/laravel_ready; then \
 		echo "SUCCESS: Ready marker exists - main app setup complete"; \
 	else \
 		echo "WAITING: Ready marker missing - main app still setting up"; \
