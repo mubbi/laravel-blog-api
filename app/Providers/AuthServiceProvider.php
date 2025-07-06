@@ -29,6 +29,17 @@ class AuthServiceProvider extends ServiceProvider
     /**
      * Register any authentication / authorization services.
      */
+    public function register(): void
+    {
+        $this->app->bind(
+            \App\Services\Interfaces\AuthServiceInterface::class,
+            \App\Services\Auth\AuthService::class
+        );
+    }
+
+    /**
+     * Register any authentication / authorization services.
+     */
     public function boot(): void
     {
         $this->registerPolicies();

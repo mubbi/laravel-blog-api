@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
-use App\Services\Auth\AuthService;
+use App\Services\Interfaces\AuthServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 final class LogoutController extends Controller
 {
     /** @phpstan-ignore-next-line property.onlyWritten */
-    public function __construct(private readonly AuthService $authService) {}
+    public function __construct(private readonly AuthServiceInterface $authService) {}
 
     /**
      * Logout user by revoking all tokens.

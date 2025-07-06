@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Services\Auth;
 
 use App\Models\User;
+use App\Services\Interfaces\AuthServiceInterface;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\UnauthorizedException;
 
-final class AuthService
+final class AuthService implements AuthServiceInterface
 {
     /**
      * Attempt to authenticate a user and return the user if successful.

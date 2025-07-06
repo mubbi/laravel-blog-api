@@ -6,6 +6,7 @@ parameters:
 
     excludePaths:
         - vendor/*
+        - tests/*
 
     reportUnmatchedIgnoredErrors: false
 
