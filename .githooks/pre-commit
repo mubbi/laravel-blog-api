@@ -15,19 +15,14 @@ done
 
 echo "Pint done..."
 
-# Run PHPStan on changed PHP files
-echo "Running PHPStan on changed files..."
-PHPSTAN_FILES=$(git diff --name-only HEAD | grep -E '\.php$')
-if [ -n "$PHPSTAN_FILES" ]; then
-  ./vendor/bin/phpstan analyse --memory-limit=2G $PHPSTAN_FILES
-  if [ $? -ne 0 ]; then
-    echo "PHPStan found errors. Aborting the commit."
-    exit 1
-  fi
-  echo "PHPStan passed!"
-else
-  echo "No PHP files changed. Skipping PHPStan."
+# Run PHPStan on whole project
+echo "Running PHPStan on whole project..."
+./vendor/bin/phpstan analyse --memory-limit=2G
+if [ $? -ne 0 ]; then
+  echo "PHPStan found errors. Aborting the commit."
+  exit 1
 fi
+echo "PHPStan passed!"
 
 # Function to setup test environment in existing container
 setup_test_environment() {
