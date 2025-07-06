@@ -229,8 +229,10 @@ All test commands now enforce a **minimum of 80% code coverage**. Tests will fai
 **Coverage enforcement is active in:**
 - Local test commands (`make php-tests`, `make php-tests-profile`, `make php-tests-report`)
 - Docker test commands (`make docker-tests`, `make docker-tests-coverage`)
-- Git hooks (pre-push hook)
+- Git hooks (pre-push hook with custom coverage validation)
 - Composer test script (`composer test`)
+
+**Note:** Git hooks use custom coverage validation since the `--min` flag may not always exit with proper error codes in Docker environments.
 
 **If tests fail due to insufficient coverage:**
 1. Review the coverage report at `reports/coverage/index.html`
