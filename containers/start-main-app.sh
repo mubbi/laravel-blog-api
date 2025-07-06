@@ -22,7 +22,13 @@ rm -f /var/www/html/storage/laravel_ready
 echo "[MAIN] WAITING: Database connection..."
 until php -r "
 try {
-    \$pdo = new PDO('mysql:host=mysql;port=3306;dbname=laravel_blog', 'laravel_user', 'laravel_password');
+    \$host = getenv('DB_HOST') ?: 'mysql';
+    \$port = getenv('DB_PORT') ?: '3306';
+    \$database = getenv('DB_DATABASE') ?: 'laravel_blog';
+    \$username = getenv('DB_USERNAME') ?: 'laravel_user';
+    \$password = getenv('DB_PASSWORD') ?: 'laravel_password';
+
+    \$pdo = new PDO(\"mysql:host=\$host;port=\$port;dbname=\$database\", \$username, \$password);
     echo 'OK';
     exit(0);
 } catch (Exception \$e) {
