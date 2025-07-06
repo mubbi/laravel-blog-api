@@ -49,6 +49,18 @@ class UserResource extends JsonResource
 
                 return array_values(array_unique($permissionSlugs));
             }),
+            $this->mergeWhen(isset($this->resource->access_token), [
+                // @phpstan-ignore-next-line property.notFound
+                'access_token' => $this->resource->access_token,
+                // @phpstan-ignore-next-line property.notFound
+                'refresh_token' => $this->resource->refresh_token,
+                // @phpstan-ignore-next-line property.notFound,method.nonObject
+                'access_token_expires_at' => $this->resource->access_token_expires_at?->toISOString(),
+                // @phpstan-ignore-next-line property.notFound,method.nonObject
+                'refresh_token_expires_at' => $this->resource->refresh_token_expires_at?->toISOString(),
+                'token_type' => 'Bearer',
+            ]),
+            // Legacy support for old 'token' field
             $this->mergeWhen(isset($this->resource->token), [
                 'token' => $this->resource->token,
             ]),

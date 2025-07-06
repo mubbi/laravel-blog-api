@@ -10,9 +10,14 @@ Route::prefix('v1')->group(function () {
 
     // Auth
     Route::post('/auth/login', \App\Http\Controllers\Api\V1\Auth\LoginController::class)->name('api.v1.auth.login');
+    Route::post('/auth/refresh', \App\Http\Controllers\Api\V1\Auth\RefreshTokenController::class)->name('api.v1.auth.refresh');
+
+    Route::middleware(['auth:sanctum', 'ability:access-api'])->group(function () {
+        Route::post('/auth/logout', \App\Http\Controllers\Api\V1\Auth\LogoutController::class)->name('api.v1.auth.logout');
+    });
 
     // User Routes
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'ability:access-api'])->group(function () {
         Route::get('/me', function (Request $request) {
             return auth()->user();
         });

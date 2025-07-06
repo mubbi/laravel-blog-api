@@ -22,6 +22,11 @@ parameters:
         - '#Property .* is never read, only written\.#'
         # Ignore response macro issues
         - '#Method .* should return .* but return statement is missing\.#'
+        # Ignore dynamic properties for auth tokens
+        - '#Access to an undefined property App\\Models\\User::\$(access_token|refresh_token|access_token_expires_at|refresh_token_expires_at)\.#'
+        - '#Cannot call method toISOString\(\) on mixed\.#'
+        # Ignore safe config casting
+        - '#Cannot cast mixed to int\.#'
 
 includes:
     - vendor/larastan/larastan/extension.neon
