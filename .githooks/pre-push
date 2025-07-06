@@ -56,7 +56,7 @@ else
     setup_test_environment
 fi
 
-TEST_COMMAND="docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test"
+TEST_COMMAND="docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --coverage-html reports/coverage --coverage-clover reports/coverage.xml"
 LARASTAN_COMMAND="docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test ./vendor/bin/phpstan analyse --memory-limit=2G"
 
 # Run tests
