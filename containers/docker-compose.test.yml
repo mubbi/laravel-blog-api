@@ -42,6 +42,8 @@ services:
       - "3307:3306"
     tmpfs:
       - /var/lib/mysql
+    volumes:
+      - ../containers/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "laravel_user", "-plaravel_password"]
       interval: 10s
