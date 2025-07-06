@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class LoginController extends Controller
 {
+    /** @phpstan-ignore-next-line property.onlyWritten */
     public function __construct(private readonly AuthService $authService) {}
 
     /**

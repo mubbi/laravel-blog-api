@@ -18,7 +18,9 @@ final class AuthService
      */
     public function login(string $email, string $password): User
     {
-        $user = User::where('email', $email)->first();
+        $user = User::with(['roles.permissions'])
+            ->where('email', $email)
+            ->first();
 
         if (! $user || ! Hash::check($password, $user->password)) {
             throw new UnauthorizedException(__('auth.failed'));

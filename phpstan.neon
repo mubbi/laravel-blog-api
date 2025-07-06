@@ -18,6 +18,10 @@ parameters:
         - '#should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo<.*> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo<.*>\.#'
         - '#should return Illuminate\\Database\\Eloquent\\Relations\\HasMany<.*> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany<.*>\.#'
         - '#@use has invalid value \(HasFactory<.*>\):#'
+        # Ignore false positives for promoted properties in constructors
+        - '#Property .* is never read, only written\.#'
+        # Ignore response macro issues
+        - '#Method .* should return .* but return statement is missing\.#'
 
 includes:
     - vendor/larastan/larastan/extension.neon

@@ -30,6 +30,25 @@ class UserResource extends JsonResource
             'linkedin' => $this->resource->linkedin,
             'github' => $this->resource->github,
             'website' => $this->resource->website,
+            'roles' => $this->whenLoaded('roles', function () {
+                return $this->resource->roles->pluck('slug');
+            }),
+            'permissions' => $this->whenLoaded('roles', function () {
+                $permissionSlugs = [];
+
+                /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Role> $roles */
+                $roles = $this->resource->roles;
+
+                foreach ($roles as $role) {
+                    /** @var \App\Models\Role $role */
+                    foreach ($role->permissions as $permission) {
+                        /** @var \App\Models\Permission $permission */
+                        $permissionSlugs[] = $permission->slug;
+                    }
+                }
+
+                return array_values(array_unique($permissionSlugs));
+            }),
             $this->mergeWhen(isset($this->resource->token), [
                 'token' => $this->resource->token,
             ]),
