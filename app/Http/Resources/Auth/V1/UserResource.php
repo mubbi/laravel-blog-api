@@ -60,10 +60,6 @@ class UserResource extends JsonResource
                 'refresh_token_expires_at' => $this->resource->refresh_token_expires_at?->toISOString(),
                 'token_type' => 'Bearer',
             ]),
-            // Legacy support for old 'token' field
-            $this->mergeWhen(isset($this->resource->token), [
-                'token' => $this->resource->token,
-            ]),
         ];
     }
 }
