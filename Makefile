@@ -1,49 +1,36 @@
-# Setup Local Automation by Git Hooks
+# Setup Git Hooks (no environment requirements)
 setup-git-hooks:
+	@echo "SETUP: Installing Git hooks..."
 	cp -r .githooks/ .git/hooks/
 	chmod +x .git/hooks/pre-commit && chmod +x .git/hooks/pre-push && chmod +x .git/hooks/prepare-commit-msg
+	@echo "SUCCESS: Git hooks installed!"
 
-# Setup Local project
-setup-localhost:
-	cp .env.example .env
-	php artisan key:generate
-	composer install
-	php artisan migrate --seed
+# Run Code Linting in Docker
+docker-lint:
+	@echo "LINT: Running Pint linter in Docker..."
+	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api ./vendor/bin/pint
+	@echo "SUCCESS: Linting completed!"
 
-# Setup PHP Unit Tests
-setup-testing:
-	cp .env.testing.example .env.testing
-	php artisan --env=testing migrate:fresh --seed
+# Run Code Linting (only recent changes) in Docker
+docker-lint-dirty:
+	@echo "LINT: Running Pint linter on dirty files in Docker..."
+	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api ./vendor/bin/pint --dirty
+	@echo "SUCCESS: Dirty files linting completed!"
 
-# Run PHP Unit Tests (local MySQL)
-php-tests:
-	php artisan test --env=testing --stop-on-failure --coverage --min=80
+# Run Static Analysis (Larastan) in Docker
+docker-analyze:
+	@echo "ANALYZE: Running Larastan static analysis in Docker..."
+	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api ./vendor/bin/phpstan analyse --memory-limit=2G
+	@echo "SUCCESS: Static analysis completed!"
 
-# Run PHP Unit Tests & profile
-php-tests-profile:
-	php artisan test --profile --stop-on-failure --coverage --min=80
+# Run Artisan commands in Docker
+docker-artisan:
+	@echo "ARTISAN: Running custom artisan command in Docker..."
+	@echo "Usage: make docker-artisan ARGS='migrate --seed'"
+	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api php artisan $(ARGS)
 
-# Run PHP Unit Tests in parallel (fast, no coverage threshold)
-php-tests-parallel:
-	php artisan test --parallel --recreate-databases --stop-on-failure
+# Docker Environment Management
 
-# Generate PHP Unit Tests Coverage Report (sequential for proper coverage aggregation)
-php-tests-report:
-	php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
-
-# Lint recent changes
-lint-changes:
-	./vendor/bin/pint --dirty
-
-# Lint full project
-lint-project:
-	./vendor/bin/pint
-
-# Larastan Analyze Project
-larastan-project:
-	./vendor/bin/phpstan analyse --memory-limit=2G
-
-# Docker Commands
 # Cleanup Docker environment (containers, images, volumes, networks)
 docker-cleanup:
 	@echo "CLEANUP: Docker environment..."
@@ -60,31 +47,22 @@ docker-cleanup:
 	-docker network prune -f
 	@echo "SUCCESS: Docker cleanup completed!"
 
-# Cleanup only test containers
-docker-cleanup-testing:
-	@echo "CLEANUP: Docker test environment..."
-	@echo "Stopping and removing test containers..."
-	-cd containers && docker-compose -f docker-compose.test.yml down --remove-orphans
-	@echo "SUCCESS: Docker test cleanup completed!"
-
-# Cleanup only main containers
-docker-cleanup-main:
-	@echo "CLEANUP: Docker main environment..."
-	@echo "Stopping and removing main containers..."
-	-cd containers && docker-compose down --remove-orphans
-	@echo "SUCCESS: Docker main cleanup completed!"
-
 # Setup Docker environment files
 docker-setup-env:
+	@echo "SETUP: Docker environment files..."
 	bash containers/setup-env.sh
+	@echo "SUCCESS: Environment files setup completed!"
 
 # Verify Docker environment setup
 docker-verify-env:
+	@echo "VERIFY: Docker environment setup..."
 	bash containers/verify-env-setup.sh
 
-# Setup Docker environment for local development (without affecting test containers) - AUTOMATED
-docker-setup-local: docker-cleanup-main docker-setup-env
-	@echo "SETUP: Automated local Docker environment setup..."
+# Docker Development Environment
+
+# Setup and start main development environment (full automated setup)
+docker-dev: docker-cleanup docker-setup-env
+	@echo "SETUP: Starting main development environment..."
 	cd containers && docker-compose up -d
 	@echo ">> Waiting for containers to be ready..."
 	@echo ">> Main app will automatically:"
@@ -93,23 +71,40 @@ docker-setup-local: docker-cleanup-main docker-setup-env
 	@echo "   - Install composer dependencies"
 	@echo "   - Run migrations and seeders"
 	@echo "   - Start web services"
-	@echo ""
-	@echo ">> Queue worker will automatically:"
-	@echo "   - Wait for main app to be completely ready"
-	@echo "   - Start processing queued jobs"
-	@echo ""
+	@echo ">> Queue worker will automatically start processing jobs"
 	@echo ">> This may take a few minutes for initial setup..."
 	@echo ">> Use 'make docker-status' to check progress"
 	@echo ">> Use 'make docker-logs' to view detailed logs"
+	@echo "SUCCESS: Development environment started!"
 
-# Build and start containers only (for debugging)
-docker-build-only: docker-cleanup-main docker-setup-env
+# Start existing development environment (no rebuild)
+docker-up:
+	@echo "START: Docker development environment..."
 	cd containers && docker-compose up -d
-	@echo "INFO: Containers started in detached mode"
+	@echo "SUCCESS: Development environment started!"
 
-# Setup Docker environment for testing (without affecting main containers) - AUTOMATED
-docker-setup-testing: docker-cleanup-testing docker-setup-env
-	@echo "SETUP: Automated testing Docker environment setup..."
+# Stop development environment
+docker-down:
+	@echo "STOP: Docker development environment..."
+	cd containers && docker-compose down
+	@echo "SUCCESS: Development environment stopped!"
+
+# Restart development environment
+docker-restart: docker-down docker-up
+	@echo "SUCCESS: Development environment restarted!"
+
+# Rebuild and start development environment (force rebuild images)
+docker-rebuild: docker-cleanup docker-setup-env
+	@echo "REBUILD: Docker development environment..."
+	cd containers && docker-compose build --no-cache
+	cd containers && docker-compose up -d
+	@echo "SUCCESS: Development environment rebuilt and started!"
+
+# Docker Testing Environment
+
+# Setup and run tests (automated testing environment)
+docker-test: docker-setup-env
+	@echo "TEST: Setting up and running tests..."
 	cd containers && docker-compose -f docker-compose.test.yml up -d
 	@echo ">> Installing dependencies in test container..."
 	@sleep 10
@@ -120,73 +115,92 @@ docker-setup-testing: docker-cleanup-testing docker-setup-env
 	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force
 	@echo ">> Running test migrations and seeders..."
 	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force
-	@echo ""
-	@echo "SUCCESS: Testing environment setup complete!"
-	@echo ">> Use 'make docker-tests' to run tests"
-
-# Start Docker local environment
-docker-up:
-	cd containers && docker-compose up -d
-
-# Stop Docker local environment
-docker-down:
-	cd containers && docker-compose down
-
-# Start Docker test environment
-docker-test-up:
-	cd containers && docker-compose -f docker-compose.test.yml up -d
-
-# Stop Docker test environment
-docker-test-down:
-	cd containers && docker-compose -f docker-compose.test.yml down
-
-# Run tests in Docker (fast parallel tests)
-docker-tests:
-	cd containers && docker-compose -f docker-compose.test.yml up -d
+	@echo ">> Running tests..."
 	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure
 	cd containers && docker-compose -f docker-compose.test.yml down
+	@echo "SUCCESS: Tests completed!"
 
-# Run tests with coverage in Docker (sequential for proper coverage aggregation)
-docker-tests-coverage:
+# Run tests with coverage report
+docker-test-coverage: docker-setup-env
+	@echo "TEST: Running tests with coverage..."
 	cd containers && docker-compose -f docker-compose.test.yml up -d
+	@echo ">> Installing dependencies in test container..."
+	@sleep 10
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader
+	@echo ">> Verifying test environment file exists..."
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test test -f .env.testing || { echo "ERROR: .env.testing not found. Run 'make docker-setup-env' first."; exit 1; }
+	@echo ">> Generating test application key..."
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force
+	@echo ">> Running test migrations and seeders..."
+	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force
+	@echo ">> Running tests with coverage..."
 	docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
 	cd containers && docker-compose -f docker-compose.test.yml down
+	@echo "SUCCESS: Tests with coverage completed!"
 
-# Bash into main container
-docker-bash:
+# Start test environment only (for debugging)
+docker-test-up:
+	@echo "START: Docker test environment..."
+	cd containers && docker-compose -f docker-compose.test.yml up -d
+	@echo "SUCCESS: Test environment started!"
+
+# Stop test environment
+docker-test-down:
+	@echo "STOP: Docker test environment..."
+	cd containers && docker-compose -f docker-compose.test.yml down
+	@echo "SUCCESS: Test environment stopped!"
+
+# Docker Utilities
+
+# Access main container shell
+docker-shell:
+	@echo "SHELL: Accessing main container..."
 	docker-compose -f containers/docker-compose.yml exec laravel_blog_api bash
 
-# Bash into test container
-docker-test-bash:
+# Access test container shell
+docker-test-shell:
+	@echo "SHELL: Accessing test container..."
 	docker-compose -f containers/docker-compose.test.yml exec laravel_blog_api_test bash
 
-# View logs
+# View logs from all containers
 docker-logs:
+	@echo "LOGS: Viewing container logs..."
 	cd containers && docker-compose logs -f
 
-# Check container status
+# View logs from main app only
+docker-logs-app:
+	@echo "LOGS: Viewing main app logs..."
+	cd containers && docker-compose logs -f laravel_blog_api
+
+# View logs from queue worker only
+docker-logs-queue:
+	@echo "LOGS: Viewing queue worker logs..."
+	cd containers && docker-compose logs -f laravel_blog_api_queue
+
+# Check container status and connection info
 docker-status:
+	@echo "STATUS: Container information..."
 	cd containers && docker-compose ps
 	@echo ""
-	@echo ">> Access your application:"
+	@echo ">> Application Access Points:"
 	@echo "  - Laravel API: http://localhost:8081"
+	@echo "  - Health Check: http://localhost:8081/api/health"
 	@echo "  - MySQL: localhost:3306 (user: laravel_user, password: laravel_password)"
 	@echo "  - Redis: localhost:6379"
-
-# Check queue worker status
-docker-queue-status:
-	@echo "QUEUE STATUS: Worker Status:"
-	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api_queue ps aux | grep "queue:work" || echo "Queue worker not running"
 	@echo ""
-	@echo "QUEUE STATUS: Job Status:"
-	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api php artisan queue:work --stop-when-empty --max-jobs=0 2>/dev/null || echo "Cannot check queue status - application may not be ready"
+	@echo ">> Development Tools:"
+	@echo "  - XDebug: Port 9003 (when enabled)"
+	@echo "  - Application Shell: make docker-shell"
+	@echo "  - Logs: make docker-logs"
 
-# Check application readiness
-docker-check-ready:
-	@echo "CHECK: Application readiness..."
+# Docker Health & Monitoring
+
+# Check application readiness and health
+docker-health:
+	@echo "HEALTH: Checking application status..."
 	@echo ""
 	@echo "INFO: Main App Ready Marker:"
-	@if docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api test -f storage/laravel_ready; then \
+	@if docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api test -f storage/laravel_ready 2>/dev/null; then \
 		echo "SUCCESS: Ready marker exists - main app setup complete"; \
 	else \
 		echo "WAITING: Ready marker missing - main app still setting up"; \
@@ -209,27 +223,34 @@ docker-check-ready:
 	@echo "INFO: Container Health Status:"
 	@cd containers && docker-compose ps
 
-# Open application in browser
+# Check queue worker status
+docker-queue-status:
+	@echo "QUEUE: Worker and job status..."
+	@echo ""
+	@echo "Queue Worker Process:"
+	@docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api_queue ps aux | grep "queue:work" || echo "Queue worker not running"
+	@echo ""
+	@echo "Queue Job Status:"
+	@docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api php artisan queue:work --stop-when-empty --max-jobs=0 2>/dev/null || echo "Cannot check queue status - application may not be ready"
+
+# Open application health endpoint in browser (Windows)
 docker-open:
-	@echo "BROWSER: Opening Laravel API at http://localhost:8081/api/health"
+	@echo "BROWSER: Opening health check endpoint..."
+	@echo "Attempting to open: http://localhost:8081/api/health"
+	@start http://localhost:8081/api/health || echo "Could not open browser automatically. Please visit: http://localhost:8081/api/health"
 
-# Rebuild Docker images
-docker-rebuild:
-	cd containers && docker-compose down
-	cd containers && docker-compose build --no-cache
-	cd containers && docker-compose up -d
+# Complete Docker Setup
 
-# Comprehensive Docker Setup - Sets up both main and testing environments
-docker-setup-complete: docker-cleanup docker-setup-env
-	@echo "SETUP: Complete Docker environment (main + testing)..."
+# Comprehensive setup - Sets up both development and testing environments
+docker-setup-all: docker-cleanup docker-setup-env
+	@echo "SETUP: Complete Docker environment (development + testing)..."
 	@echo ""
-	@echo "STEP 1: Setting up main environment..."
+	@echo "STEP 1: Setting up development environment..."
 	cd containers && docker-compose up -d
 	@echo ""
-	@echo "STEP 2: Waiting for main environment to be ready..."
+	@echo "STEP 2: Waiting for development environment to be ready..."
 	@echo ">> This may take a few minutes for initial setup..."
 	@echo ">> Use 'make docker-status' to check progress"
-	@echo ">> Use 'make docker-logs' to view detailed logs"
 	@echo ""
 	@echo "STEP 3: Setting up testing environment..."
 	cd containers && docker-compose -f docker-compose.test.yml up -d
@@ -246,7 +267,7 @@ docker-setup-complete: docker-cleanup docker-setup-env
 	@echo "SUCCESS: Complete Docker environment setup finished!"
 	@echo ""
 	@echo "SUMMARY:"
-	@echo ">> Main environment: http://localhost:8081"
+	@echo ">> Development API: http://localhost:8081"
 	@echo ">> Test environment: Ready for testing"
 	@echo ">> MySQL Main: localhost:3306"
 	@echo ">> MySQL Test: localhost:3307"
@@ -254,5 +275,62 @@ docker-setup-complete: docker-cleanup docker-setup-env
 	@echo ""
 	@echo "NEXT STEPS:"
 	@echo ">> Run 'make docker-status' to check all containers"
-	@echo ">> Run 'make docker-tests' to run tests"
+	@echo ">> Run 'make docker-test' to run tests"
 	@echo ">> Access API at http://localhost:8081/api/health"
+
+# Show available commands and usage
+help:
+	@echo "Laravel Blog API - Docker-based Development Environment"
+	@echo "======================================================"
+	@echo ""
+	@echo "Quick Start:"
+	@echo "  make docker-dev          - Setup and start development environment"
+	@echo "  make docker-test         - Run tests (includes setup)"
+	@echo "  make docker-status       - Check container status and access points"
+	@echo "  make docker-health       - Check application health"
+	@echo ""
+	@echo "Environment Management:"
+	@echo "  make docker-setup-env    - Setup environment files"
+	@echo "  make docker-verify-env   - Verify environment setup"
+	@echo "  make docker-setup-all    - Setup both dev and test environments"
+	@echo "  make docker-cleanup      - Clean up all containers and resources"
+	@echo ""
+	@echo "Development Environment:"
+	@echo "  make docker-up           - Start existing development environment"
+	@echo "  make docker-down         - Stop development environment"
+	@echo "  make docker-restart      - Restart development environment"
+	@echo "  make docker-rebuild      - Rebuild and start environment"
+	@echo ""
+	@echo "Testing:"
+	@echo "  make docker-test         - Run all tests (automated setup)"
+	@echo "  make docker-test-coverage - Run tests with coverage report"
+	@echo "  make docker-test-up      - Start test environment only"
+	@echo "  make docker-test-down    - Stop test environment"
+	@echo ""
+	@echo "Code Quality:"
+	@echo "  make docker-lint         - Run code linting (Pint)"
+	@echo "  make docker-lint-dirty   - Lint only changed files"
+	@echo "  make docker-analyze      - Run static analysis (Larastan)"
+	@echo ""
+	@echo "Utilities:"
+	@echo "  make docker-shell        - Access main container shell"
+	@echo "  make docker-test-shell   - Access test container shell"
+	@echo "  make docker-logs         - View all container logs"
+	@echo "  make docker-logs-app     - View main app logs"
+	@echo "  make docker-logs-queue   - View queue worker logs"
+	@echo "  make docker-artisan ARGS='...' - Run artisan commands"
+	@echo "  make docker-queue-status - Check queue worker status"
+	@echo "  make docker-open         - Open health endpoint in browser"
+	@echo ""
+	@echo "Git Tools:"
+	@echo "  make setup-git-hooks     - Install Git hooks (no env requirements)"
+	@echo ""
+	@echo "Access Points:"
+	@echo "  - Laravel API: http://localhost:8081"
+	@echo "  - Health Check: http://localhost:8081/api/health"
+	@echo "  - MySQL: localhost:3306"
+	@echo "  - Redis: localhost:6379"
+
+# Default target
+.PHONY: help
+.DEFAULT_GOAL := help

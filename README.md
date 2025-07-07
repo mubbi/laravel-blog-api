@@ -7,27 +7,79 @@ A clean, modern, and production-ready Laravel Blog API built with the latest ver
 ## Table of Contents
 
 1. [API Documentation](#api-documentation)
-2. [Local Setup](#local-setup)
-3. [Git Hooks Automation](#git-hooks-automation)
-4. [Running Tests & Coverage](#running-tests--coverage)
-5. [Linting & Code Formatting](#linting--code-formatting)
-6. [Static Code Analysis with Larastan](#static-code-analysis-with-larastan)
+2. [Docker Setup](#docker-setup)
+3. [Development Workflow](#development-workflow)
+4. [Testing](#testing)
+5. [Code Quality](#code-quality)
+6. [Git Hooks](#git-hooks)
+7. [Migration Guide](#migration-guide)
 
 ---
 
 ## API Documentation
 
-- Access the API documentation at:
-
-  ```
-  {APP_URL}/docs/api
-  ```
+Access the API documentation at:
+```
+http://localhost:8081/docs/api
+```
 
 ---
 
-## Local Setup
+## Docker Setup
 
-This project uses Docker for both development and testing environments to ensure consistency. The setup is **fully automated** with zero manual intervention required.
+This project uses **Docker exclusively** for both development and testing environments to ensure consistency across all platforms. The setup is **fully automated** with zero manual intervention required.
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- Git (for hooks)
+- Make (for Windows users: install via Chocolatey or use Git Bash)
+
+### 🚀 Quick Start (Recommended)
+
+**One-command setup** for complete development environment:
+
+```bash
+# Complete automated setup (development + testing environments)
+make docker-setup-all
+```
+
+This single command will:
+- ✅ Clean up any existing Docker containers and images
+- ✅ **Automatically generate APP_KEY** for all environments using OpenSSL
+- ✅ **Copy and configure environment files** from examples
+- ✅ Start both development and testing Docker containers
+- ✅ Install all Composer dependencies
+- ✅ Run database migrations and seeders
+- ✅ Set up queue workers with smart readiness detection
+- ✅ Provide access URLs and next steps
+
+### Alternative Setup Options
+
+**Development environment only:**
+```bash
+make docker-dev
+```
+
+**Testing environment only:**
+```bash
+make docker-test-up
+```
+
+**Environment files only:**
+```bash
+make docker-setup-env
+```
+
+### 📋 Access Points
+
+After setup completion:
+- **Laravel API**: http://localhost:8081
+- **API Health Check**: http://localhost:8081/api/health
+- **API Documentation**: http://localhost:8081/docs/api
+- **MySQL Main**: localhost:3306 (laravel_user/laravel_password)
+- **MySQL Test**: localhost:3307 (laravel_user/laravel_password)
+- **Redis**: localhost:6379
 
 ### � Environment File Structure
 
@@ -79,258 +131,234 @@ make docker-setup-testing
 make docker-setup-env
 ```
 
-### 📋 Access Points
+### ⚙️ Environment File Structure
 
-After setup completion:
-- **API**: http://localhost:8081
-- **API Health Check**: http://localhost:8081/api/health
-- **API Documentation**: http://localhost:8081/docs/api
-- **MySQL Main**: localhost:3306 (laravel_user/laravel_password)
-- **MySQL Test**: localhost:3307 (laravel_user/laravel_password)
-- **Redis**: localhost:6379
+This project maintains a clean environment file structure:
 
-### Environment Files (Auto-Generated)
+**Tracked in Git:**
+- `.env.docker.example` - Main development environment template
+- `.env.testing.docker.example` - Testing environment template
 
-The automated setup handles all environment files:
+**Generated automatically (ignored by Git):**
+- `.env` - Main development environment (Laravel's default)
+- `.env.testing` - Testing environment (Laravel's testing default)
 
-- **`.env.docker.example`** → **`.env`** (main development environment)
-- **`.env.testing.docker.example`** → **`.env.testing`** (testing environment)
+All working environment files are automatically generated from templates with proper APP_KEY generation using OpenSSL.
 
-**🔑 APP_KEY Generation:**
-- Unique keys automatically generated using OpenSSL
-- Different keys for development and testing environments
-- No manual `php artisan key:generate` needed
-
-### 🔧 Monitoring & Management
+### 🔧 Container Management
 
 ```bash
-# Check container status
+# Check container status and access points
 make docker-status
 
-# View logs
+# Check application health
+make docker-health
+
+# View logs from all containers
 make docker-logs
 
-# Check application readiness
-make docker-check-ready
+# View specific container logs
+make docker-logs-app     # Main app logs
+make docker-logs-queue   # Queue worker logs
 
-# Stop containers
-make docker-down
+# Container control
+make docker-up           # Start existing containers
+make docker-down         # Stop all containers
+make docker-restart      # Restart containers
 
-# Complete cleanup
-make docker-cleanup
+# Cleanup
+make docker-cleanup      # Complete cleanup (containers, images, volumes)
 ```
 
 ---
 
-## Git Hooks Automation
+## Development Workflow
 
-Automate common Git tasks using hooks:
+### Container Access
 
-1. Set up using Make:
+```bash
+# Access main container shell
+make docker-shell
 
-   ```bash
-   make setup-git-hooks
-   ```
+# Access test container shell (if test environment is running)
+make docker-test-shell
+```
 
-2. **Or manually:**
+### Running Artisan Commands
 
-   - Copy the Git hooks:
+```bash
+# Run any artisan command in Docker
+make docker-artisan ARGS="migrate --seed"
+make docker-artisan ARGS="make:controller ApiController"
+make docker-artisan ARGS="queue:work"
+```
 
-     ```bash
-     cp -r .githooks/* .git/hooks/
-     ```
+### Queue Management
 
-   - Make them executable:
+```bash
+# Check queue worker status
+make docker-queue-status
 
-     ```bash
-     chmod +x .git/hooks/pre-commit
-     chmod +x .git/hooks/pre-push
-     chmod +x .git/hooks/prepare-commit-msg
-     ```
+# View queue worker logs
+make docker-logs-queue
+```
+
+### Xdebug Configuration
+
+Xdebug is disabled by default for better performance but can be enabled:
+
+```bash
+# Enable Xdebug for debugging
+XDEBUG_MODE=debug make docker-dev
+
+# Enable for coverage reports
+XDEBUG_MODE=coverage make docker-dev
+
+# Disable Xdebug (default)
+XDEBUG_MODE=off make docker-dev
+```
 
 ---
 
-## Running Tests & Coverage
+## Testing
 
-- Review PEST documentation before writing tests: [PEST PHP Expectations](https://pestphp.com/docs/expectations)
+This project uses PEST for testing with **automated Docker-based testing environment**.
 
-### 🧪 Automated Testing Setup
+### 🧪 Quick Testing
 
-**Testing environment is automatically configured with:**
-- Isolated test database (MySQL on port 3307)
-- Separate Redis instance for testing
-- Unique APP_KEY for test environment
-- Automatic migrations and seeders
-
-### Quick Testing Commands
-
-**Setup testing environment** (if not using `docker-setup-complete`):
+**Run all tests with automated setup:**
 ```bash
-make docker-setup-testing
+make docker-test
 ```
 
-**Run tests in Docker** (recommended):
+**Run tests with coverage report:**
 ```bash
-# Run all tests with fresh database
-make docker-tests
-
-# Run tests with coverage report
-make docker-tests-coverage
-```
-
-**Run tests locally** (requires local setup):
-```bash
-# Run all tests with 80% minimum coverage requirement
-make php-tests
-
-# Run specific test with coverage validation
-php artisan test --filter Events/UserRegistered --stop-on-failure --coverage --min=80
-
-# Profile slow tests with coverage requirements
-make php-tests-profile
-
-# Generate coverage report with 80% minimum requirement
-make php-tests-report
+make docker-test-coverage
 ```
 
 ### Testing Environment Details
 
-The automated setup creates:
-- **Test Database**: `laravel_blog_test` on `mysql_test:3306` (external port 3307)
-- **Test Redis**: Isolated instance on port 6380
-- **Environment File**: `.env.testing` (generated from `.env.testing.docker.example`)
-- **Dependencies**: Composer packages installed automatically
-- **APP_KEY**: Unique key generated for test environment
+The automated testing setup creates:
+- **Isolated test database**: `laravel_blog_test` on port 3307
+- **Separate Redis instance**: For testing on port 6380
+- **Unique APP_KEY**: Generated specifically for test environment
+- **Fresh migrations**: Automatically run with seeders
 
-  ```bash
-  make php-tests-report
-  # or for coverage with threshold check (sequential execution for proper coverage aggregation)
-  php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80
-  # or for fast parallel testing (no coverage threshold)
-  php artisan test --parallel --recreate-databases --stop-on-failure
-  ```
+### Coverage Reports
 
-#### Code Coverage Reports path:
-
+Coverage reports are generated at:
 ```
 reports/
-  coverage/index.html
-  coverage.xml
+  coverage/index.html    # HTML coverage report
+  coverage.xml          # XML coverage report for CI/CD
 ```
 
-#### Code Coverage Requirements
+### Coverage Requirements
 
-All test commands now enforce a **minimum of 80% code coverage**. Tests will fail if coverage falls below this threshold:
+All tests enforce a **minimum of 80% code coverage**:
+- Tests will fail if coverage falls below this threshold
+- Reports highlight uncovered code paths
+- Critical business logic must be properly tested
 
-- `--min=80`: Enforces 80% minimum coverage requirement
-- `--stop-on-failure`: Stops execution on first test failure for faster feedback
-- `--coverage`: Enables coverage analysis
+### Manual Test Environment Management
 
-**Coverage enforcement is active in:**
-- Local test commands (`make php-tests`, `make php-tests-profile`, `make php-tests-report`)
-- Docker test commands (`make docker-tests`, `make docker-tests-coverage`)
-- Git hooks (pre-push hook with custom coverage validation)
-- Composer test script (`composer test`)
+```bash
+# Start test environment only (for debugging)
+make docker-test-up
 
-**Note:** Git hooks use custom coverage validation since the `--min` flag may not always exit with proper error codes in Docker environments.
-
-**If tests fail due to insufficient coverage:**
-1. Review the coverage report at `reports/coverage/index.html`
-2. Add tests for uncovered code paths
-3. Ensure critical business logic is properly tested
+# Stop test environment
+make docker-test-down
+```
 
 ---
 
-## Linting & Code Formatting
+## Code Quality
 
-### Automated Linting with Git Hooks
+### Linting with Pint
 
-- If Git hooks are set up, linting will automatically run on changed files.
+**Automated code formatting** using Laravel Pint:
 
-### Manually Linting Codes
+```bash
+# Lint entire project
+make docker-lint
 
-- Lint entire project:
+# Lint only changed files (faster)
+make docker-lint-dirty
+```
 
-  ```bash
-  make lint-project
-  # or
-  ./vendor/bin/pint
-  ```
+### Static Analysis with Larastan
 
-- Lint specific folder:
+**Static code analysis** for better code quality:
 
-  ```bash
-  ./vendor/bin/pint app/Models
-  ```
+```bash
+# Run static analysis
+make docker-analyze
+```
 
-- Lint specific file:
+### Quality Checks
 
-  ```bash
-  ./vendor/bin/pint app/Models/User.php
-  ```
-
-- Detailed linting:
-
-  ```bash
-  ./vendor/bin/pint -v
-  ```
-
-- Check for lint issues without fixing:
-
-  ```bash
-  ./vendor/bin/pint --test
-  ```
-
-- Lint only changed files:
-
-  ```bash
-  make lint-changes
-  # or
-  ./vendor/bin/pint --dirty
-  ```
+All code quality tools run within Docker containers:
+- **No local PHP installation required**
+- **Consistent results across all environments**
+- **Integrated with testing workflow**
 
 ---
 
-## Static Code Analysis with Larastan
+## Git Hooks
 
-- Run static analysis with memory limit adjustment:
+Automate code quality checks on Git operations:
 
-  ```bash
-  make larastan-project
-  # or
-  ./vendor/bin/phpstan analyse --memory-limit=2G
-  ```
+### Setup
 
----
+```bash
+# Install Git hooks (no environment requirements)
+make setup-git-hooks
+```
 
-### 🔄 Migration from Manual Setup
+### What the hooks do:
 
-**If you've been using the old manual setup process:**
+- **pre-commit**: Runs linting on changed files
+- **pre-push**: Runs tests with coverage validation
+- **prepare-commit-msg**: Formats commit messages
 
-1. **Clean up existing setup:**
-   ```bash
-   make docker-cleanup
-   ```
+### Manual Hook Installation
 
-2. **Use new automated setup:**
-   ```bash
-   make docker-setup-complete
-   ```
-
-3. **Verify everything works:**
-   ```bash
-   make docker-status
-   ```
-
-**What's changed:**
-- ✅ **APP_KEY now auto-generated** - no more manual `php artisan key:generate`
-- ✅ **Environment files auto-created** - no more copying and editing files
-- ✅ **Testing environment included** - both dev and test setups in one command
-- ✅ **Zero manual intervention** - everything happens automatically
-- ✅ **Better error handling** - clear messages if something goes wrong
+If you prefer manual setup:
+```bash
+cp -r .githooks/ .git/hooks/
+chmod +x .git/hooks/pre-commit
+chmod +x .git/hooks/pre-push
+chmod +x .git/hooks/prepare-commit-msg
+```
 
 ---
 
-**Note:**
-- For best results, ensure you have all required PHP extensions and dependencies installed.
-- The frontend of this project will be built using Next.js and linked here in the future.
+## Help & Troubleshooting
+
+### Getting Help
+
+```bash
+# Show all available commands with descriptions
+make help
+```
+
+### Common Issues
+
+1. **Port conflicts**: Ensure ports 8081, 3306, 3307, 6379 are not in use
+2. **Docker not running**: Make sure Docker Desktop is running
+3. **Permission issues**: On Linux/macOS, ensure your user is in the docker group
+
+### Container Architecture
+
+| Service | Container Name | Ports | Purpose |
+|---------|---------------|-------|---------|
+| **Laravel App** | `laravel_blog_api` | 8081:80 | Main application with Nginx + PHP-FPM |
+| **MySQL** | `laravel_blog_api_mysql` | 3306:3306 | Development database |
+| **Redis** | `laravel_blog_api_redis` | 6379:6379 | Cache and session store |
+| **Queue Worker** | `laravel_blog_api_queue` | - | Background job processor |
+| **MySQL Test** | `laravel_blog_api_mysql_test` | 3307:3306 | Testing database |
+| **Redis Test** | `laravel_blog_api_redis_test` | 6380:6379 | Testing cache store |
+
+---
+
+**Note:** This project is designed to work exclusively with Docker. All development, testing, and code quality tools are containerized for consistency and ease of use.
