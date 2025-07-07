@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\Interfaces\AuthServiceInterface;
 use Illuminate\Support\Facades\Hash;
@@ -82,5 +84,39 @@ describe('API/V1/Auth/LoginController', function () {
                 'data' => null,
                 'error' => null,
             ]);
+    });
+
+    it('can login and returns user with roles and permissions', function () {
+        // Create permissions with unique slugs
+        $permission1 = Permission::factory()->create(['slug' => 'test-read-'.uniqid()]);
+        $permission2 = Permission::factory()->create(['slug' => 'test-write-'.uniqid()]);
+
+        // Create role with unique slug and attach permissions
+        $role = Role::factory()->create(['slug' => 'test-editor-'.uniqid()]);
+        $role->permissions()->attach([$permission1->id, $permission2->id]);
+
+        // Create user with role
+        $user = User::factory()->create([
+            'email' => 'testeditor@example.com',
+            'password' => Hash::make('EditorPass123!'),
+        ]);
+        $user->roles()->attach($role->id);
+
+        // Attempt login
+        $response = $this->postJson(route('api.v1.auth.login'), [
+            'email' => 'testeditor@example.com',
+            'password' => 'EditorPass123!',
+        ]);
+
+        // Check response status and basic structure
+        $response->assertStatus(200);
+
+        // Get the response data to verify roles and permissions are included
+        $responseData = $response->json('data');
+
+        // Verify the roles and permissions are included in response
+        expect($responseData['roles'])->toContain($role->slug);
+        expect($responseData['permissions'])->toContain($permission1->slug);
+        expect($responseData['permissions'])->toContain($permission2->slug);
     });
 });
