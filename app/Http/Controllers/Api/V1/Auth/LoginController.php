@@ -23,6 +23,8 @@ final class LoginController extends Controller
      * Login API
      *
      * Handle an authentication attempt and return a Sanctum token
+     *
+     * @unauthenticated
      */
     public function __invoke(LoginRequest $request): JsonResponse
     {
