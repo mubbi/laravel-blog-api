@@ -29,7 +29,23 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => 'All APIs documentation for Laravel Blog application.',
+        'description' => '
+            # Laravel Blog API Documentation
+
+            This is the official API documentation for the Laravel Blog project
+
+            ## 📚 Overview
+
+            This API allows authenticated users to manage blog posts, categories, and comments. It also exposes public endpoints to view posts and categories.
+
+            ## 🔐 Authentication
+
+            Most endpoints require a valid Bearer token using Sanctum. Include it in the `Authorization` header.
+            
+            ## 🧪 Try It Out
+
+            This documentation includes "Try It" buttons for quick API testing directly from the browser.
+        ',
     ],
 
     /*

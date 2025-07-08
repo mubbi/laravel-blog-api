@@ -85,6 +85,14 @@ final class User extends Authenticatable
     }
 
     /**
+     * Check if the user has a given role.
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->roles->pluck('name')->contains($role);
+    }
+
+    /**
      * Check if the user has a given permission via their roles.
      */
     public function hasPermission(string $permission): bool
