@@ -17,6 +17,7 @@ services:
       - ./php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
       - ./nginx/default.conf:/etc/nginx/sites-available/default
       - laravel_logs:/var/www/html/storage/logs
+      - laravel_cache:/var/www/html/bootstrap/cache
     ports:
       - "8081:80"
       - "8001:8001" # xdebug port
@@ -135,4 +136,6 @@ volumes:
   redis_data:
     driver: local
   laravel_logs:
+    driver: local
+  laravel_cache:
     driver: local
