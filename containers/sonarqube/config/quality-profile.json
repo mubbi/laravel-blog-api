@@ -1,0 +1,54 @@
+{
+  "name": "Laravel Blog API - Quality Profile",
+  "language": "php",
+  "rules": [
+    {
+      "repositoryKey": "php",
+      "key": "S101",
+      "severity": "MAJOR",
+      "parameters": {
+        "className": "^[A-Z][a-zA-Z0-9]*$"
+      }
+    },
+    {
+      "repositoryKey": "php",
+      "key": "S115",
+      "severity": "MAJOR",
+      "parameters": {
+        "format": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"
+      }
+    },
+    {
+      "repositoryKey": "php",
+      "key": "S100",
+      "severity": "MAJOR",
+      "parameters": {
+        "format": "^[a-z][a-zA-Z0-9]*$"
+      }
+    },
+    {
+      "repositoryKey": "php",
+      "key": "S1192",
+      "severity": "MINOR",
+      "parameters": {
+        "threshold": "3"
+      }
+    },
+    {
+      "repositoryKey": "php",
+      "key": "S138",
+      "severity": "MAJOR",
+      "parameters": {
+        "max": "150"
+      }
+    },
+    {
+      "repositoryKey": "php",
+      "key": "S1479",
+      "severity": "MAJOR",
+      "parameters": {
+        "max": "30"
+      }
+    }
+  ]
+}

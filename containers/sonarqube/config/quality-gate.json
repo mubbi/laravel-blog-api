@@ -1,0 +1,35 @@
+{
+  "name": "Laravel Blog API - Quality Gate",
+  "conditions": [
+    {
+      "metric": "new_coverage",
+      "op": "LT",
+      "threshold": "80"
+    },
+    {
+      "metric": "new_duplicated_lines_density",
+      "op": "GT",
+      "threshold": "3"
+    },
+    {
+      "metric": "new_maintainability_rating",
+      "op": "GT",
+      "threshold": "1"
+    },
+    {
+      "metric": "new_reliability_rating",
+      "op": "GT",
+      "threshold": "1"
+    },
+    {
+      "metric": "new_security_rating",
+      "op": "GT",
+      "threshold": "1"
+    },
+    {
+      "metric": "new_security_hotspots_reviewed",
+      "op": "LT",
+      "threshold": "100"
+    }
+  ]
+}

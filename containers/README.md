@@ -2,7 +2,34 @@
 
 This directory contains all Docker configuration files for local development and testing of the Laravel Blog API project.
 
-## � Environment Files
+## 📁 Documentation
+
+- **[SONARQUBE.md](./SONARQUBE.md)** - Complete SonarQube 25.7.0 setup and usage guide
+
+## 🔍 SonarQube Quick Reference
+
+### Essential Commands
+```bash
+# Start SonarQube server
+make docker-sonarqube-start
+
+# Complete analysis (recommended)
+make docker-sonarqube-analyze
+
+# Stop SonarQube server  
+make docker-sonarqube-stop
+```
+
+### Setup Steps
+1. `make docker-sonarqube-start` - Start server
+2. Visit http://localhost:9000 (admin/admin)
+3. Generate token at: Account → Security → Tokens
+4. `export SONAR_TOKEN=squ_your_token`
+5. `make docker-sonarqube-analyze` - Run analysis
+
+**Full documentation**: [SONARQUBE.md](./SONARQUBE.md)
+
+## 🌟 Environment Files
 
 This project uses a clean environment file structure:
 

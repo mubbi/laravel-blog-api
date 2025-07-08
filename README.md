@@ -274,6 +274,19 @@ make docker-test-down
 
 ## Code Quality
 
+### SonarQube Analysis
+
+**Comprehensive code quality analysis** with SonarQube 25.7.0:
+
+```bash
+# Complete quality analysis (includes PHPStan + PHPUnit coverage)
+make docker-sonarqube-analyze
+
+# View results at: http://localhost:9000
+```
+
+**Documentation**: [containers/SONARQUBE.md](containers/SONARQUBE.md)
+
 ### Linting with Pint
 
 **Automated code formatting** using Laravel Pint:

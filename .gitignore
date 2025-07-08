@@ -30,3 +30,9 @@ Thumbs.db
 /reports
 /laravel_ready
 /storage/laravel_ready
+
+# SonarQube
+.env.sonarqube
+.scannerwork/
+.sonar/
+sonar-project.properties.bak

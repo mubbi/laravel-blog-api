@@ -278,6 +278,69 @@ docker-setup-all: docker-cleanup docker-setup-env
 	@echo ">> Run 'make docker-test' to run tests"
 	@echo ">> Access API at http://localhost:8081/api/health"
 
+# =============================================================================
+# SonarQube Quality Analysis
+# =============================================================================
+
+# Start SonarQube Server
+docker-sonarqube-start:
+	@echo "SONARQUBE: Starting SonarQube server..."
+	cd containers && docker-compose -f docker-compose.sonarqube.yml up -d
+	@echo "⏳ SonarQube is starting up... This may take a few minutes."
+	@echo "📊 SonarQube will be available at: http://localhost:9000"
+	@echo "   Default credentials: admin/admin"
+
+# Stop SonarQube Server
+docker-sonarqube-stop:
+	@echo "SONARQUBE: Stopping SonarQube server..."
+	cd containers && docker-compose -f docker-compose.sonarqube.yml down
+	@echo "SUCCESS: SonarQube server stopped!"
+
+# Run complete SonarQube analysis
+docker-sonarqube-analyze: docker-sonarqube-start
+	@echo "SONARQUBE: Running complete quality analysis..."
+	@echo "⚠️  Make sure to set SONAR_TOKEN environment variable first!"
+	@echo "   Generate token at: http://localhost:9000/account/security"
+	./containers/sonarqube/scripts/sonar-analysis.sh
+	@echo "SUCCESS: SonarQube analysis completed!"
+
+# Run SonarQube analysis (assumes server is already running)
+docker-sonarqube-scan:
+	@echo "SONARQUBE: Running SonarQube scanner..."
+	@echo "⚠️  Make sure SONAR_TOKEN is set and SonarQube server is running!"
+	./containers/sonarqube/scripts/sonar-analysis.sh
+	@echo "SUCCESS: SonarQube scan completed!"
+
+# Run SonarQube analysis for CI/CD (external SonarQube server)
+docker-sonarqube-ci:
+	@echo "SONARQUBE: Running SonarQube analysis for CI/CD..."
+	@echo "⚠️  Make sure SONAR_TOKEN and SONAR_HOST_URL are set!"
+	./containers/sonarqube/scripts/sonar-analysis-ci.sh
+	@echo "SUCCESS: SonarQube CI analysis completed!"
+
+# Generate reports for SonarQube (without running scanner)
+docker-sonarqube-reports:
+	@echo "SONARQUBE: Generating analysis reports..."
+	@echo ">> Running PHPStan analysis with JSON output..."
+	mkdir -p reports
+	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=json > reports/phpstan.json || true
+	@echo ">> Running test coverage..."
+	$(MAKE) docker-test-coverage
+	@echo "SUCCESS: Reports generated in reports/ directory!"
+	$(MAKE) docker-test-coverage
+	@echo "SUCCESS: Reports generated in reports/ directory!"
+
+# View SonarQube dashboard
+docker-sonarqube-dashboard:
+	@echo "📊 Opening SonarQube dashboard..."
+	open http://localhost:9000 || echo "Please open http://localhost:9000 in your browser"
+
+# Clean SonarQube data (reset everything)
+docker-sonarqube-clean:
+	@echo "SONARQUBE: Cleaning SonarQube data..."
+	cd containers && docker-compose -f docker-compose.sonarqube.yml down -v
+	@echo "SUCCESS: SonarQube data cleaned!"
+
 # Show available commands and usage
 help:
 	@echo "Laravel Blog API - Docker-based Development Environment"
@@ -312,6 +375,15 @@ help:
 	@echo "  make docker-lint-dirty   - Lint only changed files"
 	@echo "  make docker-analyze      - Run static analysis (Larastan)"
 	@echo ""
+	@echo "SonarQube Quality Analysis:"
+	@echo "  make docker-sonarqube-start    - Start SonarQube server"
+	@echo "  make docker-sonarqube-stop     - Stop SonarQube server"
+	@echo "  make docker-sonarqube-analyze  - Run complete SonarQube analysis"
+	@echo "  make docker-sonarqube-scan     - Run SonarQube scanner only"
+	@echo "  make docker-sonarqube-reports  - Generate reports for SonarQube"
+	@echo "  make docker-sonarqube-dashboard - Open SonarQube dashboard"
+	@echo "  make docker-sonarqube-clean    - Clean SonarQube data"
+	@echo ""
 	@echo "Utilities:"
 	@echo "  make docker-shell        - Access main container shell"
 	@echo "  make docker-test-shell   - Access test container shell"
@@ -328,6 +400,7 @@ help:
 	@echo "Access Points:"
 	@echo "  - Laravel API: http://localhost:8081"
 	@echo "  - Health Check: http://localhost:8081/api/health"
+	@echo "  - SonarQube: http://localhost:9000"
 	@echo "  - MySQL: localhost:3306"
 	@echo "  - Redis: localhost:6379"
 

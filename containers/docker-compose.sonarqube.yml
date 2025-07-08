@@ -1,0 +1,81 @@
+name: laravel_blog_sonarqube
+
+services:
+  # SonarQube Server (Community Edition - Latest Stable)
+  sonarqube:
+    image: sonarqube:25.7.0.110598-community
+    container_name: laravel_blog_sonarqube
+    restart: unless-stopped
+    depends_on:
+      sonarqube_db:
+        condition: service_healthy
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube_db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar_password
+      SONAR_WEB_PORT: 9000
+      SONAR_WEB_CONTEXT: /
+      SONAR_CE_JAVAOPTS: -Xmx3g -Xms1g
+      SONAR_WEB_JAVAOPTS: -Xmx3g -Xms1g
+      SONAR_SEARCH_JAVAOPTS: -Xmx1g -Xms1g
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_temp:/opt/sonarqube/temp
+    ports:
+      - "9000:9000"
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/api/system/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 180s
+    networks:
+      - sonarqube_network
+
+  # PostgreSQL Database for SonarQube
+  sonarqube_db:
+    image: postgres:16
+    container_name: laravel_blog_sonarqube_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar_password
+      POSTGRES_DB: sonar
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
+    volumes:
+      - sonarqube_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sonar"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sonarqube_network
+
+# Note: SonarQube Scanner CLI is not needed as a service
+# We'll run it directly using docker run when needed
+
+networks:
+  sonarqube_network:
+    driver: bridge
+
+volumes:
+  sonarqube_data:
+    driver: local
+  sonarqube_extensions:
+    driver: local
+  sonarqube_logs:
+    driver: local
+  sonarqube_temp:
+    driver: local
+  sonarqube_db_data:
+    driver: local
