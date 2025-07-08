@@ -29,23 +29,14 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => '
-            # Laravel Blog API Documentation
-
-            This is the official API documentation for the Laravel Blog project
-
-            ## 📚 Overview
-
-            This API allows authenticated users to manage blog posts, categories, and comments. It also exposes public endpoints to view posts and categories.
-
-            ## 🔐 Authentication
-
-            Most endpoints require a valid Bearer token using Sanctum. Include it in the `Authorization` header.
-            
-            ## 🧪 Try It Out
-
-            This documentation includes "Try It" buttons for quick API testing directly from the browser.
-        ',
+        'description' => '# Laravel Blog API Documentation
+This is the official API documentation for the Laravel Blog project
+## 📚 Overview
+This API allows authenticated users to manage blog posts, categories, and comments. It also exposes public endpoints to view posts and categories.
+## 🔐 Authentication
+Most endpoints require a valid Bearer token using Sanctum. Include it in the `Authorization` header.
+## 🧪 Try It Out
+This documentation includes "Send API Request" buttons for quick API testing directly from the browser.',
     ],
 
     /*
@@ -105,7 +96,12 @@ return [
      * ],
      * ```
      */
-    'servers' => null,
+    'servers' => [
+        'Local' => 'api',
+        'Development' => 'https://backend-dev.laravel-blog.com/api',
+        'Staging' => 'https://backend-stg.laravel-blog.com/api',
+        'Production' => 'https://backend.laravel-blog.com/api',
+    ],
 
     /**
      * Determines how Scramble stores the descriptions of enum cases.

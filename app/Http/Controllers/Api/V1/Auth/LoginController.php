@@ -24,6 +24,8 @@ final class LoginController extends Controller
      * Handle an authentication attempt and return a Sanctum token
      *
      * @unauthenticated
+     *
+     * @response array{status: true, message: string, data: UserResource}
      */
     public function __invoke(LoginRequest $request): JsonResponse
     {
@@ -33,14 +35,31 @@ final class LoginController extends Controller
                 $request->string('password')->toString()
             );
 
+            /**
+             * Successful login
+             */
             return response()->apiSuccess(
                 new UserResource($user),
                 __('auth.login_success')
             );
         } catch (UnauthorizedException $e) {
+            /**
+             * Invalid login credentials
+             *
+             * @status 401
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
             return response()->apiError(__('auth.failed'), Response::HTTP_UNAUTHORIZED);
         } catch (\Throwable $e) {
-            return response()->apiError(__('An unexpected error occurred.'), Response::HTTP_INTERNAL_SERVER_ERROR);
+            /**
+             * Internal server error
+             *
+             * @status 500
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return response()->apiError(__('common.something_went_wrong'), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

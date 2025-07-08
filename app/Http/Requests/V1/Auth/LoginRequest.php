@@ -25,6 +25,13 @@ final class LoginRequest extends FormRequest
     {
         return [
             'email' => ['required', 'string', 'email', 'max:255'],
+            /**
+             * Must be at least 8 characters long, include mixed case, a number, a symbol, and not appear in known data breaches.
+             *
+             * @var string
+             *
+             * @example SecureP@ssw0rd!123
+             */
             'password' => [
                 'required',
                 'string',

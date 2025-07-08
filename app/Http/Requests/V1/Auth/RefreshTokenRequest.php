@@ -24,6 +24,13 @@ class RefreshTokenRequest extends FormRequest
     public function rules(): array
     {
         return [
+            /**
+             * Must be valid sanctum refresh token.
+             *
+             * @var string
+             *
+             * @example 1|abcdefghijklmnopqrstuvwxyz1234567
+             */
             'refresh_token' => ['required', 'string'],
         ];
     }

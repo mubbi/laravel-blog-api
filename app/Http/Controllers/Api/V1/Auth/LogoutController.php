@@ -20,6 +20,8 @@ final class LogoutController extends Controller
      * Logout API
      *
      * Logout user by revoking all tokens.
+     *
+     * @response array{status: true, message: string, data: null}
      */
     public function __invoke(Request $request): JsonResponse
     {
@@ -29,12 +31,22 @@ final class LogoutController extends Controller
 
             $this->authService->logout($user);
 
+            /**
+             * Successful Logout
+             */
             return response()->apiSuccess(
                 null,
                 __('auth.logout_success')
             );
         } catch (\Throwable $e) {
-            return response()->apiError(__('An unexpected error occurred.'), Response::HTTP_INTERNAL_SERVER_ERROR);
+            /**
+             * Internal server error
+             *
+             * @status 500
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return response()->apiError(__('common.something_went_wrong'), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -33,6 +33,10 @@ class ScrambleServiceProvider extends ServiceProvider
             return app()->isLocal() || $user->hasRole(UserRole::ADMINISTRATOR->value);
         });
 
+        Scramble::registerApi('v1', [
+            'api_path' => 'api/v1',
+        ]);
+
         Scramble::configure()
             ->routes(function (Route $route): bool {
                 return Str::startsWith($route->uri, 'api/');

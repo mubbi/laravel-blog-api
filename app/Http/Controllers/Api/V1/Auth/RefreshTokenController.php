@@ -22,6 +22,8 @@ final class RefreshTokenController extends Controller
      * Refresh Token API
      *
      * Refresh the access token using a valid refresh token.
+     *
+     * @response array{status: true, message: string, data: UserResource}
      */
     public function __invoke(RefreshTokenRequest $request): JsonResponse
     {
@@ -30,14 +32,31 @@ final class RefreshTokenController extends Controller
                 $request->string('refresh_token')->toString()
             );
 
+            /**
+             * Successful Token Refresh
+             */
             return response()->apiSuccess(
                 new UserResource($user),
                 __('auth.token_refreshed_successfully')
             );
         } catch (UnauthorizedException $e) {
+            /**
+             * Invalid login credentials
+             *
+             * @status 401
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
             return response()->apiError($e->getMessage(), Response::HTTP_UNAUTHORIZED);
         } catch (\Throwable $e) {
-            return response()->apiError(__('An unexpected error occurred.'), Response::HTTP_INTERNAL_SERVER_ERROR);
+            /**
+             * Internal server error
+             *
+             * @status 500
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return response()->apiError(__('common.something_went_wrong'), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

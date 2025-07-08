@@ -61,7 +61,7 @@ describe('API/V1/Auth/LogoutController', function () {
         $response->assertStatus(500)
             ->assertJson([
                 'status' => false,
-                'message' => __('An unexpected error occurred.'),
+                'message' => __('common.something_went_wrong'),
                 'data' => null,
                 'error' => null,
             ]);
