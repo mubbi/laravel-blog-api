@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Requests\V1\Auth\LoginRequest;
-use App\Http\Resources\Auth\V1\UserResource;
+use App\Http\Resources\V1\Auth\UserResource;
 use App\Services\Interfaces\AuthServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
