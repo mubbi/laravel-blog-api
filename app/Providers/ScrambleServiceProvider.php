@@ -33,15 +33,12 @@ class ScrambleServiceProvider extends ServiceProvider
             return app()->isLocal() || $user->hasRole(UserRole::ADMINISTRATOR->value);
         });
 
-        /** @phpstan-ignore-next-line method.nonObject */
         Scramble::configure()
             ->routes(function (Route $route): bool {
                 return Str::startsWith($route->uri, 'api/');
             })
             ->withDocumentTransformers(function (OpenApi $openApi): void {
-                /** @phpstan-ignore-next-line argument.type */
                 $openApi->secure(
-                    /** @phpstan-ignore-next-line argument.type */
                     SecurityScheme::http('bearer')
                 );
             });

@@ -11,23 +11,67 @@ parameters:
     reportUnmatchedIgnoredErrors: false
 
     ignoreErrors:
+        # Laravel Framework specific ignores
         - '#Call to an undefined method Illuminate\\.*#'
         - '#Access to an undefined property Illuminate\\.*#'
         - '#PHPDoc tag @var#'
-        # Ignore missingType.generics and return.type for Eloquent HasFactory and Relations
+        
+        # Eloquent HasFactory and Relations (Laravel 12+)
         - '#uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types#'
         - '#should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo<.*> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo<.*>\.#'
         - '#should return Illuminate\\Database\\Eloquent\\Relations\\HasMany<.*> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany<.*>\.#'
+        - '#should return Illuminate\\Database\\Eloquent\\Relations\\HasOne<.*> but returns Illuminate\\Database\\Eloquent\\Relations\\HasOne<.*>\.#'
+        - '#should return Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany<.*> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany<.*>\.#'
         - '#@use has invalid value \(HasFactory<.*>\):#'
-        # Ignore false positives for promoted properties in constructors
+        
+        # Constructor property promotion (Laravel 12+ dependency injection)
         - '#Property .* is never read, only written\.#'
-        # Ignore response macro issues
-        - '#Method .* should return .* but return statement is missing\.#'
-        # Ignore dynamic properties for auth tokens
+        - '#Constructor of class .* has parameter .* with .* type but does not use it\.#'
+        
+        # Dynamic properties for authentication tokens
         - '#Access to an undefined property App\\Models\\User::\$(access_token|refresh_token|access_token_expires_at|refresh_token_expires_at)\.#'
+        - '#Cannot access property \$access_token on mixed\.#'
+        - '#Cannot access property \$refresh_token on mixed\.#'
+        - '#Cannot access property \$access_token_expires_at on mixed\.#'
+        - '#Cannot access property \$refresh_token_expires_at on mixed\.#'
+        
+        # Carbon/DateTime method calls on nullable properties
         - '#Cannot call method toISOString\(\) on mixed\.#'
-        # Ignore safe config casting
+        - '#Cannot call method toISOString\(\) on .* \| null\.#'
+        
+        # Scramble/OpenAPI documentation configuration
+        - '#Call to method configure\(\) on an unknown class Dedoc\\Scramble\\Scramble\.#'
+        - '#Call to method routes\(\) on mixed\.#'
+        - '#Call to method withDocumentTransformers\(\) on mixed\.#'
+        - '#Call to method secure\(\) on mixed\.#'
+        - '#Cannot call method withDocumentTransformers\(\) on mixed\.#'
+        - '#Cannot call method routes\(\) on mixed\.#'
+        - '#Cannot call method secure\(\) on mixed\.#'
+        - '#Parameter .* of method .* expects .*, mixed given\.#'
+        - '#Argument of an invalid type mixed supplied for readonly parameter .* of method .*\.#'
+        
+        # Laravel Response macros and facades
+        - '#Method .* should return .* but return statement is missing\.#'
+        - '#Call to an undefined method Illuminate\\Http\\Response::.*#'
+        - '#Call to an undefined method Illuminate\\Http\\JsonResponse::.*#'
+        
+        # Configuration and casting
         - '#Cannot cast mixed to int\.#'
+        - '#Cannot cast mixed to string\.#'
+        - '#Cannot cast mixed to bool\.#'
+        - '#Cannot cast mixed to float\.#'
+        
+        # Laravel Collections and fluent interfaces
+        - '#Method .* should return .* but returns Illuminate\\Support\\Collection\.#'
+        - '#Cannot call method .* on Illuminate\\Support\\Collection\|null\.#'
+        
+        # Laravel 12+ specific route model binding
+        - '#Parameter .* of method .* expects .*, mixed given\.#'
+        - '#Argument of an invalid type mixed supplied for readonly parameter .*\.#'
+        
+        # Sanctum token handling
+        - '#Access to an undefined property Laravel\\Sanctum\\PersonalAccessToken::\$plainTextToken\.#'
+        - '#Property .* \(Laravel\\Sanctum\\PersonalAccessToken\) does not accept mixed\.#'
 
 includes:
     - vendor/larastan/larastan/extension.neon

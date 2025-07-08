@@ -47,13 +47,9 @@ final class AuthService implements AuthServiceInterface
         );
 
         // Attach tokens to user dynamically
-        // @phpstan-ignore-next-line
         $user->access_token = $accessToken->plainTextToken;
-        // @phpstan-ignore-next-line
         $user->refresh_token = $refreshToken->plainTextToken;
-        // @phpstan-ignore-next-line
         $user->access_token_expires_at = $accessTokenExpiration;
-        // @phpstan-ignore-next-line
         $user->refresh_token_expires_at = $refreshTokenExpiration;
 
         return $user;
@@ -97,13 +93,9 @@ final class AuthService implements AuthServiceInterface
         $user->load(['roles.permissions']);
 
         // Attach new access token to user dynamically
-        // @phpstan-ignore-next-line
         $user->access_token = $accessToken->plainTextToken;
-        // @phpstan-ignore-next-line
         $user->refresh_token = $refreshToken;
-        // @phpstan-ignore-next-line
         $user->access_token_expires_at = $accessTokenExpiration;
-        // @phpstan-ignore-next-line
         $user->refresh_token_expires_at = $token->expires_at;
 
         return $user;

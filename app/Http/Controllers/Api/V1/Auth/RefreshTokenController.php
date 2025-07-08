@@ -16,7 +16,6 @@ use Symfony\Component\HttpFoundation\Response;
 #[Group('Authentication', weight: 0)]
 final class RefreshTokenController extends Controller
 {
-    /** @phpstan-ignore-next-line property.onlyWritten */
     public function __construct(private readonly AuthServiceInterface $authService) {}
 
     /**
