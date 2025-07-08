@@ -2,8 +2,8 @@
 
 # SonarQube 25.7.0 Analysis Script for Laravel Blog API
 # This script prepares the environment and runs SonarQube analysis
-# 
-# NETWORK CONFIGURATION: 
+#
+# NETWORK CONFIGURATION:
 # - The scanner uses the SonarQube Docker network for direct container communication
 # - Uses service name 'sonarqube' (not container name with underscores)
 # - This avoids host networking issues and ensures reliable connectivity
@@ -13,9 +13,9 @@ set -e
 echo "🚀 Starting SonarQube 25.7.0 Analysis for Laravel Blog API..."
 
 # Load environment variables if .env.sonarqube exists
-if [ -f .env.sonarqube ]; then
+if [ -f containers/.env.sonarqube ]; then
     echo "📋 Loading SonarQube environment variables..."
-    source .env.sonarqube
+    source containers/.env.sonarqube
 fi
 
 # Check if SonarQube server is running
@@ -23,7 +23,7 @@ check_sonarqube_health() {
     echo "⏳ Checking SonarQube server health..."
     local max_attempts=30
     local attempt=1
-    
+
     while [ $attempt -le $max_attempts ]; do
         if curl -f -s http://localhost:9000/api/system/status > /dev/null 2>&1; then
             echo "✅ SonarQube server is healthy"
@@ -33,7 +33,7 @@ check_sonarqube_health() {
         sleep 10
         ((attempt++))
     done
-    
+
     echo "❌ SonarQube server is not responding after $max_attempts attempts"
     exit 1
 }
@@ -42,7 +42,7 @@ check_sonarqube_health() {
 run_phpstan_analysis() {
     echo "🔍 Running PHPStan analysis..."
     mkdir -p reports
-    
+
     # Check if main app is running
     if ! docker-compose -f containers/docker-compose.yml ps -q laravel_blog_api > /dev/null 2>&1; then
         echo "Starting main application for PHPStan analysis..."
@@ -50,12 +50,12 @@ run_phpstan_analysis() {
         echo "⏳ Waiting for application to be ready..."
         sleep 30
     fi
-    
+
     # Run PHPStan with JSON format for SonarQube
     docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api \
         ./vendor/bin/phpstan analyse --configuration=phpstan.neon \
         --error-format=json > reports/phpstan.json || true
-    
+
     echo "✅ PHPStan analysis completed"
 }
 
@@ -63,7 +63,7 @@ run_phpstan_analysis() {
 run_test_coverage() {
     echo "🧪 Running test coverage..."
     mkdir -p reports
-    
+
     # Check if test environment is already healthy and running
     cd containers
     if docker-compose -f docker-compose.test.yml ps -q laravel_blog_api_test > /dev/null 2>&1; then
@@ -85,26 +85,26 @@ run_test_coverage() {
         echo "⏳ Waiting for test environment to be ready..."
         sleep 30
         cd ..
-        
+
         # Setup the test environment (install dependencies, etc.)
         echo "🔧 Setting up test environment..."
         # Install dependencies
         docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test \
             composer install --no-interaction --prefer-dist --optimize-autoloader
-        
+
         # Generate application key
         docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test \
             php artisan key:generate --env=testing --force
-        
+
         # Run migrations
         docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test \
             php artisan migrate --env=testing --force
     fi
-    
+
     # Run tests with coverage
     docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test \
         php artisan test --coverage --coverage-clover ../reports/coverage.xml --stop-on-failure
-    
+
     echo "✅ Test coverage completed"
     echo "ℹ️  Test environment kept running for other purposes"
 }
@@ -112,38 +112,59 @@ run_test_coverage() {
 # Run SonarQube Scanner using direct Docker command
 run_sonar_scanner() {
     echo "📊 Running SonarQube Scanner..."
-    
+
     # Get the project token
     if [ -z "$SONAR_TOKEN" ]; then
         echo "⚠️  SONAR_TOKEN not set. Please set it as an environment variable."
         echo "   You can generate a token at http://localhost:9000/account/security"
-        echo "   Then run: export SONAR_TOKEN=your_token_here"
-        exit 1
+        echo ""
+        echo "💡 To set the token, you have several options:"
+        echo "   1. Export it in your current session:"
+        echo "      export SONAR_TOKEN=your_token_here"
+        echo "   2. Add it to your .env.sonarqube file:"
+        echo "      echo 'SONAR_TOKEN=your_token_here' >> .env.sonarqube"
+        echo "   3. Set it inline when running the command:"
+        echo "      SONAR_TOKEN=your_token_here make docker-sonarqube-scan"
+        echo ""
+        echo "🔗 Generate your token at: http://localhost:9000/account/security"
+        echo "   Login with: admin/admin (default credentials)"
+        echo ""
+        return 1
     fi
-    
+
     # Get the SonarQube network name
     SONARQUBE_NETWORK=$(docker network ls --format "{{.Name}}" | grep "laravel_blog_sonarqube_sonarqube_network" | head -1)
-    
+
     if [ -z "$SONARQUBE_NETWORK" ]; then
         echo "❌ SonarQube network not found. Make sure SonarQube containers are running."
         echo "   Available networks:"
         docker network ls
         exit 1
     fi
-    
+
     echo "🔗 Using SonarQube network: $SONARQUBE_NETWORK"
-    
+
     # Run SonarQube Scanner using SonarQube network and container name
     echo "🔍 Running SonarQube Scanner with SonarQube network..."
+
+    # Get the project root directory in a universal way
+    # This script is in containers/sonarqube/scripts/, so we need to go up 3 levels
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../../" && pwd)"
+
+    echo "🔍 Using project root: $PROJECT_ROOT"
+
+    # Use Docker's --mount instead of -v for better cross-platform compatibility
+    # Use environment variable to set working directory to avoid Git Bash path translation
     docker run --rm \
         --network="$SONARQUBE_NETWORK" \
-        -v "$(pwd):/usr/src" \
-        -w /usr/src \
+        --mount type=bind,source="$PROJECT_ROOT",target=/usr/src \
         -e SONAR_TOKEN=$SONAR_TOKEN \
+        -e SONAR_SCANNER_HOME=/usr/src \
         sonarsource/sonar-scanner-cli:latest \
-        sonar-scanner \
+        sh -c "cd /usr/src && sonar-scanner \
         -Dsonar.projectKey=laravel-blog-api \
-        -Dsonar.projectName="Laravel Blog API" \
+        -Dsonar.projectName='Laravel Blog API' \
         -Dsonar.projectVersion=1.0.0 \
         -Dsonar.sources=app \
         -Dsonar.tests=tests \
@@ -155,10 +176,9 @@ run_sonar_scanner() {
         -Dsonar.scm.provider=git \
         -Dsonar.qualitygate.wait=false \
         -Dsonar.qualitygate.timeout=600 \
-        -Dsonar.projectBaseDir=/usr/src \
         -Dsonar.scanner.analysisCacheEnabled=false \
-        -Dsonar.verbose=true
-    
+        -Dsonar.verbose=true"
+
     echo "✅ SonarQube analysis completed"
 }
 
@@ -173,19 +193,25 @@ cleanup() {
 main() {
     # Set up cleanup trap
     trap cleanup EXIT
-    
+
     # Check if SonarQube is running
     check_sonarqube_health
-    
+
     # Run static analysis
     run_phpstan_analysis
-    
+
     # Run test coverage
     run_test_coverage
-    
+
     # Run SonarQube scanner
-    run_sonar_scanner
-    
+    if ! run_sonar_scanner; then
+        echo "❌ SonarQube scanner failed. Please set SONAR_TOKEN and try again."
+        echo "📊 Test coverage and PHPStan analysis completed successfully."
+        echo "   Coverage report: reports/coverage.xml"
+        echo "   PHPStan report: reports/phpstan.json"
+        exit 1
+    fi
+
     echo "🎉 SonarQube analysis completed successfully!"
     echo "📊 View results at: http://localhost:9000"
     echo "ℹ️  Test environment has been preserved for other purposes"

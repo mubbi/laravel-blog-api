@@ -296,18 +296,77 @@ docker-sonarqube-stop:
 	cd containers && docker-compose -f docker-compose.sonarqube.yml down
 	@echo "SUCCESS: SonarQube server stopped!"
 
+# Setup SonarQube environment and token
+docker-sonarqube-setup-token:
+	@echo "SONARQUBE: Setting up SonarQube environment and token..."
+	@echo "📋 Checking SonarQube environment configuration..."
+	@if [ ! -f containers/.env.sonarqube ]; then \
+		echo "❌ SonarQube environment file not found. Creating it from example..."; \
+		if [ -f .env.sonarqube.example ]; then \
+			cp .env.sonarqube.example containers/.env.sonarqube; \
+			echo "✅ SonarQube environment file created from .env.sonarqube.example"; \
+		else \
+			echo "❌ .env.sonarqube.example not found. Creating basic environment file..."; \
+			echo "SONAR_HOST_URL=http://localhost:9000" > containers/.env.sonarqube; \
+			echo "# SONAR_TOKEN=your_token_here" >> containers/.env.sonarqube; \
+		fi; \
+	fi
+	@echo "🔧 Opening SonarQube token setup helper..."
+	./containers/sonarqube/scripts/setup-sonar-token.sh
+	@echo "SUCCESS: SonarQube environment setup completed!"
+
+# Setup SonarQube environment (create .env.sonarqube if missing)
+docker-sonarqube-setup-env:
+	@echo "SONARQUBE: Setting up SonarQube environment..."
+	@if [ ! -f containers/.env.sonarqube ]; then \
+		echo "📋 Creating SonarQube environment file from example..."; \
+		if [ -f .env.sonarqube.example ]; then \
+			cp .env.sonarqube.example containers/.env.sonarqube; \
+			echo "✅ SonarQube environment file created from .env.sonarqube.example"; \
+		else \
+			echo "❌ .env.sonarqube.example not found. Creating basic environment file..."; \
+			echo "# SonarQube Environment Configuration" > containers/.env.sonarqube; \
+			echo "SONAR_HOST_URL=http://localhost:9000" >> containers/.env.sonarqube; \
+			echo "# SONAR_TOKEN=your_token_here" >> containers/.env.sonarqube; \
+			echo "SONAR_PROJECT_KEY=laravel-blog-api" >> containers/.env.sonarqube; \
+			echo "SONAR_PROJECT_NAME=\"Laravel Blog API\"" >> containers/.env.sonarqube; \
+			echo "SONAR_PROJECT_VERSION=1.0.0" >> containers/.env.sonarqube; \
+			echo "SONAR_SOURCES=app" >> containers/.env.sonarqube; \
+			echo "SONAR_TESTS=tests" >> containers/.env.sonarqube; \
+		fi; \
+	else \
+		echo "✅ SonarQube environment file already exists"; \
+	fi
+	@echo "SUCCESS: SonarQube environment setup completed!"
+
 # Run complete SonarQube analysis
-docker-sonarqube-analyze: docker-sonarqube-start
+docker-sonarqube-analyze: docker-sonarqube-setup-env docker-sonarqube-start
 	@echo "SONARQUBE: Running complete quality analysis..."
 	@echo "⚠️  Make sure to set SONAR_TOKEN environment variable first!"
 	@echo "   Generate token at: http://localhost:9000/account/security"
+	@if grep -q "^SONAR_TOKEN=" containers/.env.sonarqube && ! grep -q "^SONAR_TOKEN=your_token_here" containers/.env.sonarqube; then \
+		echo "✅ SONAR_TOKEN is configured in .env.sonarqube"; \
+	else \
+		echo "❌ SONAR_TOKEN is not configured. Please run: make docker-sonarqube-setup-token"; \
+		echo "   Current token status:"; \
+		grep -n "SONAR_TOKEN" containers/.env.sonarqube || echo "   No SONAR_TOKEN found"; \
+		exit 1; \
+	fi
 	./containers/sonarqube/scripts/sonar-analysis.sh
 	@echo "SUCCESS: SonarQube analysis completed!"
 
 # Run SonarQube analysis (assumes server is already running)
-docker-sonarqube-scan:
+docker-sonarqube-scan: docker-sonarqube-setup-env
 	@echo "SONARQUBE: Running SonarQube scanner..."
 	@echo "⚠️  Make sure SONAR_TOKEN is set and SonarQube server is running!"
+	@if grep -q "^SONAR_TOKEN=" containers/.env.sonarqube && ! grep -q "^SONAR_TOKEN=your_token_here" containers/.env.sonarqube; then \
+		echo "✅ SONAR_TOKEN is configured in .env.sonarqube"; \
+	else \
+		echo "❌ SONAR_TOKEN is not configured. Please run: make docker-sonarqube-setup-token"; \
+		echo "   Current token status:"; \
+		grep -n "SONAR_TOKEN" containers/.env.sonarqube || echo "   No SONAR_TOKEN found"; \
+		exit 1; \
+	fi
 	./containers/sonarqube/scripts/sonar-analysis.sh
 	@echo "SUCCESS: SonarQube scan completed!"
 
@@ -378,6 +437,8 @@ help:
 	@echo "SonarQube Quality Analysis:"
 	@echo "  make docker-sonarqube-start    - Start SonarQube server"
 	@echo "  make docker-sonarqube-stop     - Stop SonarQube server"
+	@echo "  make docker-sonarqube-setup-env - Setup SonarQube environment file"
+	@echo "  make docker-sonarqube-setup-token - Setup SonarQube authentication token"
 	@echo "  make docker-sonarqube-analyze  - Run complete SonarQube analysis"
 	@echo "  make docker-sonarqube-scan     - Run SonarQube scanner only"
 	@echo "  make docker-sonarqube-reports  - Generate reports for SonarQube"
