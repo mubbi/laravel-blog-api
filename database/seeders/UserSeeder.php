@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -20,7 +21,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make(']v79£nKMHT74'), // Change this in production!
             ]);
         }
-        $role = Role::where('name', 'Administrator')->first();
+        $role = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
         if ($role && ! $user->roles()->where('role_id', $role->id)->exists()) {
             $user->roles()->attach($role->id);
         }

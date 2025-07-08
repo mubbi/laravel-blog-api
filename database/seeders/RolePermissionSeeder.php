@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
@@ -11,7 +12,7 @@ class RolePermissionSeeder extends Seeder
     public function run()
     {
         $rolePermissions = [
-            'Administrator' => [
+            UserRole::ADMINISTRATOR->value => [
                 // User & Account Management
                 'view_users', 'create_users', 'edit_users', 'delete_users', 'ban_users', 'block_users', 'restore_users',
                 'assign_roles', 'manage_roles', 'manage_permissions', 'edit_profile', 'view_user_activity',
@@ -36,7 +37,7 @@ class RolePermissionSeeder extends Seeder
                 // General
                 'manage_options', 'read',
             ],
-            'Editor' => [
+            UserRole::EDITOR->value => [
                 // User & Account Management
                 'view_users', 'edit_profile',
                 // Article/Post Management
@@ -60,7 +61,7 @@ class RolePermissionSeeder extends Seeder
                 // General
                 'read',
             ],
-            'Author' => [
+            UserRole::AUTHOR->value => [
                 // User & Account Management
                 'edit_profile',
                 // Article/Post Management
@@ -77,7 +78,7 @@ class RolePermissionSeeder extends Seeder
                 // General
                 'read',
             ],
-            'Contributor' => [
+            UserRole::CONTRIBUTOR->value => [
                 // User & Account Management
                 'edit_profile',
                 // Article/Post Management
@@ -93,7 +94,7 @@ class RolePermissionSeeder extends Seeder
                 // General
                 'read',
             ],
-            'Subscriber' => [
+            UserRole::SUBSCRIBER->value => [
                 // User & Account Management
                 'edit_profile',
                 // Article/Post Management
