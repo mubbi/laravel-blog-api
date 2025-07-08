@@ -64,30 +64,53 @@ make docker-sonarqube-start
 
 The server will be available at: **http://localhost:9000**
 
-### Step 2: Initial Login & Setup
+### Step 2: Setup Environment
 
+```bash
+# Automated environment setup
+make docker-sonarqube-setup-env
+```
+
+This will:
+- Create `containers/.env.sonarqube` from example if missing
+- Set up basic SonarQube configuration
+- Prepare the environment for token configuration
+
+### Step 3: Generate and Configure Token
+
+```bash
+# Interactive token setup (recommended)
+make docker-sonarqube-setup-token
+```
+
+This helper will:
+- Check if SonarQube server is running
+- Open instructions for token generation
+- Prompt for token input with validation
+- Automatically save token to environment file
+
+**Manual token generation:**
 1. **Access SonarQube**: http://localhost:9000
 2. **Default credentials**: `admin` / `admin`
 3. **Change password** on first login (required)
-
-### Step 3: Generate User Token
-
-1. **Navigate to**: Account → Security → Tokens
-2. **Create new token**: 
+4. **Navigate to**: Account → Security → Tokens
+5. **Create new token**: 
    - Name: `laravel-blog-api-analysis`
    - Type: **User Token** (recommended)
    - Expiration: Set as needed
-3. **Copy the token** (starts with `squ_`)
+6. **Copy the token** (starts with `squ_`)
 
 ### Step 4: Configure Environment
 
 ```bash
-# Set your SonarQube token
-export SONAR_TOKEN=squ_your_generated_token_here
+# Automated environment setup (recommended)
+make docker-sonarqube-setup-env
 
-# Optional: Create custom environment file
-cp .env.sonarqube.example .env.sonarqube
-# Edit .env.sonarqube with your token and settings
+# Interactive token setup with helper
+make docker-sonarqube-setup-token
+
+# Manual setup (alternative)
+export SONAR_TOKEN=squ_your_generated_token_here
 ```
 
 ## 🚀 Usage Commands
@@ -112,10 +135,14 @@ This command will:
 |---------|-------------|
 | `make docker-sonarqube-start` | Start SonarQube 25.7.0 server |
 | `make docker-sonarqube-stop` | Stop SonarQube server |
+| `make docker-sonarqube-setup-env` | Setup SonarQube environment file |
+| `make docker-sonarqube-setup-token` | Interactive token setup helper |
 | `make docker-sonarqube-analyze` | Complete analysis (recommended) |
 | `make docker-sonarqube-scan` | Run scanner only (server must be running) |
 | `make docker-sonarqube-reports` | Generate reports only |
+| `make docker-sonarqube-dashboard` | Open SonarQube dashboard |
 | `make docker-sonarqube-clean` | Clean all SonarQube data |
+| `make docker-sonarqube-ci` | Run analysis for CI/CD (external server) |
 
 ### Server Management
 
@@ -262,13 +289,26 @@ sonar.newCode.referenceBranch=main
 
 ### Environment Configuration
 
-**File**: `.env.sonarqube.example`
+**File**: `containers/.env.sonarqube`
 
 ```bash
-# SonarQube Configuration
-SONAR_TOKEN=your_token_here
+# SonarQube Configuration (automatically generated)
 SONAR_HOST_URL=http://localhost:9000
+SONAR_TOKEN=squ_your_generated_token_here
 SONAR_PROJECT_KEY=laravel-blog-api
+SONAR_PROJECT_NAME="Laravel Blog API"
+SONAR_PROJECT_VERSION=1.0.0
+SONAR_SOURCES=app
+SONAR_TESTS=tests
+```
+
+**Setup Commands**:
+```bash
+# Setup environment file
+make docker-sonarqube-setup-env
+
+# Interactive token configuration
+make docker-sonarqube-setup-token
 ```
 
 ## 🐛 Troubleshooting
@@ -279,7 +319,10 @@ SONAR_PROJECT_KEY=laravel-blog-api
 **Problem**: `Authentication failed` or `401 Unauthorized`
 **Solution**: 
 ```bash
-# Regenerate token at http://localhost:9000/account/security
+# Use interactive token setup helper
+make docker-sonarqube-setup-token
+
+# Or regenerate token manually at http://localhost:9000/account/security
 export SONAR_TOKEN=squ_your_new_token
 ```
 
@@ -318,6 +361,9 @@ docker-compose -f containers/docker-compose.sonarqube.yml ps
 # View SonarQube logs
 docker logs laravel_blog_sonarqube --tail=50
 
+# Check SonarQube server status
+curl -s http://localhost:9000/api/system/status
+
 # Check network connectivity
 docker run --rm --network=laravel_blog_sonarqube_sonarqube_network \
   curlimages/curl:latest curl -s http://sonarqube:9000/api/server/version
@@ -327,6 +373,12 @@ docker run --rm --network=laravel_blog_sonarqube_sonarqube_network \
   -e SONAR_TOKEN=$SONAR_TOKEN sonarsource/sonar-scanner-cli:latest \
   sonar-scanner -Dsonar.host.url=http://sonarqube:9000 -Dsonar.sources=. \
   -Dsonar.projectKey=test -X
+
+# Check environment file
+cat containers/.env.sonarqube
+
+# Validate token in environment
+make docker-sonarqube-setup-token
 ```
 
 ## 🔒 Security Considerations
@@ -368,18 +420,38 @@ For CI/CD environments, use external SonarQube server:
 # 1. Start development environment
 make docker-up
 
-# 2. Start SonarQube
+# 2. Setup and start SonarQube
+make docker-sonarqube-setup-env
 make docker-sonarqube-start
 
-# 3. Make code changes
+# 3. Configure token (interactive helper)
+make docker-sonarqube-setup-token
+
+# 4. Make code changes
 # ... your development work ...
 
-# 4. Run analysis before commit
+# 5. Run analysis before commit
 make docker-sonarqube-analyze
 
-# 5. Review results at http://localhost:9000
-# 6. Fix any issues found
-# 7. Commit and push
+# 6. Review results at http://localhost:9000
+# 7. Fix any issues found
+# 8. Commit and push
+```
+
+### Complete Automated Workflow
+
+```bash
+# One-command setup and analysis
+make docker-sonarqube-analyze
+
+# This will:
+# - Setup environment files if missing
+# - Start SonarQube server if not running
+# - Validate token configuration
+# - Run PHPStan analysis
+# - Execute PHPUnit tests with coverage
+# - Upload results to SonarQube
+# - Open dashboard for review
 ```
 
 ## 📈 Performance Optimization
@@ -438,19 +510,33 @@ The current setup includes optimized settings:
 
 ### Essential Commands
 ```bash
-# Complete workflow
-make docker-sonarqube-start          # Start server
-export SONAR_TOKEN=squ_your_token    # Set token
-make docker-sonarqube-analyze        # Run analysis
+# Complete automated workflow
+make docker-sonarqube-setup-env          # Setup environment
+make docker-sonarqube-start               # Start server
+make docker-sonarqube-setup-token         # Configure token
+make docker-sonarqube-analyze             # Run analysis
+
+# Or one-command analysis (recommended)
+make docker-sonarqube-analyze             # Does everything above
 # View results at http://localhost:9000
 
 # Maintenance
-make docker-sonarqube-stop           # Stop server
-make docker-sonarqube-clean          # Clean data
+make docker-sonarqube-stop                # Stop server
+make docker-sonarqube-clean               # Clean data
+make docker-sonarqube-dashboard           # Open dashboard
 ```
+
+### Environment Files
+- **Example**: `.env.sonarqube.example` (tracked in git)
+- **Working**: `containers/.env.sonarqube` (auto-generated)
+
+### Token Setup
+- **Interactive**: `make docker-sonarqube-setup-token`
+- **Manual**: Set `SONAR_TOKEN` in `containers/.env.sonarqube`
 
 ### Key URLs
 - **SonarQube Web**: http://localhost:9000
+- **Token Management**: http://localhost:9000/account/security
 - **Token Management**: http://localhost:9000/account/security
 - **Project Dashboard**: http://localhost:9000/dashboard?id=laravel-blog-api
 - **System Status**: http://localhost:9000/api/system/status

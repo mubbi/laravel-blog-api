@@ -11,8 +11,9 @@ A clean, modern, and production-ready Laravel Blog API built with the latest ver
 3. [Development Workflow](#development-workflow)
 4. [Testing](#testing)
 5. [Code Quality](#code-quality)
-6. [Git Hooks](#git-hooks)
-7. [Migration Guide](#migration-guide)
+6. [SonarQube Analysis](#sonarqube-analysis)
+7. [Git Hooks](#git-hooks)
+8. [Help & Troubleshooting](#help--troubleshooting)
 
 ---
 
@@ -41,7 +42,7 @@ This project uses **Docker exclusively** for both development and testing enviro
 
 ```bash
 # Complete automated setup (development + testing environments)
-make docker-setup-all
+make docker-dev
 ```
 
 This single command will:
@@ -63,7 +64,7 @@ make docker-dev
 
 **Testing environment only:**
 ```bash
-make docker-test-up
+make docker-test
 ```
 
 **Environment files only:**
@@ -77,6 +78,7 @@ After setup completion:
 - **Laravel API**: http://localhost:8081
 - **API Health Check**: http://localhost:8081/api/health
 - **API Documentation**: http://localhost:8081/docs/api
+- **SonarQube Dashboard**: http://localhost:9000 (when started)
 - **MySQL Main**: localhost:3306 (laravel_user/laravel_password)
 - **MySQL Test**: localhost:3307 (laravel_user/laravel_password)
 - **Redis**: localhost:6379
@@ -94,56 +96,6 @@ This project maintains a clean environment file structure:
 - `.env.testing` - Testing environment (Laravel's testing default)
 
 All working environment files are automatically generated from templates with proper APP_KEY generation.
-
-### �🚀 Quick Start (Recommended)
-
-**One-command setup** for complete development environment:
-
-```bash
-# Complete automated setup (main + testing environments)
-make docker-setup-complete
-```
-
-This single command will:
-- ✅ Clean up any existing Docker containers and images
-- ✅ **Automatically generate APP_KEY** for all environments
-- ✅ **Copy and configure environment files** from examples
-- ✅ Start both main and testing Docker containers
-- ✅ Install all Composer dependencies
-- ✅ Run database migrations and seeders
-- ✅ Set up queue workers with smart readiness detection
-- ✅ Provide access URLs and next steps
-
-### Alternative Setup Options
-
-**Development environment only:**
-```bash
-make docker-setup-local
-```
-
-**Testing environment only:**
-```bash
-make docker-setup-testing
-```
-
-**Environment files only:**
-```bash
-make docker-setup-env
-```
-
-### ⚙️ Environment File Structure
-
-This project maintains a clean environment file structure:
-
-**Tracked in Git:**
-- `.env.docker.example` - Main development environment template
-- `.env.testing.docker.example` - Testing environment template
-
-**Generated automatically (ignored by Git):**
-- `.env` - Main development environment (Laravel's default)
-- `.env.testing` - Testing environment (Laravel's testing default)
-
-All working environment files are automatically generated from templates with proper APP_KEY generation using OpenSSL.
 
 ### 🔧 Container Management
 
@@ -274,18 +226,95 @@ make docker-test-down
 
 ## Code Quality
 
-### SonarQube Analysis
+---
 
-**Comprehensive code quality analysis** with SonarQube 25.7.0:
+## SonarQube Analysis
 
+**Comprehensive code quality analysis** with SonarQube 25.7.0 Community Edition, integrated with PHPStan static analysis and PHPUnit test coverage.
+
+### 🚀 Quick Start
+
+**Complete automated setup and analysis:**
 ```bash
-# Complete quality analysis (includes PHPStan + PHPUnit coverage)
 make docker-sonarqube-analyze
-
-# View results at: http://localhost:9000
 ```
 
-**Documentation**: [containers/SONARQUBE.md](containers/SONARQUBE.md)
+This single command will:
+- ✅ Setup SonarQube environment file if missing
+- ✅ Start SonarQube server with PostgreSQL database
+- ✅ Validate authentication token configuration
+- ✅ Run PHPStan static analysis
+- ✅ Execute PHPUnit tests with coverage
+- ✅ Upload all results to SonarQube
+- ✅ Open dashboard for review
+
+### 🔧 First-Time Setup
+
+**1. Environment Setup:**
+```bash
+make docker-sonarqube-setup-env
+```
+
+**2. Start SonarQube Server:**
+```bash
+make docker-sonarqube-start
+```
+
+**3. Configure Authentication Token:**
+```bash
+make docker-sonarqube-setup-token
+```
+
+This interactive helper will:
+- Check if SonarQube server is running
+- Guide you through token generation at http://localhost:9000
+- Automatically save the token to your environment file
+
+### 📊 Analysis Features
+
+- **Code Quality**: Bugs, vulnerabilities, and code smells detection
+- **Security Analysis**: Security hotspots and vulnerability scanning
+- **Test Coverage**: PHPUnit test coverage integration
+- **Static Analysis**: PHPStan results integration
+- **Quality Gates**: Automated quality threshold enforcement
+- **Technical Debt**: Measure and track technical debt
+- **Code Duplication**: Detect duplicate code blocks
+
+### 🎯 Quality Standards
+
+The project enforces these quality standards:
+- **Coverage**: ≥ 80% for new code
+- **Duplications**: ≤ 3% for new code
+- **Security Rating**: A (no vulnerabilities)
+- **Maintainability Rating**: A
+- **New Issues**: 0 (no new bugs or code smells)
+
+### 📋 Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `make docker-sonarqube-analyze` | Complete analysis (recommended) |
+| `make docker-sonarqube-start` | Start SonarQube server |
+| `make docker-sonarqube-stop` | Stop SonarQube server |
+| `make docker-sonarqube-setup-env` | Setup environment file |
+| `make docker-sonarqube-setup-token` | Interactive token setup |
+| `make docker-sonarqube-scan` | Run scanner only |
+| `make docker-sonarqube-reports` | Generate reports only |
+| `make docker-sonarqube-dashboard` | Open SonarQube dashboard |
+| `make docker-sonarqube-clean` | Clean all data |
+| `make docker-sonarqube-ci` | CI/CD analysis (external server) |
+
+### 🌐 Access Points
+
+- **SonarQube Dashboard**: http://localhost:9000
+- **Default Credentials**: admin/admin (change on first login)
+- **Token Management**: http://localhost:9000/account/security
+
+### 📚 Documentation
+
+For detailed setup, configuration, and troubleshooting information, see: [containers/SONARQUBE.md](containers/SONARQUBE.md)
+
+---
 
 ### Linting with Pint
 
@@ -371,6 +400,22 @@ make help
 | **Queue Worker** | `laravel_blog_api_queue` | - | Background job processor |
 | **MySQL Test** | `laravel_blog_api_mysql_test` | 3307:3306 | Testing database |
 | **Redis Test** | `laravel_blog_api_redis_test` | 6380:6379 | Testing cache store |
+| **SonarQube** | `laravel_blog_sonarqube` | 9000:9000 | Code quality analysis (when started) |
+| **SonarQube DB** | `laravel_blog_sonarqube_db` | 5432:5432 | SonarQube PostgreSQL database |
+
+### Available Commands
+
+For a complete list of all available commands, run:
+```bash
+make help
+```
+
+Key command categories:
+- **Environment Setup**: `docker-setup-*`, `docker-verify-env`
+- **Development**: `docker-up`, `docker-down`, `docker-restart`, `docker-shell`
+- **Testing**: `docker-test`, `docker-test-coverage`, `docker-test-*`
+- **Code Quality**: `docker-lint`, `docker-analyze`, `docker-sonarqube-*`
+- **Utilities**: `docker-logs`, `docker-status`, `docker-health`
 
 ---
 
