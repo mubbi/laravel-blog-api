@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/mubbi/laravel-blog-api/compare/v1.0.0...v1.0.1) (2025-07-18)
+
+
+### Bug Fixes
+
+* **git hooks:** fixed git hooks for husky ([3b165be](https://github.com/mubbi/laravel-blog-api/commit/3b165be1eb20a1dcfcace339ac1de8708287d029))
+
 ## 1.0.0 (2025-07-18)
 
 
