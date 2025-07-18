@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/mubbi/laravel-blog-api/compare/v1.1.0...v1.2.0) (2025-07-18)
+
+
+### Features
+
+* added port checker warning for local setup ([ad56a38](https://github.com/mubbi/laravel-blog-api/commit/ad56a3895dda02cf393fc06d87f74ef1fe3f4a3d))
+* added port checker warning for local setup ([00522a0](https://github.com/mubbi/laravel-blog-api/commit/00522a0655c9e7168325806f75e68412177abdd1))
+
 ## [1.1.0](https://github.com/mubbi/laravel-blog-api/compare/v1.0.1...v1.1.0) (2025-07-18)
 
 
