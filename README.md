@@ -1,28 +1,64 @@
 # Laravel Blog API
 
-A clean, modern, and production-ready Laravel Blog API built with the latest versions of Laravel and PHP. This project follows a modern folder structure, applies the latest security best practices, and is designed for scalability. It serves as the backend API for a blog platform whose frontend will be built separately using Next.js.
+A clean, modern, and production-ready Laravel Blog API built with the latest versions of Laravel and PHP. This project follows a modern folder structure, applies the latest security best practices, and is designed for scalability.
 
 ---
 
 ## Table of Contents
 
-1. [API Documentation](#api-documentation)
-2. [Docker Setup](#docker-setup)
-3. [Semantic Commits & Releases](#semantic-commits--releases)
-   - [Quick Setup](#-quick-setup)
-   - [Commit Workflow](#-commit-workflow)
-   - [Commit Message Format](#-commit-message-format)
-   - [Commit Enforcement](#-commit-enforcement)
-   - [Automated Release Process](#-automated-release-process)
-   - [Available Commands](#️-available-commands)
-   - [Validation & Debugging](#-validation--debugging)
-4. [Development Workflow](#development-workflow)
-5. [Testing](#testing)
-6. [Code Quality](#code-quality)
-7. [SonarQube Analysis](#sonarqube-analysis)
-8. [Git Hooks](#git-hooks)
-9. [Quick Reference](#-quick-reference)
-10. [Help & Troubleshooting](#help--troubleshooting)
+1. [Quick Setup](#-quick-setup)
+2. [API Documentation](#api-documentation)
+3. [Development Workflow](#development-workflow)
+4. [Testing](#testing)
+5. [Code Quality](#code-quality)
+6. [SonarQube Analysis (Optional)](#sonarqube-analysis-optional)
+7. [Semantic Commits](#semantic-commits)
+8. [Help & Troubleshooting](#help--troubleshooting)
+
+---
+
+## 🚀 Quick Setup
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- Git (for hooks)
+- Node.js 18+ (for commit tools)
+- Make (for Windows users: install via Chocolatey or use Git Bash)
+
+### Complete Local Development Setup
+
+**One command to set up everything:**
+
+```bash
+make local-setup
+```
+
+This single command will:
+- ✅ **Setup Docker containers** for Laravel API and testing
+- ✅ **Install Composer dependencies** automatically  
+- ✅ **Configure databases** with migrations and seeders
+- ✅ **Setup Git hooks** for code quality enforcement
+- ✅ **Install semantic commit tools** (Husky, Commitizen)
+- ✅ **Configure PHPStan and unit tests** on git push
+- ✅ **Provide access URLs** and next steps
+
+### Optional: SonarQube Code Quality Analysis
+
+```bash
+make sonarqube-setup
+```
+
+### 📋 Access Points
+
+After setup completion:
+- **Laravel API**: http://localhost:8081
+- **API Health Check**: http://localhost:8081/api/health
+- **API Documentation**: http://localhost:8081/docs/api
+- **SonarQube Dashboard**: http://localhost:9000 (when started)
+- **MySQL**: localhost:3306 (laravel_user/laravel_password)
+- **MySQL Test**: localhost:3307 (laravel_user/laravel_password)
+- **Redis**: localhost:6379
 
 ---
 
@@ -35,351 +71,198 @@ http://localhost:8081/docs/api
 
 ---
 
-## Docker Setup
-
-This project uses **Docker exclusively** for both development and testing environments to ensure consistency across all platforms. The setup is **fully automated** with zero manual intervention required.
-
-### Prerequisites
-
-- Docker and Docker Compose installed
-- Git (for hooks)
-- Make (for Windows users: install via Chocolatey or use Git Bash)
-
-### 🚀 Quick Start (Recommended)
-
-**One-command setup** for complete development environment:
-
-```bash
-# Complete automated setup (development + testing environments)
-make docker-dev
-```
-
-This single command will:
-- ✅ Clean up any existing Docker containers and images
-- ✅ **Automatically generate APP_KEY** for all environments using OpenSSL
-- ✅ **Copy and configure environment files** from examples
-- ✅ Start both development and testing Docker containers
-- ✅ Install all Composer dependencies
-- ✅ Run database migrations and seeders
-- ✅ Set up queue workers with smart readiness detection
-- ✅ Provide access URLs and next steps
-
-### Alternative Setup Options
-
-**Development environment only:**
-```bash
-make docker-dev
-```
-
-**Testing environment only:**
-```bash
-make docker-test
-```
-
-**Environment files only:**
-```bash
-make docker-setup-env
-```
-
-### 📋 Access Points
-
-After setup completion:
-- **Laravel API**: http://localhost:8081
-- **API Health Check**: http://localhost:8081/api/health
-- **API Documentation**: http://localhost:8081/docs/api
-- **SonarQube Dashboard**: http://localhost:9000 (when started)
-- **MySQL Main**: localhost:3306 (laravel_user/laravel_password)
-- **MySQL Test**: localhost:3307 (laravel_user/laravel_password)
-- **Redis**: localhost:6379
-
-### � Environment File Structure
-
-This project maintains a clean environment file structure:
-
-**Tracked in Git:**
-- `.env.docker.example` - Main development environment template
-- `.env.testing.docker.example` - Testing environment template
-
-**Generated automatically (ignored by Git):**
-- `.env` - Main development environment (Laravel's default)
-- `.env.testing` - Testing environment (Laravel's testing default)
-
-All working environment files are automatically generated from templates with proper APP_KEY generation.
-
-### 🔧 Container Management
-
-```bash
-# Check container status and access points
-make docker-status
-
-# Check application health
-make docker-health
-
-# View logs from all containers
-make docker-logs
-
-# View specific container logs
-make docker-logs-app     # Main app logs
-make docker-logs-queue   # Queue worker logs
-
-# Container control
-make docker-up           # Start existing containers
-make docker-down         # Stop all containers
-make docker-restart      # Restart containers
-
-# Cleanup
-make docker-cleanup      # Complete cleanup (containers, images, volumes)
-```
-
----
-
 ## Development Workflow
 
-### Container Access
+### Daily Development Commands
 
 ```bash
-# Access main container shell
-make docker-shell
+# Interactive semantic commit
+make commit
 
-# Access test container shell (if test environment is running)
-make docker-test-shell
+# Run tests
+make test
+
+# Run tests with coverage
+make test-coverage
+
+# Code quality checks
+make lint                # Run Pint linter
+make analyze             # Run PHPStan static analysis
+
+# Container management
+make docker-up           # Start containers
+make docker-down         # Stop containers
+make status              # Check container status
+make logs                # View logs
+make shell               # Access main container shell
 ```
 
-### Running Artisan Commands
+### Artisan Commands
 
 ```bash
-# Run any artisan command in Docker
-make docker-artisan ARGS="migrate --seed"
-make docker-artisan ARGS="make:controller ApiController"
-make docker-artisan ARGS="queue:work"
-```
-
-### Queue Management
-
-```bash
-# Check queue worker status
-make docker-queue-status
-
-# View queue worker logs
-make docker-logs-queue
-```
-
-### Xdebug Configuration
-
-Xdebug is disabled by default for better performance but can be enabled:
-
-```bash
-# Enable Xdebug for debugging
-XDEBUG_MODE=debug make docker-dev
-
-# Enable for coverage reports
-XDEBUG_MODE=coverage make docker-dev
-
-# Disable Xdebug (default)
-XDEBUG_MODE=off make docker-dev
+# Run any artisan command
+make artisan ARGS="migrate --seed"
+make artisan ARGS="make:controller ApiController"
 ```
 
 ---
 
 ## Testing
 
-This project uses PEST for testing with **automated Docker-based testing environment**.
+This project uses **PEST** for testing with **automated Docker-based testing environment**.
 
-### 🧪 Quick Testing
+### Quick Testing
 
-**Run all tests with automated setup:**
 ```bash
-make docker-test
-```
+# Run all tests with automated setup
+make test
 
-**Run tests with coverage report:**
-```bash
-make docker-test-coverage
+# Run tests with coverage report
+make test-coverage
 ```
 
 ### Testing Environment Details
 
-The automated testing setup creates:
+The automated testing setup:
 - **Isolated test database**: `laravel_blog_test` on port 3307
 - **Separate Redis instance**: For testing on port 6380
-- **Unique APP_KEY**: Generated specifically for test environment
 - **Fresh migrations**: Automatically run with seeders
-
-### Coverage Reports
-
-Coverage reports are generated at:
-```
-reports/
-  coverage/index.html    # HTML coverage report
-  coverage.xml          # XML coverage report for CI/CD
-```
+- **Coverage reports**: Generated at `reports/coverage/index.html`
 
 ### Coverage Requirements
 
-All tests enforce a **minimum of 80% code coverage**:
-- Tests will fail if coverage falls below this threshold
-- Reports highlight uncovered code paths
-- Critical business logic must be properly tested
-
-### Manual Test Environment Management
-
-```bash
-# Start test environment only (for debugging)
-make docker-test-up
-
-# Stop test environment
-make docker-test-down
-```
+- **Minimum 80% code coverage** enforced
+- **HTML reports** available at `reports/coverage/index.html`
+- **XML reports** for CI/CD at `reports/coverage.xml`
 
 ---
 
 ## Code Quality
 
----
-
-## SonarQube Analysis
-
-**Comprehensive code quality analysis** with SonarQube 25.7.0 Community Edition, integrated with PHPStan static analysis and PHPUnit test coverage.
-
-### 🚀 Quick Start
-
-**Complete automated setup and analysis:**
-```bash
-make docker-sonarqube-analyze
-```
-
-This single command will:
-- ✅ Setup SonarQube environment file if missing
-- ✅ Start SonarQube server with PostgreSQL database
-- ✅ Validate authentication token configuration
-- ✅ Run PHPStan static analysis
-- ✅ Execute PHPUnit tests with coverage
-- ✅ Upload all results to SonarQube
-- ✅ Open dashboard for review
-
-### 🔧 First-Time Setup
-
-**1. Environment Setup:**
-```bash
-make docker-sonarqube-setup-env
-```
-
-**2. Start SonarQube Server:**
-```bash
-make docker-sonarqube-start
-```
-
-**3. Configure Authentication Token:**
-```bash
-make docker-sonarqube-setup-token
-```
-
-This interactive helper will:
-- Check if SonarQube server is running
-- Guide you through token generation at http://localhost:9000
-- Automatically save the token to your environment file
-
-### 📊 Analysis Features
-
-- **Code Quality**: Bugs, vulnerabilities, and code smells detection
-- **Security Analysis**: Security hotspots and vulnerability scanning
-- **Test Coverage**: PHPUnit test coverage integration
-- **Static Analysis**: PHPStan results integration
-- **Quality Gates**: Automated quality threshold enforcement
-- **Technical Debt**: Measure and track technical debt
-- **Code Duplication**: Detect duplicate code blocks
-
-### 🎯 Quality Standards
-
-The project enforces these quality standards:
-- **Coverage**: ≥ 80% for new code
-- **Duplications**: ≤ 3% for new code
-- **Security Rating**: A (no vulnerabilities)
-- **Maintainability Rating**: A
-- **New Issues**: 0 (no new bugs or code smells)
-
-### 📋 Available Commands
-
-| Command | Description |
-|---------|-------------|
-| `make docker-sonarqube-analyze` | Complete analysis (recommended) |
-| `make docker-sonarqube-start` | Start SonarQube server |
-| `make docker-sonarqube-stop` | Stop SonarQube server |
-| `make docker-sonarqube-setup-env` | Setup environment file |
-| `make docker-sonarqube-setup-token` | Interactive token setup |
-| `make docker-sonarqube-scan` | Run scanner only |
-| `make docker-sonarqube-reports` | Generate reports only |
-| `make docker-sonarqube-dashboard` | Open SonarQube dashboard |
-| `make docker-sonarqube-clean` | Clean all data |
-| `make docker-sonarqube-ci` | CI/CD analysis (external server) |
-
-### 🌐 Access Points
-
-- **SonarQube Dashboard**: http://localhost:9000
-- **Default Credentials**: admin/admin (change on first login)
-- **Token Management**: http://localhost:9000/account/security
-
-### 📚 Documentation
-
-For detailed setup, configuration, and troubleshooting information, see: [containers/SONARQUBE.md](containers/SONARQUBE.md)
-
----
-
-### Linting with Pint
-
-**Automated code formatting** using Laravel Pint:
+### Automated Code Quality Tools
 
 ```bash
-# Lint entire project
-make docker-lint
+# Run linting with Laravel Pint
+make lint
 
 # Lint only changed files (faster)
-make docker-lint-dirty
+make lint-dirty
+
+# Run static analysis with PHPStan
+make analyze
 ```
 
-### Static Analysis with Larastan
+### Git Hooks
 
-**Static code analysis** for better code quality:
-
-```bash
-# Run static analysis
-make docker-analyze
-```
-
-### Quality Checks
-
-All code quality tools run within Docker containers:
-- **No local PHP installation required**
-- **Consistent results across all environments**
-- **Integrated with testing workflow**
+Automated quality checks on Git operations:
+- **pre-commit**: Runs linting on changed files
+- **pre-push**: Runs tests with PHPStan analysis  
+- **prepare-commit-msg**: Formats commit messages
 
 ---
 
-## Git Hooks
+## SonarQube Analysis (Optional)
 
-Automate code quality checks on Git operations:
+**Comprehensive code quality analysis** with SonarQube integration.
 
-### Setup
+### Quick Setup
 
 ```bash
-# Install Git hooks (no environment requirements)
-make setup-git-hooks
+# Complete SonarQube setup
+make sonarqube-setup
 ```
 
-### What the hooks do:
+### Manual Setup Steps
 
-- **pre-commit**: Runs linting on changed files
-- **pre-push**: Runs tests with coverage validation
-- **prepare-commit-msg**: Formats commit messages
+1. **Start SonarQube server:**
+   ```bash
+   make sonarqube-start
+   ```
 
-### Manual Hook Installation
+2. **Generate authentication token:**
+   - Visit http://localhost:9000 (admin/admin)
+   - Go to Account → Security → Tokens
+   - Generate a new token
 
-If you prefer manual setup:
+3. **Configure token:**
+   ```bash
+   make sonarqube-setup-token
+   ```
+
+4. **Run analysis:**
+   ```bash
+   make sonarqube-analyze
+   ```
+
+### SonarQube Features
+
+- **Code Quality**: Bugs, vulnerabilities, code smells
+- **Security Analysis**: Security hotspots and vulnerabilities
+- **Test Coverage**: PHPUnit coverage integration
+- **Static Analysis**: PHPStan results integration
+- **Quality Gates**: Automated threshold enforcement
+
+### SonarQube Commands
+
 ```bash
-cp -r .githooks/ .git/hooks/
-chmod +x .git/hooks/pre-commit
-chmod +x .git/hooks/pre-push
-chmod +x .git/hooks/prepare-commit-msg
+make sonarqube-start      # Start SonarQube server
+make sonarqube-analyze    # Run complete analysis
+make sonarqube-dashboard  # Open dashboard
+make sonarqube-stop       # Stop SonarQube server
+```
+
+---
+
+## Semantic Commits
+
+This project enforces **semantic commits** following the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+
+### Commit Workflow
+
+**Interactive guided commits (recommended):**
+```bash
+make commit
+```
+
+**Manual commits (auto-validated):**
+```bash
+git add .
+git commit -m "feat(auth): add user authentication endpoint"
+```
+
+### Commit Message Format
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+**Valid types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `ci`, `build`, `revert`
+
+**Examples:**
+```bash
+feat(api): add user registration endpoint
+fix(auth): resolve token validation issue  
+docs: update API documentation
+test(api): add integration tests for auth
+```
+
+### Automated Release Process
+
+- **Semantic versioning** based on commit types
+- **Automated changelog** generation
+- **GitHub releases** with proper tagging
+- **Version bumping** in package files
+
+### Commit Commands
+
+```bash
+make commit              # Interactive semantic commit
+make validate-commit     # Validate recent commits
+make release             # Create release (maintainers only)
 ```
 
 ---
@@ -393,11 +276,32 @@ chmod +x .git/hooks/prepare-commit-msg
 make help
 ```
 
-### Common Issues
+### Most Common Commands
 
-1. **Port conflicts**: Ensure ports 8081, 3306, 3307, 6379 are not in use
-2. **Docker not running**: Make sure Docker Desktop is running
-3. **Permission issues**: On Linux/macOS, ensure your user is in the docker group
+```bash
+# Complete setup from scratch
+make local-setup
+
+# Daily development workflow
+make commit                      # Interactive semantic commit
+make test                        # Run tests
+make lint                        # Run code linting
+make analyze                     # Run static analysis
+
+# Container management
+make docker-up                   # Start containers
+make docker-down                 # Stop containers
+make status                      # Check container status
+make logs                        # View logs
+make shell                       # Access container shell
+
+# Optional SonarQube
+make sonarqube-setup            # Setup SonarQube
+make sonarqube-analyze          # Run quality analysis
+
+# Cleanup
+make docker-cleanup             # Clean up everything
+```
 
 ### Container Architecture
 
@@ -409,267 +313,54 @@ make help
 | **Queue Worker** | `laravel_blog_api_queue` | - | Background job processor |
 | **MySQL Test** | `laravel_blog_api_mysql_test` | 3307:3306 | Testing database |
 | **Redis Test** | `laravel_blog_api_redis_test` | 6380:6379 | Testing cache store |
-| **SonarQube** | `laravel_blog_sonarqube` | 9000:9000 | Code quality analysis (when started) |
-| **SonarQube DB** | `laravel_blog_sonarqube_db` | 5432:5432 | SonarQube PostgreSQL database |
+| **SonarQube** | `laravel_blog_sonarqube` | 9000:9000 | Code quality analysis (optional) |
 
-### Available Commands
+### Common Issues
 
-For a complete list of all available commands, run:
-```bash
-make help
-```
+1. **Port conflicts**: Ensure ports 8081, 3306, 3307, 6379 are not in use
+2. **Docker not running**: Make sure Docker Desktop is running
+3. **Permission issues**: On Linux/macOS, ensure your user is in the docker group
+4. **Node.js not found**: Install Node.js 18+ for commit tools
 
-Key command categories:
-- **Environment Setup**: `docker-setup-*`, `docker-verify-env`
-- **Development**: `docker-up`, `docker-down`, `docker-restart`, `docker-shell`
-- **Testing**: `docker-test`, `docker-test-coverage`, `docker-test-*`
-- **Code Quality**: `docker-lint`, `docker-analyze`, `docker-sonarqube-*`
-- **Utilities**: `docker-logs`, `docker-status`, `docker-health`
+### Support
 
----
-
-**Note:** This project is designed to work exclusively with Docker. All development, testing, and code quality tools are containerized for consistency and ease of use.
+- **View logs**: `make logs`
+- **Check health**: `make health`
+- **Container status**: `make status`
+- **Full cleanup**: `make docker-cleanup`
 
 ---
 
-## Semantic Commits & Releases
-
-This project enforces **semantic commits** following the [Conventional Commits](https://www.conventionalcommits.org/) specification and provides **automated releases** with changelog generation using **Commitizen**, **Commitlint**, and **Release Please**.
-
-### 🚀 Quick Setup
-
-```bash
-# Complete setup with commit tools and git hooks
-make setup-dev
-
-# OR Docker-based setup (works without Node.js)
-make docker-setup-dev
-```
-
-### 📝 Commit Workflow
-
-#### **Option 1: Interactive Guided Commits (Recommended)**
-```bash
-# Local setup (requires Node.js)
-make commit
-
-# Docker-based (works anywhere)
-make docker-commit
-```
-
-#### **Option 2: Manual Commits (Auto-validated)**
-```bash
-git add .
-git commit -m "feat(auth): add user authentication endpoint"
-```
-
-### � Commit Message Format
-
-All commits must follow this format:
-```
-<type>[optional scope]: <description>
-
-[optional body]
-
-[optional footer(s)]
-```
-
-#### **Valid Types**
-- `feat`: ✨ New feature
-- `fix`: 🐛 Bug fix
-- `docs`: 📚 Documentation changes
-- `style`: 💄 Code formatting (no logic changes)
-- `refactor`: ♻️ Code refactoring
-- `test`: 🧪 Adding or updating tests
-- `chore`: 🔧 Build process or auxiliary tools
-- `perf`: ⚡ Performance improvements
-- `ci`: 👷 CI configuration changes
-- `build`: 📦 Build system changes
-- `revert`: ⏪ Reverting previous commits
-
-#### **Examples**
-```bash
-feat(api): add user registration endpoint
-fix(auth): resolve token validation issue  
-docs: update API documentation
-refactor(user): simplify user model relationships
-test(api): add integration tests for auth endpoints
-chore(deps): update Laravel to v11
-perf(db): optimize user query performance
-ci: add automated testing workflow
-```
-
-### 🔒 Commit Enforcement
-
-#### **Local Protection**
-- **Git hooks** validate commit messages before push
-- **Interactive guidance** for proper commit format
-- **Helpful error messages** with examples
-
-#### **CI/CD Protection**
-- **Pull request validation** checks all commits
-- **GitHub Actions** enforce semantic commit format
-- **Blocks merging** of invalid commits
-
-### 📦 Automated Release Process
-
-Our automated release system works as follows:
-
-#### **1. Commit Analysis**
-- **Release Please** analyzes all semantic commits
-- **Determines version bump** based on commit types:
-  - `feat`: Minor version bump (1.0.0 → 1.1.0)
-  - `fix`: Patch version bump (1.0.0 → 1.0.1)
-  - `BREAKING CHANGE`: Major version bump (1.0.0 → 2.0.0)
-
-#### **2. Release PR Creation**
-When commits are pushed to main branch, Release Please automatically:
-- **Creates a release PR** with version bump
-- **Generates CHANGELOG.md** from commit history
-- **Updates version numbers** in package files
-- **Tags the release** when PR is merged
-
-#### **3. GitHub Release**
-Upon merging the release PR:
-- **GitHub release** is created automatically
-- **Docker images** are built and tagged
-- **Deployment pipeline** can be triggered
-- **Release notes** are generated from commits
-
-### 🛠️ Available Commands
-
-#### **Setup Commands**
-```bash
-make setup-dev              # Complete local setup
-make docker-setup-dev       # Docker-based setup
-make install-commit-tools    # Install Node.js dependencies only
-make setup-git-hooks        # Install git hooks only
-```
-
-#### **Commit Commands**
-```bash
-make commit                 # Interactive semantic commit (local)
-make docker-commit          # Interactive semantic commit (Docker)
-make validate-commit        # Validate recent commit messages
-```
-
-#### **Release Commands**
-```bash
-make release               # Create release (maintainers only)
-```
-
-### 🔍 Validation & Debugging
-
-#### **Check Commit History**
-```bash
-# Validate recent commits
-make validate-commit
-
-# Check multiple commits
-npx commitlint --from HEAD~5 --to HEAD
-
-# Validate specific commit
-echo "your commit message" | npx commitlint
-```
-
-#### **Common Issues & Solutions**
-
-**❌ "Subject too long" error**
-- Keep subject line under 72 characters
-- Use `make commit` for guided input
-
-**❌ "Type may not be empty" error**
-- Ensure commit starts with valid type (feat, fix, etc.)
-- Use format: `type(scope): description`
-
-**❌ Git hooks not working**
-- Run `make setup-git-hooks`
-- Check hooks are executable: `ls -la .git/hooks/`
-
-**❌ NPM/Node.js not available**
-- Use Docker commands: `make docker-commit`
-- Or install Node.js locally
-
-### 📊 Release Workflow Example
-
-```bash
-# 1. Make changes and commit with semantic format
-git add .
-make commit
-# Select: feat -> API -> "add user search endpoint"
-
-# 2. Push to feature branch
-git push origin feature/user-search
-
-# 3. Create pull request
-# CI validates all commits automatically
-
-# 4. Merge to main branch
-# Release Please analyzes commits
-
-# 5. Release PR created automatically
-# - Version: 1.2.0 (was 1.1.0, feat = minor bump)
-# - Changelog: Generated from commits
-# - Files: package.json, composer.json updated
-
-# 6. Merge release PR
-# - GitHub release created: v1.2.0
-# - Docker images tagged: laravel-blog-api:1.2.0
-# - Deployment triggered (if configured)
-```
-
-### 🎯 Benefits
-
-✅ **Consistent commit history** - Easy to understand project evolution  
-✅ **Automated changelogs** - No manual maintenance required  
-✅ **Semantic versioning** - Automatic version bumping  
-✅ **Better collaboration** - Clear commit messages improve code review  
-✅ **Release automation** - Streamlined deployment process  
-✅ **Quality assurance** - Prevents bad commits from reaching main branch
-
-### 📚 Additional Resources
-
-- **Detailed Guide**: [SEMANTIC-COMMITS.md](SEMANTIC-COMMITS.md)
-- **Conventional Commits**: https://www.conventionalcommits.org/
-- **Commitizen**: https://github.com/commitizen/cz-cli
-- **Release Please**: https://github.com/googleapis/release-please
+**Note:** This project is designed to work with Docker containers for consistency across all development environments. All development tools and dependencies are containerized.
 
 ---
 
 ## 🚀 Quick Reference
 
-### Most Common Commands
-
+### Core Setup Commands
 ```bash
-# Initial setup
-make setup-dev                    # Setup commit tools + git hooks
-
-# Daily workflow
-make commit                       # Interactive semantic commit
-git add . && make commit          # Stage and commit with guidance
-
-# Docker workflow (no Node.js required)
-make docker-setup-dev            # Setup with Docker
-make docker-commit               # Docker-based commit
-
-# Validation
-make validate-commit             # Check recent commits
-npx commitlint --from HEAD~3     # Check multiple commits
-
-# Environment management
-make docker-dev                  # Full development environment
-make docker-test                 # Run all tests
-make docker-cleanup              # Clean up containers and volumes
+make local-setup             # Complete local development setup
+make sonarqube-setup         # Optional SonarQube setup (after local-setup)
 ```
 
-### Commit Examples
+### Daily Development
 ```bash
-feat(api): add user search endpoint
-fix(auth): resolve token expiration issue
-docs: update installation guide
-test(api): add integration tests for users
-chore(deps): update Laravel to v11
-refactor(auth): simplify login logic
+make commit                  # Interactive semantic commit
+make test                    # Run tests
+make lint                    # Code linting  
+make analyze                 # Static analysis
 ```
+
+### Container Management
+```bash
+make docker-up               # Start containers
+make docker-down             # Stop containers
+make docker-cleanup          # Clean up everything
+```
+
+### Access Points
+- **API**: http://localhost:8081
+- **Health**: http://localhost:8081/api/health
+- **SonarQube**: http://localhost:9000 (when started)
 
 ---
