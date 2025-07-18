@@ -3,7 +3,7 @@
 # =============================================================================
 
 # Complete local development setup (MAIN COMMAND)
-local-setup: docker-cleanup docker-setup-env install-commit-tools setup-git-hooks
+local-setup: docker-cleanup docker-setup-env check-ports install-commit-tools setup-git-hooks
 	@echo "🚀 SETUP: Complete local development environment..."
 	@echo ""
 	@echo "📦 Setting up Docker containers..."
@@ -66,6 +66,24 @@ release:
 	npm run release
 
 # =============================================================================
+# Port Management
+# =============================================================================
+
+# Check port availability (standalone command)
+check-ports-standalone:
+	@echo "🔍 PORTS: Checking port availability for Docker services..."
+	@bash containers/check-ports.sh
+	@echo ""
+	@echo "💡 TIP: Use 'make local-setup' to automatically check ports before setup"
+
+# Check SonarQube port availability (standalone command)
+check-sonarqube-ports-standalone:
+	@echo "🔍 SONARQUBE PORTS: Checking SonarQube port availability..."
+	@bash containers/check-sonarqube-ports.sh
+	@echo ""
+	@echo "💡 TIP: Use 'make sonarqube-setup' to automatically check ports before SonarQube setup"
+
+# =============================================================================
 # Docker Environment Management
 # =============================================================================
 
@@ -95,6 +113,12 @@ docker-setup-env:
 docker-verify-env:
 	@echo "VERIFY: Docker environment setup..."
 	bash containers/verify-env-setup.sh
+
+# Check port availability before Docker setup
+check-ports:
+	@echo "🔍 PORTS: Checking port availability for Docker services..."
+	@bash containers/check-ports.sh || (echo "❌ Port check failed. Please resolve port conflicts before continuing." && exit 1)
+	@echo "✅ SUCCESS: All required ports are available!"
 
 # =============================================================================
 # Docker Development Environment
@@ -235,7 +259,7 @@ health:
 # =============================================================================
 
 # Complete SonarQube setup and analysis
-sonarqube-setup: sonarqube-setup-env sonarqube-start
+sonarqube-setup: sonarqube-setup-env check-sonarqube-ports sonarqube-start
 	@echo "🔍 SONARQUBE: Complete setup and analysis..."
 	@echo "⏳ SonarQube is starting up... This may take a few minutes."
 	@echo "📊 SonarQube will be available at: http://localhost:9000"
@@ -257,6 +281,12 @@ sonarqube-stop:
 	@echo "SONARQUBE: Stopping SonarQube server..."
 	cd containers && docker-compose -f docker-compose.sonarqube.yml down
 	@echo "SUCCESS: SonarQube server stopped!"
+
+# Check SonarQube port availability
+check-sonarqube-ports:
+	@echo "🔍 SONARQUBE PORTS: Checking port availability..."
+	@bash containers/check-sonarqube-ports.sh || (echo "⚠️  SonarQube port check failed. You can continue without SonarQube or resolve port conflicts." && read -p "Continue anyway? (y/N): " confirm && [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ] || exit 1)
+	@echo "✅ SUCCESS: SonarQube ports are available!"
 
 # Setup SonarQube environment and token
 sonarqube-setup-token:
