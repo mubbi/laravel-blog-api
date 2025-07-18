@@ -2,32 +2,37 @@
 
 This directory contains all Docker configuration files for local development and testing of the Laravel Blog API project.
 
-## 📁 Documentation
+## � Quick Setup
 
-- **[SONARQUBE.md](./SONARQUBE.md)** - Complete SonarQube 25.7.0 setup and usage guide
+### Prerequisites
+- Docker and Docker Compose installed
+- Git (for hooks)
+- Node.js 18+ (for commit tools)
+- Make
 
-## 🔍 SonarQube Quick Reference
+### Complete Local Development Setup
 
-### Essential Commands
+**Main command (run from project root):**
 ```bash
-# Start SonarQube server
-make docker-sonarqube-start
-
-# Complete analysis (recommended)
-make docker-sonarqube-analyze
-
-# Stop SonarQube server  
-make docker-sonarqube-stop
+make local-setup
 ```
 
-### Setup Steps
-1. `make docker-sonarqube-start` - Start server
-2. Visit http://localhost:9000 (admin/admin)
-3. Generate token at: Account → Security → Tokens
-4. `export SONAR_TOKEN=squ_your_token`
-5. `make docker-sonarqube-analyze` - Run analysis
+This automated setup will:
+- 🧹 Clean up any existing containers and images
+- 🔑 **Auto-generate unique APP_KEY** for all environments
+- 📝 **Copy and configure** all environment files automatically
+- 🐳 Start both **main AND testing** environments
+- 📦 Install Composer dependencies
+- 🗄️ Run database migrations and seeders
+- ⚡ Set up queue workers with readiness detection
+- 🛠️ Install Git hooks and semantic commit tools
+- ✅ Provide complete development and testing setup
 
-**Full documentation**: [SONARQUBE.md](./SONARQUBE.md)
+### Optional: SonarQube Code Quality Analysis
+
+```bash
+make sonarqube-setup
+```
 
 ## 🌟 Environment Files
 
@@ -43,60 +48,9 @@ This project uses a clean environment file structure:
 
 The automation scripts automatically create the working environment files from the example templates with proper APP_KEY generation.
 
-## �🚀 Quick Start
-
-### Prerequisites
-- Docker and Docker Compose installed
-- Git (for hooks)
-- Make (for Windows users: install via Chocolatey or use Git Bash)
-
-### ⚡ Fully Automated Setup
-
-The Docker environment is **completely automated** with intelligent startup orchestration, automatic APP_KEY generation, and zero manual configuration required.
-
-#### **Option 1: Complete Setup (Recommended)**
-```bash
-make docker-setup-complete
-```
-**What this does:**
-- 🧹 Cleans up any existing containers and images
-- 🔑 **Auto-generates unique APP_KEY** for all environments
-- 📝 **Copies and configures** all environment files automatically
-- 🐳 Starts both **main AND testing** environments
-- 📦 Installs Composer dependencies
-- 🗄️ Runs database migrations and seeders
-- ⚡ Sets up queue workers with readiness detection
-- ✅ Provides complete development and testing setup
-
-#### **Option 2: Development Only**
-```bash
-make docker-setup-local
-```
-
-#### **Option 3: Testing Only**
-```bash
-make docker-setup-testing
-```
-
-### 🔑 Automatic APP_KEY Generation
-
-**No more manual key generation!**
-- Uses OpenSSL to generate secure base64-encoded keys
-- Different unique keys for development and testing
-- Automatically replaces empty APP_KEY in environment files
-- Cross-platform compatible (Windows, macOS, Linux)
-
-### 📁 Environment File Automation
-
-**Intelligent environment file management:**
-- `.env.docker.example` → `.env` (main development environment)
-- `.env.testing.docker.example` → `.env.testing` (testing environment)
-- Overwrites existing files for consistent setup
-- Preserves custom configurations where appropriate
-
 ## Architecture
 
-### Services
+### Main Services
 
 | Service | Container Name | Ports | Description |
 |---------|---------------|-------|-------------|
@@ -110,71 +64,49 @@ make docker-setup-testing
 | Service | Container Name | Ports | Description |
 |---------|---------------|-------|-------------|
 | **Laravel Test** | `laravel_blog_api_test` | - | Testing environment |
-| **MySQL Test** | `laravel_blog_api_mysql_test` | 3307:3306 | Temporary test database |
+| **MySQL Test** | `laravel_blog_api_mysql_test` | 3307:3306 | Isolated test database |
 | **Redis Test** | `laravel_blog_api_redis_test` | 6380:6379 | Test cache store |
 
-### Startup Orchestration
+### Optional: SonarQube Services
 
-The system includes robust startup orchestration:
+| Service | Container Name | Ports | Description |
+|---------|---------------|-------|-------------|
+| **SonarQube** | `laravel_blog_sonarqube` | 9000:9000 | Code quality analysis |
+| **SonarQube DB** | `laravel_blog_sonarqube_db` | 5432:5432 | PostgreSQL database for SonarQube |
 
-- **Health Checks**: All services have proper health checks
-- **Dependency Management**: Containers start in correct order with `depends_on` and health conditions
-- **Race Condition Prevention**: Queue worker waits for main app readiness before starting
-- **Database Readiness**: Main app waits for MySQL connection before running migrations
-- **Ready Marker**: Main app creates `/tmp/laravel_ready` marker when fully initialized
+## 🛠️ Available Commands (from project root)
 
-## 🛠️ Available Commands
-
-### 🚀 Setup Commands (Fully Automated)
+### 🚀 Main Setup Commands
 ```bash
-# Complete setup - main + testing environments (RECOMMENDED)
-make docker-setup-complete
-
-# Individual environment setup
-make docker-setup-local      # Development environment only  
-make docker-setup-testing    # Testing environment only
-make docker-setup-env        # Environment files only (no containers)
+make local-setup             # Complete local development setup (MAIN COMMAND)
+make sonarqube-setup         # Optional SonarQube setup
 ```
 
-### 📊 Monitoring & Status
-```bash
-make docker-status           # Container status and access URLs
-make docker-logs             # View all container logs (Ctrl+C to exit)
-make docker-check-ready      # Check application readiness
-make docker-queue-status     # Check queue worker status
-```
-
-### 🔧 Container Management
+### � Container Management
 ```bash
 make docker-up               # Start containers only (no setup)
 make docker-down             # Stop all containers
-make docker-cleanup          # Complete cleanup (containers, images, volumes)
-make docker-cleanup-main     # Cleanup main environment only
-make docker-cleanup-testing  # Cleanup testing environment only
+make status                  # Container status and access URLs
+make health                  # Check application health
+make logs                    # View all container logs
+make shell                   # Access main container shell
 ```
 
 ### 🧪 Testing Operations
 ```bash
-make docker-tests            # Run tests with fresh database
-make docker-tests-coverage   # Run tests with HTML coverage report
-make docker-test-up          # Start test containers only
-make docker-test-down        # Stop test containers only
+make test                    # Run tests with fresh database
+make test-coverage           # Run tests with HTML coverage report
 ```
 
-### 🐚 Container Access
+### � Code Quality
 ```bash
-make docker-bash             # Access main container shell
-make docker-test-bash        # Access test container shell
+make lint                    # Run Pint linter
+make analyze                 # Run PHPStan static analysis
 ```
 
-### 🔨 Advanced/Development
+### 🧹 Cleanup
 ```bash
-make docker-build-only       # Build containers without full setup
-make docker-rebuild          # Rebuild images from scratch
-make docker-rebuild        # Rebuild Docker images from scratch
-
-# Environment management
-make docker-setup-env      # Setup environment files only
+make docker-cleanup          # Complete cleanup (containers, images, volumes)
 ```
 
 ## Configuration
@@ -186,7 +118,7 @@ The setup automatically creates and manages:
 - **`.env`** - Production-like local development environment (Laravel's default)
 - **`.env.testing`** - Testing environment configuration (Laravel's testing default)
 
-Environment files are created via `make docker-setup-env` or automatically during `make docker-setup-local`.
+Environment files are created automatically during `make local-setup`.
 
 ### PHP Configuration
 
@@ -199,13 +131,13 @@ Environment files are created via `make docker-setup-env` or automatically durin
 
 ```bash
 # Disable Xdebug for better performance (default)
-XDEBUG_MODE=off make docker-setup-local
+XDEBUG_MODE=off make local-setup
 
 # Enable Xdebug for debugging
-XDEBUG_MODE=debug make docker-setup-local
+XDEBUG_MODE=debug make local-setup
 
 # Enable for coverage reports
-XDEBUG_MODE=coverage make docker-setup-local
+XDEBUG_MODE=coverage make local-setup
 ```
 
 ### Database Access
@@ -251,13 +183,10 @@ All services include comprehensive health checks:
 
 ```bash
 # Quick status overview
-make docker-status
+make status
 
-# Detailed readiness check
-make docker-check-ready
-
-# Queue worker specific status
-make docker-queue-status
+# Detailed health check
+make health
 
 # View health check endpoint
 curl http://localhost:8081/api/health
@@ -269,67 +198,12 @@ curl http://localhost:8081/api/health
 - **Subsequent Starts**: 30-60 seconds
 - **Health Check Grace Period**: 5 minutes for full initialization
 
-## Testing and CI/CD
-
-### Automated Testing on Git Push
-
-The project includes a pre-push git hook that automatically:
-
-1. Starts test containers
-2. Runs the full test suite with coverage
-3. Runs PHPStan analysis
-4. Stops test containers
-5. Blocks push if any tests fail
-
-### Manual Testing
-
-```bash
-# Run all tests with automated setup
-make docker-tests
-
-# Run tests with coverage report (available in reports/coverage)
-make docker-tests-coverage
-
-# Setup testing environment only
-make docker-setup-testing
-```
-
-## Debugging and Development
-
-### Xdebug Configuration
-
-Xdebug is pre-configured and available on port 9003. Configure your IDE:
-
-- **Host:** `localhost`
-- **Port:** `9003`
-- **IDE Key:** `docker`
-- **Path Mappings:** `/var/www/html` → `{your-project-path}`
-
-To enable Xdebug:
-```bash
-XDEBUG_MODE=debug make docker-setup-local
-```
-
-### Container Access
-
-```bash
-# Access main application container
-make docker-bash
-
-# Access test container
-make docker-test-bash
-
-# View real-time logs
-make docker-logs
-```
-
-### Common Issues and Solutions
+## Common Issues and Solutions
 
 1. **Port conflicts:** If ports are already in use, modify the port mappings in `docker-compose.yml`
 2. **Permission issues:** Ensure Docker has access to your project directory
-3. **Database connection errors:** Use `make docker-check-ready` to verify database is ready
-4. **Containers not starting:** Run `make docker-cleanup` then `make docker-setup-local`
-5. **Queue worker not processing:** Check with `make docker-queue-status`
+3. **Database connection errors:** Use `make health` to verify database is ready
+4. **Containers not starting:** Run `make docker-cleanup` then `make local-setup`
 
 ## File Structure
 
@@ -337,7 +211,12 @@ make docker-logs
 containers/
 ├── docker-compose.yml          # Main development environment
 ├── docker-compose.test.yml     # Testing environment
+├── docker-compose.sonarqube.yml # SonarQube environment
 ├── setup-env.sh               # Environment setup script
+├── verify-env-setup.sh         # Environment verification script
+├── start-main-app.sh           # Application startup script
+├── start-queue-worker.sh       # Queue worker startup script
+├── start-services.sh           # Service orchestration script
 ├── php/
 │   ├── Dockerfile             # PHP-FPM + Nginx image
 │   ├── php.ini               # Custom PHP configuration  
@@ -347,64 +226,27 @@ containers/
 ├── mysql/
 │   └── my.cnf               # MySQL configuration
 ├── redis/
-│   └── redis.conf           # Redis configuration (if needed)
+│   └── redis.conf           # Redis configuration
 ├── supervisor/
 │   └── supervisord.conf     # Process manager configuration
-├── start-main-app.sh         # Main application startup script
-├── start-queue-worker.sh     # Queue worker startup script
-├── start-services.sh         # Service orchestration script
-└── README.md                 # This documentation
+└── sonarqube/              # SonarQube configuration and scripts
 ```
-
-## Security Notes
-
-- MySQL and Redis are configured for development use
-- Default passwords should be changed for production
-- Xdebug should be disabled in production environments (`XDEBUG_MODE=off`)
-- All services are isolated within Docker networks
-- Container startup is fully automated with proper security practices
-
-## Performance Optimization
-
-### Volume Mounts
-- Code is mounted for instant file changes during development
-- Database and Redis use named volumes for persistence
-- Test environment uses optimized settings for faster execution
-
-### Resource Allocation
-- MySQL: 256MB buffer pool
-- Redis: 256MB max memory  
-- PHP: 512MB memory limit
-- Xdebug: Disabled by default for better performance
-
-### Startup Performance
-- Smart dependency management prevents unnecessary waits
-- Health checks optimize container readiness detection
-- Queue worker starts only after main app is fully ready
-
----
-
-**Need help?** 
-- Check the main project README for general setup
-- Use `make docker-check-ready` to diagnose issues
-- View logs with `make docker-logs`
-- Create an issue in the repository for bugs
 
 ## Quick Reference
 
-### Most Common Commands
+### Most Common Commands (from project root)
 ```bash
 # Complete setup from scratch
-make docker-setup-local
+make local-setup
 
 # Check if everything is working  
-make docker-status
-make docker-check-ready
+make status
+make health
 
 # Development workflow
-make docker-logs        # View logs
-make docker-bash        # Access container
-make docker-down        # Stop when done
+make logs                    # View logs
+make shell                   # Access container
+make docker-down             # Stop when done
 
 # Reset everything
 make docker-cleanup
@@ -415,13 +257,12 @@ make docker-cleanup
 - **Health Check**: http://localhost:8081/api/health  
 - **MySQL**: localhost:3306 (user: laravel_user, password: laravel_password)
 - **Redis**: localhost:6379
-
-### File Overview
-- `docker-compose.yml` - Main development environment
-- `docker-compose.test.yml` - Testing environment  
-- `setup-env.sh` - Environment file creation
-- `start-main-app.sh` - Application startup orchestration
-- `start-queue-worker.sh` - Queue worker with readiness detection
-- `start-services.sh` - Container service management
+- **SonarQube**: http://localhost:9000 (when started)
 
 ---
+
+**Need help?** 
+- Check the main project README for general setup
+- Use `make health` to diagnose issues
+- View logs with `make logs`
+- Create an issue in the repository for bugs
