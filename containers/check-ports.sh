@@ -26,13 +26,76 @@ OPTIONAL_PORTS=(
     "5432:PostgreSQL (SonarQube)"
 )
 
-# Function to check if a port is available
+# Function to detect operating system
+detect_os() {
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+        echo "windows"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "macos"
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "linux"
+    else
+        echo "unknown"
+    fi
+}
+
+# Function to check if a port is available (platform-independent)
 check_port() {
     local port=$1
     local description=$2
     local optional=${3:-false}
-    
-    if nc -z localhost $port 2>/dev/null; then
+    local os=$(detect_os)
+    local port_in_use=false
+
+    case $os in
+        "windows")
+            # Use netstat on Windows (available by default)
+            if netstat -an | grep -q ":$port "; then
+                port_in_use=true
+            fi
+            ;;
+        "macos")
+            # Use netstat on macOS (available by default)
+            if netstat -an | grep -q "\\.$port "; then
+                port_in_use=true
+            fi
+            ;;
+        "linux")
+            # Try multiple methods on Linux
+            if command -v ss &> /dev/null; then
+                # Use ss (modern replacement for netstat)
+                if ss -tuln | grep -q ":$port "; then
+                    port_in_use=true
+                fi
+            elif command -v netstat &> /dev/null; then
+                # Fall back to netstat
+                if netstat -tuln | grep -q ":$port "; then
+                    port_in_use=true
+                fi
+            elif command -v nc &> /dev/null; then
+                # Fall back to netcat
+                if nc -z localhost $port 2>/dev/null; then
+                    port_in_use=true
+                fi
+            else
+                echo -e "${YELLOW}⚠️  Cannot check port $port - no suitable tools available${NC}"
+                return 0
+            fi
+            ;;
+        *)
+            # Unknown OS - try netcat if available
+            if command -v nc &> /dev/null; then
+                if nc -z localhost $port 2>/dev/null; then
+                    port_in_use=true
+                fi
+            else
+                echo -e "${YELLOW}⚠️  Cannot check port $port - unsupported OS${NC}"
+                return 0
+            fi
+            ;;
+    esac
+
+    if [ "$port_in_use" = true ]; then
         if [ "$optional" = true ]; then
             echo -e "${YELLOW}⚠️  OPTIONAL PORT $port ($description) is already in use${NC}"
         else
@@ -49,73 +112,86 @@ check_port() {
     return 0
 }
 
-# Function to suggest alternative ports
-suggest_alternative_port() {
-    local base_port=$1
-    local description=$2
-    local start_range=$((base_port + 1))
-    local end_range=$((base_port + 100))
-    
-    echo -e "${BLUE}💡 Searching for alternative ports for $description...${NC}"
-    
-    for ((port=start_range; port<=end_range; port++)); do
-        if ! nc -z localhost $port 2>/dev/null; then
-            echo -e "${GREEN}   Suggested alternative: $port${NC}"
-            return 0
-        fi
-    done
-    
-    echo -e "${YELLOW}   No alternatives found in range $start_range-$end_range${NC}"
-    return 1
-}
+# Check if required tools are available and provide helpful messages
+check_requirements() {
+    local os=$(detect_os)
+    local tools_available=false
 
-# Function to show port change instructions
-show_port_change_instructions() {
-    local port=$1
-    local description=$2
-    local suggested_port=$3
-    
-    echo -e "${BLUE}📝 To change port $port ($description) to $suggested_port:${NC}"
-    
-    case $port in
-        8081)
-            echo "   Update containers/docker-compose.yml: ports: \"$suggested_port:80\""
+    case $os in
+        "windows")
+            if command -v netstat &> /dev/null; then
+                tools_available=true
+                echo -e "${GREEN}✅ Using netstat for port checking (Windows)${NC}"
+            fi
             ;;
-        8001)
-            echo "   Update containers/docker-compose.yml: ports: \"$suggested_port:8001\""
+        "macos")
+            if command -v netstat &> /dev/null; then
+                tools_available=true
+                echo -e "${GREEN}✅ Using netstat for port checking (macOS)${NC}"
+            fi
             ;;
-        3306)
-            echo "   Update containers/docker-compose.yml: ports: \"$suggested_port:3306\""
+        "linux")
+            if command -v ss &> /dev/null; then
+                tools_available=true
+                echo -e "${GREEN}✅ Using ss for port checking (Linux)${NC}"
+            elif command -v netstat &> /dev/null; then
+                tools_available=true
+                echo -e "${GREEN}✅ Using netstat for port checking (Linux)${NC}"
+            elif command -v nc &> /dev/null; then
+                tools_available=true
+                echo -e "${GREEN}✅ Using netcat for port checking (Linux)${NC}"
+            fi
             ;;
-        6379)
-            echo "   Update containers/docker-compose.yml: ports: \"$suggested_port:6379\""
-            ;;
-        3307)
-            echo "   Update containers/docker-compose.test.yml: ports: \"$suggested_port:3306\""
-            ;;
-        6380)
-            echo "   Update containers/docker-compose.test.yml: ports: \"$suggested_port:6379\""
-            ;;
-        9000)
-            echo "   Update containers/docker-compose.sonarqube.yml: ports: \"$suggested_port:9000\""
-            ;;
-        5432)
-            echo "   Update containers/docker-compose.sonarqube.yml: ports: \"$suggested_port:5432\""
+        *)
+            if command -v nc &> /dev/null; then
+                tools_available=true
+                echo -e "${GREEN}✅ Using netcat for port checking${NC}"
+            fi
             ;;
     esac
-    echo ""
+
+    if [ "$tools_available" = false ]; then
+        echo -e "${RED}❌ Error: No suitable tools available for port checking.${NC}"
+        echo "Please install one of the following:"
+        case $os in
+            "linux")
+                echo "  • ss: sudo apt-get install iproute2 (Ubuntu/Debian) or sudo yum install iproute (CentOS/RHEL)"
+                echo "  • netstat: sudo apt-get install net-tools (Ubuntu/Debian) or sudo yum install net-tools (CentOS/RHEL)"
+                echo "  • netcat: sudo apt-get install netcat (Ubuntu/Debian) or sudo yum install nc (CentOS/RHEL)"
+                ;;
+            "macos")
+                echo "  • netcat: brew install netcat"
+                ;;
+            "windows")
+                echo "  • netstat should be available by default on Windows"
+                echo "  • If using WSL, install net-tools: sudo apt-get install net-tools"
+                ;;
+            *)
+                echo "  • netcat: install via your package manager"
+                ;;
+        esac
+        return 1
+    fi
+
+    return 0
 }
 
 # Main function
 main() {
-    echo -e "${BLUE}🔍 Checking port availability for Laravel Blog API Docker setup...${NC}"
+    echo -e "${BLUE}��� Checking port availability for Laravel Blog API Docker setup...${NC}"
     echo ""
-    
+
+    # Check if we have the required tools
+    if ! check_requirements; then
+        exit 1
+    fi
+    echo ""
+
     local unavailable_ports=()
     local failed_required=false
-    
+
     # Check required ports
-    echo -e "${BLUE}📋 Checking required ports:${NC}"
+    echo -e "${BLUE}��� Checking required ports:${NC}"
     for port_info in "${REQUIRED_PORTS[@]}"; do
         local port="${port_info%%:*}"
         local description="${port_info#*:}"
@@ -124,62 +200,36 @@ main() {
             failed_required=true
         fi
     done
-    
+
     echo ""
-    
+
     # Check optional ports (SonarQube)
-    echo -e "${BLUE}📋 Checking optional ports (SonarQube):${NC}"
+    echo -e "${BLUE}��� Checking optional ports (SonarQube):${NC}"
     for port_info in "${OPTIONAL_PORTS[@]}"; do
         local port="${port_info%%:*}"
         local description="${port_info#*:}"
         check_port "$port" "$description" true
     done
-    
+
     echo ""
-    
+
     # Summary and recommendations
     if [ "$failed_required" = true ]; then
         echo -e "${RED}❌ SETUP CANNOT CONTINUE - Some required ports are unavailable!${NC}"
         echo ""
-        echo -e "${YELLOW}🔧 SOLUTIONS:${NC}"
+        echo -e "${YELLOW}��� SOLUTIONS:${NC}"
         echo "1. Stop the services using these ports"
         echo "2. Use alternative ports (see suggestions below)"
         echo "3. Modify docker-compose files with new ports"
         echo ""
-        
-        echo -e "${BLUE}💡 PORT ALTERNATIVES:${NC}"
-        for port_info in "${unavailable_ports[@]}"; do
-            local port="${port_info%%:*}"
-            local description="${port_info#*:}"
-            
-            # Find suggested alternative
-            local start_range=$((port + 1))
-            for ((alt_port=start_range; alt_port<=start_range+50; alt_port++)); do
-                if ! nc -z localhost $alt_port 2>/dev/null; then
-                    show_port_change_instructions "$port" "$description" "$alt_port"
-                    break
-                fi
-            done
-        done
-        
         echo -e "${YELLOW}⚠️  After making changes, run this script again to verify.${NC}"
         return 1
     else
         echo -e "${GREEN}✅ ALL REQUIRED PORTS ARE AVAILABLE!${NC}"
-        echo -e "${GREEN}🚀 Docker setup can proceed safely.${NC}"
+        echo -e "${GREEN}��� Docker setup can proceed safely.${NC}"
         return 0
     fi
 }
-
-# Check if netcat is available
-if ! command -v nc &> /dev/null; then
-    echo -e "${RED}❌ Error: 'nc' (netcat) is required but not installed.${NC}"
-    echo "Please install netcat:"
-    echo "  macOS: brew install netcat"
-    echo "  Ubuntu/Debian: sudo apt-get install netcat"
-    echo "  CentOS/RHEL: sudo yum install nc"
-    exit 1
-fi
 
 # Run the main function
 main "$@"
