@@ -8,27 +8,40 @@ These instructions guide Copilot to generate code that aligns with **Laravel 12*
 
 ## ✅ Project Overview
 
-This is a modern Laravel 12 Blog API built with PHP 8.4, featuring a clean architecture, comprehensive testing, and Docker-based development environment. The API serves as the backend for a blog platform with authentication, role-based permissions, and content management capabilities.
+This is a modern **Laravel 12 Blog API** built with **PHP 8.4**, featuring a clean architecture, comprehensive testing, Docker-based development environment, and advanced code quality tools. The API serves as a production-ready backend for a blog platform with authentication, role-based permissions, content management, and automated quality assurance.
 
 ### Technology Stack
-- **Laravel Framework**: 12.0+ (latest)
+- **Laravel Framework**: 12.0+ (latest features)
 - **PHP**: 8.4+ (with strict typing enabled)
-- **Database**: MySQL 8.0
-- **Cache/Session**: Redis
-- **Authentication**: Laravel Sanctum (API tokens)
+- **Database**: MySQL 8.0 (development) + MySQL 8.0 (testing - isolated environment)
+- **Cache/Session**: Redis (development) + Redis (testing - isolated environment)
+- **Authentication**: Laravel Sanctum (API tokens with abilities)
 - **Testing**: Pest PHP 3.8+ (BDD-style testing framework)
-- **Static Analysis**: Larastan 3.0+ (PHPStan for Laravel)
+- **Static Analysis**: Larastan 3.0+ (PHPStan level 10 for Laravel)
 - **Code Formatting**: Laravel Pint (PHP-CS-Fixer preset)
-- **API Documentation**: Scramble (OpenAPI/Swagger documentation)
-- **Containerization**: Docker & Docker Compose
+- **API Documentation**: Scramble (OpenAPI/Swagger automatic generation)
+- **Containerization**: Docker & Docker Compose (multi-service architecture)
+- **Quality Analysis**: SonarQube integration (optional)
+- **Git Tools**: Husky hooks, semantic commits, automated validation
 
-### Key Packages
-- `laravel/sanctum`: API authentication
-- `dedoc/scramble`: OpenAPI documentation generation
-- `pestphp/pest`: Testing framework
-- `larastan/larastan`: Static analysis
-- `laravel/pint`: Code formatting
+### Key Development Features
+- **Semantic Commit Enforcement**: Automated commit message validation with Conventional Commits
+- **Automated Testing Pipeline**: Isolated Docker test environment with 80% coverage requirement
+- **Code Quality Gates**: Pre-commit linting, pre-push testing, PHPStan level 10 analysis
+- **Multi-Environment Setup**: Separate containers for development, testing, and quality analysis
+- **Make-based Workflow**: Standardized commands for all development operations
+- **Git Hook Automation**: Automatic code quality checks and commit message formatting
+
+### Key Packages & Tools
+- `laravel/sanctum`: API authentication with token abilities
+- `dedoc/scramble`: Automatic OpenAPI documentation generation
+- `pestphp/pest`: BDD-style testing framework
+- `larastan/larastan`: Static analysis (PHPStan for Laravel)
+- `laravel/pint`: Code formatting and style enforcement
 - `laravel/pail`: Real-time log monitoring
+- **Husky**: Git hooks management
+- **Commitizen**: Interactive semantic commit interface
+- **SonarQube**: Comprehensive code quality analysis (optional)
 
 ---
 
@@ -255,38 +268,209 @@ Key relationships:
 
 ## ✅ Copilot Behavior Preferences
 
-- Generate modern, **strictly typed** PHP code.
-- Favor readable, maintainable code over cleverness.
-- Avoid legacy Laravel patterns (e.g., facade overuse, logic-heavy views).
-- Suggest proper class placement.
-- Suggest tests alongside features.
+### Code Generation Standards
+- Generate modern, **strictly typed** PHP code with `declare(strict_types=1);`
+- Favor readable, maintainable code over cleverness
+- Avoid legacy Laravel patterns (e.g., facade overuse, logic-heavy views)
+- Suggest proper class placement within the established project structure
+- Suggest comprehensive tests alongside features using Pest PHP
 
-### Project-Specific Preferences
-- **Code Quality**: Always include `declare(strict_types=1);` in all PHP files
-- **Documentation**: Use Scramble attributes for API documentation
-- **Architecture**: Implement service layer pattern with interfaces
-- **Error Handling**: Use specific exception types with proper HTTP responses
-- **Database**: Use proper Eloquent relationships with type hints
-- **Development**: Consider Docker environment when suggesting commands or configurations
-- **Testing**: Write Pest PHP tests using BDD-style describe/it blocks
-- **Static Analysis**: Ensure code passes Larastan level 10 analysis
+### Command Execution Preferences
+- **Always use Makefile commands** instead of direct Docker or Composer commands
+- **Prefer standardized workflows**: Use `make local-setup` for initial setup
+- **Use proper development commands**: `make test`, `make lint`, `make analyze` for quality checks
+- **Leverage semantic commits**: Suggest `make commit` for guided commit process
+- **Consider Docker environment**: All commands should work within the containerized setup
 
-### Common Development Commands
+### Development Workflow Integration
+- **Understand the Make-based workflow** and suggest appropriate `make` commands
+- **Recommend quality gates**: Always mention running tests and linting before commits
+- **Consider the automated pipeline**: Suggest commands that work with Git hooks
+- **Respect environment separation**: Understand development vs testing container differences
+- **Support troubleshooting**: Use `make help`, `make status`, `make health` for guidance
+
+### Project-Specific Command Suggestions
+When suggesting development tasks, always use the established Makefile commands:
+
+#### For Setup & Environment
 ```bash
-# Docker environment
-make docker-setup-all     # Complete setup
-make docker-dev          # Start development
-make docker-test         # Run all tests
-make docker-lint         # Run code formatting
-make docker-analyze      # Run static analysis
-
-# Database operations
-make docker-artisan ARGS="migrate"
-make docker-artisan ARGS="migrate:fresh --seed"
+make local-setup          # Complete development environment setup
+make sonarqube-setup     # Optional quality analysis setup
+make docker-up           # Start development containers
+make status              # Check environment status
 ```
 
-### Environment Configuration
-- **Development**: Docker-based with MySQL 8.0, Redis, and PHP 8.4
-- **API Base URL**: http://localhost:8081
+#### For Development Workflow
+```bash
+make commit              # Interactive semantic commits
+make test                # Run test suite
+make lint                # Code formatting
+make analyze             # Static analysis
+make artisan ARGS="..."  # Laravel commands
+```
+
+#### For Troubleshooting
+```bash
+make help                # Show all available commands
+make health              # Check application health
+make logs                # View container logs
+make shell               # Access container shell
+```
+
+### Project-Specific Development Guidelines
+
+#### Code Quality Standards
+- **Always include** `declare(strict_types=1);` in all PHP files
+- **Use Scramble attributes** for API documentation (`#[Group]`, `#[ResponseField]`, etc.)
+- **Implement service layer pattern** with interfaces for testability
+- **Use specific exception types** with proper HTTP response codes
+- **Write comprehensive tests** using Pest PHP with BDD-style describe/it blocks
+- **Ensure PHPStan level 10** compliance for maximum static analysis strictness
+
+#### Development Environment Integration
+- **Always use Docker commands** through Makefile for consistency
+- **Prefer `make` commands** over direct Docker Compose for standardized workflow
+- **Use automated testing environment** with `make test` for isolated, repeatable tests
+- **Leverage Git hooks** for automated quality checks on commits and pushes
+- **Use semantic commits** with `make commit` for standardized commit messages
+
+#### Testing & Quality Assurance
+- **Write Pest PHP tests** using describe/it blocks for better organization
+- **Maintain 80%+ test coverage** as enforced by the test pipeline
+- **Use separate test environment** with isolated database and Redis instances
+- **Run comprehensive quality checks** with SonarQube integration when available
+- **Validate code with multiple tools**: Pint (formatting), PHPStan (static analysis), Pest (testing)
+
+#### API Development Standards
+- **Follow RESTful conventions** with proper HTTP methods and status codes
+- **Use Laravel Sanctum** for API authentication with ability-based tokens
+- **Implement proper authorization** using Laravel Policies and Gates
+- **Document APIs with Scramble** for automatic OpenAPI/Swagger generation
+- **Use API Resource classes** for consistent JSON response formatting
+- **Version APIs properly** with `/api/v1/` prefix structure
+
+#### Database & Performance
+- **Use Eloquent relationships** with proper type hints and eager loading
+- **Implement proper database constraints** and foreign key relationships
+- **Use Redis for caching** and session management in Docker environment
+- **Apply database migrations** with proper rollback strategies
+- **Use seeders for test data** in both development and testing environments
+
+#### Project Structure Compliance
+- **Follow the established directory structure** as defined in the project overview
+- **Use Enums for type safety** (UserRole, ArticleStatus, NotificationType, etc.)
+- **Implement service layer architecture** with dependency injection
+- **Use Form Request classes** for input validation
+- **Apply single responsibility principle** in Controllers, Services, and Actions
+
+#### Troubleshooting & Maintenance
+- **Use `make help`** to view all available commands with descriptions
+- **Check container health** with `make status` and `make health` commands
+- **Access logs** via `make logs` for debugging container issues
+- **Use shell access** with `make shell` or `make test-shell` for direct container interaction
+- **Clean up resources** with `make docker-cleanup` for complete environment reset
+
+### Project Setup & Development Commands
+
+#### Main Setup Commands (One-time setup)
+```bash
+# Complete local development environment setup
+make local-setup          # Sets up Docker containers, dependencies, Git hooks, and semantic commit tools
+
+# Optional: Add SonarQube code quality analysis
+make sonarqube-setup      # After local-setup, adds comprehensive code quality analysis
+```
+
+#### Daily Development Workflow
+```bash
+# Semantic commits with validation
+make commit               # Interactive semantic commit (guided process)
+make validate-commit      # Validate commit message format
+
+# Testing
+make test                 # Run complete test suite (automated Docker environment)
+make test-coverage        # Run tests with coverage report (minimum 80% required)
+
+# Code quality
+make lint                 # Run Laravel Pint code formatting
+make lint-dirty           # Lint only changed files (faster)
+make analyze              # Run PHPStan static analysis (level 10)
+
+# Development tools
+make artisan ARGS="..."   # Run any artisan command (e.g., make artisan ARGS="migrate --seed")
+```
+
+#### Container Management
+```bash
+# Environment control
+make docker-up            # Start development containers
+make docker-down          # Stop development containers
+make docker-restart       # Restart development environment
+make docker-cleanup       # Complete cleanup (containers, images, volumes)
+
+# Utilities
+make status               # Check container status and access points
+make health               # Check application health and readiness
+make logs                 # View container logs
+make shell                # Access main container shell
+make test-shell           # Access test container shell
+```
+
+#### SonarQube Quality Analysis (Optional)
+```bash
+# SonarQube setup and management
+make sonarqube-start      # Start SonarQube server
+make sonarqube-setup-token # Setup authentication token
+make sonarqube-analyze    # Run comprehensive code quality analysis
+make sonarqube-dashboard  # Open SonarQube dashboard
+make sonarqube-stop       # Stop SonarQube server
+```
+
+### Environment Configuration & Access Points
+
+#### Development Environment
+- **Main API**: http://localhost:8081
+- **Health Check**: http://localhost:8081/api/health
 - **API Documentation**: http://localhost:8081/docs/api
-- **Testing**: Separate Docker environment with clean database state
+- **MySQL Development**: localhost:3306 (laravel_user/laravel_password)
+- **Redis**: localhost:6379
+
+#### Testing Environment (Automated)
+- **MySQL Test**: localhost:3307 (separate test database)
+- **Redis Test**: localhost:6380 (separate test cache)
+- **Coverage Reports**: reports/coverage/index.html
+- **Coverage XML**: reports/coverage.xml
+
+#### Optional Quality Analysis
+- **SonarQube Dashboard**: http://localhost:9000 (admin/admin)
+
+### Container Architecture
+The project uses Docker Compose with multiple services:
+- **laravel_blog_api**: Main application (Nginx + PHP-FPM) on port 8081
+- **laravel_blog_api_mysql**: Development database on port 3306
+- **laravel_blog_api_redis**: Cache and session store on port 6379
+- **laravel_blog_api_queue**: Background job processor
+- **Test Environment**: Separate containers for isolated testing
+- **SonarQube**: Optional code quality analysis server
+
+### Development Workflow Best Practices
+
+#### Semantic Commits
+The project enforces semantic commit messages following Conventional Commits:
+- Use `make commit` for interactive guided commits
+- Automated validation with Git hooks
+- Supports: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert
+- Examples: `feat(auth): add user registration endpoint`, `fix(api): resolve token validation`
+
+#### Git Hooks & Automation
+- **pre-commit**: Runs linting on changed files
+- **pre-push**: Runs tests with PHPStan analysis
+- **prepare-commit-msg**: Formats commit messages
+- **Husky integration**: Node.js-based commit tools
+
+#### Quality Gates
+- **Minimum 80% test coverage** enforced
+- **PHPStan level 10** static analysis
+- **Laravel Pint** code formatting
+- **Pest PHP** BDD-style testing
+- **SonarQube integration** for comprehensive analysis
