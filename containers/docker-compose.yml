@@ -112,17 +112,11 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: |
-        # Check if queue worker process is running and ready marker exists
-        if [ -f /var/www/html/storage/laravel_ready ] && pgrep -f "queue:work" >/dev/null; then
-          exit 0
-        else
-          exit 1
-        fi
+      test: ["CMD", "sh", "-c", "[ -f /var/www/html/storage/laravel_ready ] && grep -q queue:work /proc/*/cmdline"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 360s  # Give 6 minutes for main app setup + queue worker startup
+      start_period: 60s  # Give 1 minute for queue worker startup since main app is already ready
     networks:
       - laravel_blog_api_network
 
