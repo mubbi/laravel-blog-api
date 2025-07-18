@@ -46,7 +46,7 @@ install-commit-tools:
 # Setup Git Hooks
 setup-git-hooks:
 	@echo "SETUP: Installing Git hooks..."
-	cp -r .githooks/ .git/hooks/
+	cp -r .githooks/* .git/hooks/
 	chmod +x .git/hooks/pre-commit && chmod +x .git/hooks/pre-push && chmod +x .git/hooks/prepare-commit-msg && chmod +x .git/hooks/commit-msg
 	@echo "SUCCESS: Git hooks installed!"
 

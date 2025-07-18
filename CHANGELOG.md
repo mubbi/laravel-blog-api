@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/mubbi/laravel-blog-api/compare/v1.2.0...v1.2.1) (2025-07-18)
+
+
+### Bug Fixes
+
+* fix health check for queue worker to get its correct status ([ec6e20d](https://github.com/mubbi/laravel-blog-api/commit/ec6e20d83ea0656773eb058ff63db8f44d0ddbfb))
+* fix health check for queue worker to get its correct status ([0f3ead1](https://github.com/mubbi/laravel-blog-api/commit/0f3ead1d053f5d0fee469128b830123f76e8e5d7))
+
 ## [1.2.0](https://github.com/mubbi/laravel-blog-api/compare/v1.1.0...v1.2.0) (2025-07-18)
 
 
