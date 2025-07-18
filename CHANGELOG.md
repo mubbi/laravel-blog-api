@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/mubbi/laravel-blog-api/compare/v1.0.1...v1.1.0) (2025-07-18)
+
+
+### Features
+
+* updated project instructions for copilot ([5dc94e5](https://github.com/mubbi/laravel-blog-api/commit/5dc94e5e5810146509ec6b1f2b485dd6facf9d90))
+* updated project instructions for copilot ([fffdc9b](https://github.com/mubbi/laravel-blog-api/commit/fffdc9ba6237d259b99fe5a9b6ded15686ca1b02))
+
 ## [1.0.1](https://github.com/mubbi/laravel-blog-api/compare/v1.0.0...v1.0.1) (2025-07-18)
 
 
