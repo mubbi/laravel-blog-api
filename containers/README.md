@@ -1,6 +1,26 @@
 # Docker Setup for Laravel Blog API
 
-This directory contains all Docker configuration files for local development and testing of the Laravel Blog API project.
+This directory contains all Docker configuration files for local dev### 🚀 Main Setup Commands
+```bash
+make local-setup             # Complete local development setup (MAIN COMMAND)
+make sonarqube-setup         # Optional SonarQube setup
+```
+
+### 🔍 Port Management
+```bash
+make check-ports-standalone         # Check all required ports availability
+make check-sonarqube-ports-standalone # Check SonarQube ports availability
+```
+
+### 🐳 Container Management
+```bash
+make docker-up               # Start containers only (no setup)
+make docker-down             # Stop all containers
+make status                  # Container status and access URLs
+make health                  # Check application health
+make logs                    # View all container logs
+make shell                   # Access main container shell
+```sting of the Laravel Blog API project.
 
 ## � Quick Setup
 
@@ -19,7 +39,8 @@ make local-setup
 
 This automated setup will:
 - 🧹 Clean up any existing containers and images
-- 🔑 **Auto-generate unique APP_KEY** for all environments
+- � **Check port availability** and warn of conflicts
+- �🔑 **Auto-generate unique APP_KEY** for all environments
 - 📝 **Copy and configure** all environment files automatically
 - 🐳 Start both **main AND testing** environments
 - 📦 Install Composer dependencies
@@ -27,6 +48,32 @@ This automated setup will:
 - ⚡ Set up queue workers with readiness detection
 - 🛠️ Install Git hooks and semantic commit tools
 - ✅ Provide complete development and testing setup
+
+### Port Conflict Prevention
+
+**Before starting Docker containers, the setup automatically checks port availability:**
+
+```bash
+# Check ports for main setup (included in local-setup)
+make check-ports-standalone
+
+# Check ports for SonarQube (included in sonarqube-setup)  
+make check-sonarqube-ports-standalone
+```
+
+**Required ports that must be available:**
+- `8081` - Laravel API (main application)
+- `8001` - Xdebug debugging port
+- `3306` - MySQL database
+- `6379` - Redis cache
+- `3307` - MySQL test database  
+- `6380` - Redis test cache
+
+**Optional ports (SonarQube):**
+- `9000` - SonarQube web interface
+- `5432` - PostgreSQL (SonarQube database)
+
+**If ports are in use:** The script will suggest alternative ports and show you exactly how to modify the docker-compose files.
 
 ### Optional: SonarQube Code Quality Analysis
 
