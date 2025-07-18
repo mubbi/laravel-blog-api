@@ -2,8 +2,39 @@
 setup-git-hooks:
 	@echo "SETUP: Installing Git hooks..."
 	cp -r .githooks/ .git/hooks/
-	chmod +x .git/hooks/pre-commit && chmod +x .git/hooks/pre-push && chmod +x .git/hooks/prepare-commit-msg
+	chmod +x .git/hooks/pre-commit && chmod +x .git/hooks/pre-push && chmod +x .git/hooks/prepare-commit-msg && chmod +x .git/hooks/commit-msg
 	@echo "SUCCESS: Git hooks installed!"
+
+# Install Node.js dependencies for commit tools
+install-commit-tools:
+	@echo "SETUP: Installing commit tools..."
+	npm install
+	@echo "SUCCESS: Commit tools installed!"
+
+# Interactive semantic commit
+commit:
+	@echo "🚀 Starting interactive semantic commit..."
+	npm run commit
+
+# Validate commit message format
+validate-commit:
+	@echo "VALIDATE: Checking commit message format..."
+	npm run lint:commit
+
+# Setup complete development environment
+setup-dev: install-commit-tools setup-git-hooks
+	@echo "SUCCESS: Development environment setup complete!"
+	@echo ""
+	@echo "🎉 You're all set! Use the following commands:"
+	@echo "  make commit          - Create a semantic commit interactively"
+	@echo "  make validate-commit - Validate the last commit message"
+	@echo "  make release         - Create a release (maintainers only)"
+	@echo ""
+
+# Create a release (for maintainers)
+release:
+	@echo "RELEASE: Creating release with release-please..."
+	npm run release
 
 # Run Code Linting in Docker
 docker-lint:
@@ -399,6 +430,30 @@ docker-sonarqube-clean:
 	@echo "SONARQUBE: Cleaning SonarQube data..."
 	cd containers && docker-compose -f docker-compose.sonarqube.yml down -v
 	@echo "SUCCESS: SonarQube data cleaned!"
+
+# Docker-based commit workflow
+docker-commit:
+	@echo "🚀 Starting Docker-based semantic commit..."
+	docker-compose -f containers/docker-compose.dev.yml exec dev-tools npm run commit
+
+# Setup development environment with Docker
+docker-setup-dev:
+	@echo "SETUP: Setting up development environment with Docker..."
+	docker-compose -f containers/docker-compose.dev.yml up -d
+	docker-compose -f containers/docker-compose.dev.yml exec dev-tools npm install
+	@$(MAKE) setup-git-hooks
+	@echo "SUCCESS: Docker development environment setup complete!"
+
+# Validate commit in Docker
+docker-validate-commit:
+	@echo "VALIDATE: Checking commit message format in Docker..."
+	docker-compose -f containers/docker-compose.dev.yml exec dev-tools npm run lint:commit
+
+# Clean up development environment
+docker-cleanup-dev:
+	@echo "CLEANUP: Removing development containers..."
+	docker-compose -f containers/docker-compose.dev.yml down
+	@echo "SUCCESS: Development environment cleaned up!"
 
 # Show available commands and usage
 help:

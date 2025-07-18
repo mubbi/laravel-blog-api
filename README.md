@@ -8,12 +8,13 @@ A clean, modern, and production-ready Laravel Blog API built with the latest ver
 
 1. [API Documentation](#api-documentation)
 2. [Docker Setup](#docker-setup)
-3. [Development Workflow](#development-workflow)
-4. [Testing](#testing)
-5. [Code Quality](#code-quality)
-6. [SonarQube Analysis](#sonarqube-analysis)
-7. [Git Hooks](#git-hooks)
-8. [Help & Troubleshooting](#help--troubleshooting)
+3. [Semantic Commits & Releases](#semantic-commits--releases)
+4. [Development Workflow](#development-workflow)
+5. [Testing](#testing)
+6. [Code Quality](#code-quality)
+7. [SonarQube Analysis](#sonarqube-analysis)
+8. [Git Hooks](#git-hooks)
+9. [Help & Troubleshooting](#help--troubleshooting)
 
 ---
 
@@ -420,3 +421,55 @@ Key command categories:
 ---
 
 **Note:** This project is designed to work exclusively with Docker. All development, testing, and code quality tools are containerized for consistency and ease of use.
+
+---
+
+## Semantic Commits & Releases
+
+This project enforces **semantic commits** and provides **automated releases** with changelog generation.
+
+### 🚀 Quick Setup
+
+```bash
+# Setup semantic commit tools (Node.js required)
+make setup-dev
+
+# OR use Docker-based setup (recommended)
+make docker-setup-dev
+```
+
+### 📝 Making Commits
+
+**Interactive guided commits (recommended):**
+```bash
+# Local (requires Node.js)
+make commit
+
+# Docker-based (works anywhere)
+make docker-commit
+```
+
+**Manual commits (validated automatically):**
+```bash
+git add .
+git commit -m "feat(auth): add user authentication"
+```
+
+### 🔒 Enforcement
+
+- **Git hooks** prevent non-semantic commits
+- **CI/CD validation** on pull requests  
+- **Interactive guidance** for proper commit format
+
+### 📦 Automated Releases
+
+- **Automatic version bumping** based on semantic commits
+- **Generated changelogs** from commit history
+- **GitHub releases** with deployment automation
+- **Docker image tagging** on release
+
+### 📚 Documentation
+
+For detailed information, see [SEMANTIC-COMMITS.md](SEMANTIC-COMMITS.md)
+
+---

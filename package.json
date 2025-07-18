@@ -1,0 +1,51 @@
+{
+  "name": "laravel-blog-api",
+  "version": "1.0.0",
+  "description": "Laravel Blog API with semantic commits and automated releases",
+  "private": true,
+  "scripts": {
+    "commit": "cz",
+    "prepare": "husky install",
+    "lint:commit": "commitlint --from HEAD~1 --to HEAD --verbose",
+    "release": "release-please --debug",
+    "postinstall": "husky install"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^8.0.3",
+    "release-please": "^16.6.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "commitlint": {
+    "extends": ["@commitlint/config-conventional"],
+    "rules": {
+      "type-enum": [
+        2,
+        "always",
+        [
+          "feat",
+          "fix",
+          "docs",
+          "style",
+          "refactor",
+          "test",
+          "chore",
+          "perf",
+          "ci",
+          "build",
+          "revert"
+        ]
+      ],
+      "subject-case": [2, "never", ["start-case", "pascal-case", "upper-case"]],
+      "subject-max-length": [2, "always", 72],
+      "body-max-line-length": [2, "always", 100]
+    }
+  }
+}
