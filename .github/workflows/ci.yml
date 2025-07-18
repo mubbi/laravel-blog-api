@@ -176,5 +176,5 @@ jobs:
       - name: Run database migrations
         run: php artisan migrate:fresh --seed --env=testing --force
 
-      - name: Run tests with Pest (parallel)
-        run: php artisan test --parallel --stop-on-failure
+      - name: Run tests with Pest
+        run: php artisan test --stop-on-failure
