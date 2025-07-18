@@ -182,4 +182,8 @@ jobs:
         run: php artisan migrate:fresh --seed --env=testing --force
 
       - name: Run tests with Pest (parallel)
+        env:
+          DB_HOST: 127.0.0.1
+          DB_USERNAME: root
+          DB_PASSWORD: root
         run: php artisan test --parallel --recreate-databases --stop-on-failure
