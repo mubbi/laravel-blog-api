@@ -24,6 +24,16 @@
 /storage/*.key
 /storage/pail
 /vendor
+
+# Commit tools
+node_modules/
+npm-debug.log*
+.npm
+.husky/_/
+
+# Release artifacts
+CHANGELOG.md
+
 Homestead.json
 Homestead.yaml
 Thumbs.db

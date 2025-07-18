@@ -8,12 +8,21 @@ A clean, modern, and production-ready Laravel Blog API built with the latest ver
 
 1. [API Documentation](#api-documentation)
 2. [Docker Setup](#docker-setup)
-3. [Development Workflow](#development-workflow)
-4. [Testing](#testing)
-5. [Code Quality](#code-quality)
-6. [SonarQube Analysis](#sonarqube-analysis)
-7. [Git Hooks](#git-hooks)
-8. [Help & Troubleshooting](#help--troubleshooting)
+3. [Semantic Commits & Releases](#semantic-commits--releases)
+   - [Quick Setup](#-quick-setup)
+   - [Commit Workflow](#-commit-workflow)
+   - [Commit Message Format](#-commit-message-format)
+   - [Commit Enforcement](#-commit-enforcement)
+   - [Automated Release Process](#-automated-release-process)
+   - [Available Commands](#️-available-commands)
+   - [Validation & Debugging](#-validation--debugging)
+4. [Development Workflow](#development-workflow)
+5. [Testing](#testing)
+6. [Code Quality](#code-quality)
+7. [SonarQube Analysis](#sonarqube-analysis)
+8. [Git Hooks](#git-hooks)
+9. [Quick Reference](#-quick-reference)
+10. [Help & Troubleshooting](#help--troubleshooting)
 
 ---
 
@@ -420,3 +429,247 @@ Key command categories:
 ---
 
 **Note:** This project is designed to work exclusively with Docker. All development, testing, and code quality tools are containerized for consistency and ease of use.
+
+---
+
+## Semantic Commits & Releases
+
+This project enforces **semantic commits** following the [Conventional Commits](https://www.conventionalcommits.org/) specification and provides **automated releases** with changelog generation using **Commitizen**, **Commitlint**, and **Release Please**.
+
+### 🚀 Quick Setup
+
+```bash
+# Complete setup with commit tools and git hooks
+make setup-dev
+
+# OR Docker-based setup (works without Node.js)
+make docker-setup-dev
+```
+
+### 📝 Commit Workflow
+
+#### **Option 1: Interactive Guided Commits (Recommended)**
+```bash
+# Local setup (requires Node.js)
+make commit
+
+# Docker-based (works anywhere)
+make docker-commit
+```
+
+#### **Option 2: Manual Commits (Auto-validated)**
+```bash
+git add .
+git commit -m "feat(auth): add user authentication endpoint"
+```
+
+### � Commit Message Format
+
+All commits must follow this format:
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+#### **Valid Types**
+- `feat`: ✨ New feature
+- `fix`: 🐛 Bug fix
+- `docs`: 📚 Documentation changes
+- `style`: 💄 Code formatting (no logic changes)
+- `refactor`: ♻️ Code refactoring
+- `test`: 🧪 Adding or updating tests
+- `chore`: 🔧 Build process or auxiliary tools
+- `perf`: ⚡ Performance improvements
+- `ci`: 👷 CI configuration changes
+- `build`: 📦 Build system changes
+- `revert`: ⏪ Reverting previous commits
+
+#### **Examples**
+```bash
+feat(api): add user registration endpoint
+fix(auth): resolve token validation issue  
+docs: update API documentation
+refactor(user): simplify user model relationships
+test(api): add integration tests for auth endpoints
+chore(deps): update Laravel to v11
+perf(db): optimize user query performance
+ci: add automated testing workflow
+```
+
+### 🔒 Commit Enforcement
+
+#### **Local Protection**
+- **Git hooks** validate commit messages before push
+- **Interactive guidance** for proper commit format
+- **Helpful error messages** with examples
+
+#### **CI/CD Protection**
+- **Pull request validation** checks all commits
+- **GitHub Actions** enforce semantic commit format
+- **Blocks merging** of invalid commits
+
+### 📦 Automated Release Process
+
+Our automated release system works as follows:
+
+#### **1. Commit Analysis**
+- **Release Please** analyzes all semantic commits
+- **Determines version bump** based on commit types:
+  - `feat`: Minor version bump (1.0.0 → 1.1.0)
+  - `fix`: Patch version bump (1.0.0 → 1.0.1)
+  - `BREAKING CHANGE`: Major version bump (1.0.0 → 2.0.0)
+
+#### **2. Release PR Creation**
+When commits are pushed to main branch, Release Please automatically:
+- **Creates a release PR** with version bump
+- **Generates CHANGELOG.md** from commit history
+- **Updates version numbers** in package files
+- **Tags the release** when PR is merged
+
+#### **3. GitHub Release**
+Upon merging the release PR:
+- **GitHub release** is created automatically
+- **Docker images** are built and tagged
+- **Deployment pipeline** can be triggered
+- **Release notes** are generated from commits
+
+### 🛠️ Available Commands
+
+#### **Setup Commands**
+```bash
+make setup-dev              # Complete local setup
+make docker-setup-dev       # Docker-based setup
+make install-commit-tools    # Install Node.js dependencies only
+make setup-git-hooks        # Install git hooks only
+```
+
+#### **Commit Commands**
+```bash
+make commit                 # Interactive semantic commit (local)
+make docker-commit          # Interactive semantic commit (Docker)
+make validate-commit        # Validate recent commit messages
+```
+
+#### **Release Commands**
+```bash
+make release               # Create release (maintainers only)
+```
+
+### 🔍 Validation & Debugging
+
+#### **Check Commit History**
+```bash
+# Validate recent commits
+make validate-commit
+
+# Check multiple commits
+npx commitlint --from HEAD~5 --to HEAD
+
+# Validate specific commit
+echo "your commit message" | npx commitlint
+```
+
+#### **Common Issues & Solutions**
+
+**❌ "Subject too long" error**
+- Keep subject line under 72 characters
+- Use `make commit` for guided input
+
+**❌ "Type may not be empty" error**
+- Ensure commit starts with valid type (feat, fix, etc.)
+- Use format: `type(scope): description`
+
+**❌ Git hooks not working**
+- Run `make setup-git-hooks`
+- Check hooks are executable: `ls -la .git/hooks/`
+
+**❌ NPM/Node.js not available**
+- Use Docker commands: `make docker-commit`
+- Or install Node.js locally
+
+### 📊 Release Workflow Example
+
+```bash
+# 1. Make changes and commit with semantic format
+git add .
+make commit
+# Select: feat -> API -> "add user search endpoint"
+
+# 2. Push to feature branch
+git push origin feature/user-search
+
+# 3. Create pull request
+# CI validates all commits automatically
+
+# 4. Merge to main branch
+# Release Please analyzes commits
+
+# 5. Release PR created automatically
+# - Version: 1.2.0 (was 1.1.0, feat = minor bump)
+# - Changelog: Generated from commits
+# - Files: package.json, composer.json updated
+
+# 6. Merge release PR
+# - GitHub release created: v1.2.0
+# - Docker images tagged: laravel-blog-api:1.2.0
+# - Deployment triggered (if configured)
+```
+
+### 🎯 Benefits
+
+✅ **Consistent commit history** - Easy to understand project evolution  
+✅ **Automated changelogs** - No manual maintenance required  
+✅ **Semantic versioning** - Automatic version bumping  
+✅ **Better collaboration** - Clear commit messages improve code review  
+✅ **Release automation** - Streamlined deployment process  
+✅ **Quality assurance** - Prevents bad commits from reaching main branch
+
+### 📚 Additional Resources
+
+- **Detailed Guide**: [SEMANTIC-COMMITS.md](SEMANTIC-COMMITS.md)
+- **Conventional Commits**: https://www.conventionalcommits.org/
+- **Commitizen**: https://github.com/commitizen/cz-cli
+- **Release Please**: https://github.com/googleapis/release-please
+
+---
+
+## 🚀 Quick Reference
+
+### Most Common Commands
+
+```bash
+# Initial setup
+make setup-dev                    # Setup commit tools + git hooks
+
+# Daily workflow
+make commit                       # Interactive semantic commit
+git add . && make commit          # Stage and commit with guidance
+
+# Docker workflow (no Node.js required)
+make docker-setup-dev            # Setup with Docker
+make docker-commit               # Docker-based commit
+
+# Validation
+make validate-commit             # Check recent commits
+npx commitlint --from HEAD~3     # Check multiple commits
+
+# Environment management
+make docker-dev                  # Full development environment
+make docker-test                 # Run all tests
+make docker-cleanup              # Clean up containers and volumes
+```
+
+### Commit Examples
+```bash
+feat(api): add user search endpoint
+fix(auth): resolve token expiration issue
+docs: update installation guide
+test(api): add integration tests for users
+chore(deps): update Laravel to v11
+refactor(auth): simplify login logic
+```
+
+---

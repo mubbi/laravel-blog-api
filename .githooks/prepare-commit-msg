@@ -1,7 +1,25 @@
 #!/bin/sh
 
-BRANCH_NAME=$(git branch --show-current)
+# Check if this is a merge commit or revert
+if [ "$2" = "merge" ] || [ "$2" = "squash" ] || [ "$2" = "commit" ]; then
+    exit 0
+fi
 
-if [ -n "$BRANCH_NAME" ]; then
-    echo "[$BRANCH_NAME] $(cat "$1")" > "$1"
+# Check if commitizen is available
+if ! command -v npx > /dev/null 2>&1; then
+    echo "Warning: Node.js/npm not available for commit message validation"
+    exit 0
+fi
+
+# Skip if already has conventional commit format
+COMMIT_MSG=$(cat "$1")
+if echo "$COMMIT_MSG" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .+'; then
+    exit 0
+fi
+
+# Interactive commit with commitizen if not automated
+if [ -t 1 ]; then
+    echo "🚨 Interactive commit detected. Please use 'npm run commit' or 'make commit' for proper semantic commits!"
+    echo "Your commit message will be validated against conventional commit standards."
+    exit 1
 fi
