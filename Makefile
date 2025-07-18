@@ -5,6 +5,15 @@ setup-git-hooks:
 	chmod +x .git/hooks/pre-commit && chmod +x .git/hooks/pre-push && chmod +x .git/hooks/prepare-commit-msg && chmod +x .git/hooks/commit-msg
 	@echo "SUCCESS: Git hooks installed!"
 
+# Setup Husky hooks (called automatically by npm install)
+setup-husky-hooks:
+	@echo "SETUP: Setting up Husky integration..."
+	@mkdir -p .husky
+	@echo '#!/usr/bin/env sh\n. "$$(dirname -- "$$0")/_/husky.sh"\n\n# Run the custom pre-commit script\n./.githooks/pre-commit' > .husky/pre-commit
+	@echo '#!/usr/bin/env sh\n. "$$(dirname -- "$$0")/_/husky.sh"\n\n# Run the custom pre-push script\n./.githooks/pre-push' > .husky/pre-push
+	@chmod +x .husky/pre-commit .husky/pre-push
+	@echo "SUCCESS: Husky hooks configured!"
+
 # Install Node.js dependencies for commit tools
 install-commit-tools:
 	@echo "SETUP: Installing commit tools..."
@@ -22,7 +31,7 @@ validate-commit:
 	npm run lint:commit
 
 # Setup complete development environment
-setup-dev: install-commit-tools setup-git-hooks
+setup-dev: install-commit-tools setup-husky-hooks
 	@echo "SUCCESS: Development environment setup complete!"
 	@echo ""
 	@echo "🎉 You're all set! Use the following commands:"
