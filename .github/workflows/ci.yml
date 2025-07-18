@@ -108,11 +108,9 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: laravel_blog_test
-          MYSQL_USER: laravel_user
-          MYSQL_PASSWORD: laravel_password
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        options: --health-cmd="mysqladmin ping -h localhost -u root -proot" --health-interval=10s --health-timeout=5s --health-retries=5
 
       redis:
         image: redis:7-alpine
@@ -156,25 +154,32 @@ jobs:
           echo "DB_HOST=127.0.0.1" >> .env
           echo "DB_PORT=3306" >> .env
           echo "DB_DATABASE=laravel_blog_test" >> .env
-          echo "DB_USERNAME=laravel_user" >> .env
-          echo "DB_PASSWORD=laravel_password" >> .env
+          echo "DB_USERNAME=root" >> .env
+          echo "DB_PASSWORD=root" >> .env
           echo "CACHE_STORE=array" >> .env
           echo "SESSION_DRIVER=array" >> .env
           echo "QUEUE_CONNECTION=sync" >> .env
 
       - name: Wait for MySQL to be ready
         run: |
-          for i in {1..30}; do
-            if mysqladmin ping -h 127.0.0.1 -u laravel_user -plaravel_password --silent; then
+          for i in {1..60}; do
+            if mysqladmin ping -h 127.0.0.1 -P 3306 -u root -proot --silent; then
               echo "MySQL is ready"
+              # Verify the database exists
+              mysql -h 127.0.0.1 -P 3306 -u root -proot -e "SHOW DATABASES;" | grep laravel_blog_test || exit 1
+              echo "Database laravel_blog_test confirmed"
               break
             fi
-            echo "Waiting for MySQL... ($i/30)"
-            sleep 2
+            echo "Waiting for MySQL... ($i/60)"
+            sleep 3
           done
+          if [ $i -eq 60 ]; then
+            echo "MySQL failed to start within 3 minutes"
+            exit 1
+          fi
 
       - name: Run database migrations
         run: php artisan migrate:fresh --seed --env=testing --force
 
-      - name: Run tests with Pest
-        run: php artisan test --stop-on-failure
+      - name: Run tests with Pest (parallel)
+        run: php artisan test --parallel --recreate-databases --stop-on-failure
