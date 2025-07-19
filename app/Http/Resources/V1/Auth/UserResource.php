@@ -49,13 +49,16 @@ class UserResource extends JsonResource
 
                 return array_values(array_unique($permissionSlugs));
             }),
-            $this->mergeWhen(isset($this->resource->access_token), [
-                'access_token' => $this->resource->access_token,
-                'refresh_token' => $this->resource->refresh_token,
-                'access_token_expires_at' => $this->resource->access_token_expires_at?->toISOString(),
-                'refresh_token_expires_at' => $this->resource->refresh_token_expires_at?->toISOString(),
-                'token_type' => 'Bearer',
-            ]),
+            $this->mergeWhen(
+                array_key_exists('access_token', $this->resource->getAttributes()),
+                fn () => [
+                    'access_token' => $this->resource->getAttributes()['access_token'],
+                    'refresh_token' => $this->resource->getAttributes()['refresh_token'] ?? null,
+                    'access_token_expires_at' => optional($this->resource->getAttributes()['access_token_expires_at'] ?? null)?->toISOString(),
+                    'refresh_token_expires_at' => optional($this->resource->getAttributes()['refresh_token_expires_at'] ?? null)?->toISOString(),
+                    'token_type' => 'Bearer',
+                ]
+            ),
         ];
     }
 }
