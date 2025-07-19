@@ -34,36 +34,32 @@ detect_os() {
 check_port() {
     local port=$1
     local description=$2
+    local optional=${3:-false}
     local os=$(detect_os)
     local port_in_use=false
-
     case $os in
         "windows")
-            # Use netstat on Windows (available by default)
-            if netstat -an | grep -q ":$port "; then
+            # Only consider LISTENING state
+            if netstat -an | grep -E ":$port[[:space:]]" | grep -iq "LISTEN"; then
                 port_in_use=true
             fi
             ;;
         "macos")
-            # Use netstat on macOS (available by default)
-            if netstat -an | grep -q "\\.$port "; then
+            # Only consider LISTEN state
+            if netstat -an | grep -E "\.$port[[:space:]]" | grep -iq "LISTEN"; then
                 port_in_use=true
             fi
             ;;
         "linux")
-            # Try multiple methods on Linux
             if command -v ss &> /dev/null; then
-                # Use ss (modern replacement for netstat)
-                if ss -tuln | grep -q ":$port "; then
+                if ss -tuln | awk '{print $4,$1}' | grep -E "[:.]$port[[:space:]]" | grep -iq "LISTEN"; then
                     port_in_use=true
                 fi
             elif command -v netstat &> /dev/null; then
-                # Fall back to netstat
-                if netstat -tuln | grep -q ":$port "; then
+                if netstat -tuln | grep -E ":$port[[:space:]]" | grep -iq "LISTEN"; then
                     port_in_use=true
                 fi
             elif command -v nc &> /dev/null; then
-                # Fall back to netcat
                 if nc -z localhost $port 2>/dev/null; then
                     port_in_use=true
                 fi
@@ -73,13 +69,16 @@ check_port() {
             fi
             ;;
         *)
-            # Unknown OS - try netcat if available
             if command -v nc &> /dev/null; then
                 if nc -z localhost $port 2>/dev/null; then
                     port_in_use=true
                 fi
             else
                 echo -e "${YELLOW}⚠️  Cannot check port $port - unsupported OS${NC}"
+                return 0
+            fi
+            ;;
+    esac
                 return 0
             fi
             ;;
