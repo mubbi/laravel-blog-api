@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/mubbi/laravel-blog-api/compare/v1.2.1...v1.2.2) (2025-07-18)
+
+
+### Bug Fixes
+
+* fix port check commands and git hook setup ([dc7493b](https://github.com/mubbi/laravel-blog-api/commit/dc7493b8b6314442fe425bf0f5c47bbd508d0efd))
+
 ## [1.2.1](https://github.com/mubbi/laravel-blog-api/compare/v1.2.0...v1.2.1) (2025-07-18)
 
 
