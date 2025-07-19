@@ -18,8 +18,6 @@ Route::prefix('v1')->group(function () {
 
     // User Routes
     Route::middleware(['auth:sanctum', 'ability:access-api'])->group(function () {
-        Route::get('/me', function (Request $request) {
-            return auth()->user();
-        });
+        Route::get('/me', \App\Http\Controllers\Api\V1\User\MeController::class);
     });
 });
