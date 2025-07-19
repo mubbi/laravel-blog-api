@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.3](https://github.com/mubbi/laravel-blog-api/compare/v1.2.2...v1.2.3) (2025-07-19)
+
+
+### Bug Fixes
+
+* fix test scripts to persist container ([293d12d](https://github.com/mubbi/laravel-blog-api/commit/293d12d3d3b0595d6a5f984a47c93bd599fb179b))
+* fixed port check issues ([d59abca](https://github.com/mubbi/laravel-blog-api/commit/d59abcaa3baf5332c0ba96652aa0b6c1316d7768))
+
 ## [1.2.2](https://github.com/mubbi/laravel-blog-api/compare/v1.2.1...v1.2.2) (2025-07-18)
 
 
