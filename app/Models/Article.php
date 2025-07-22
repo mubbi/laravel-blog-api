@@ -8,6 +8,7 @@ use App\Enums\ArticleStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -80,5 +81,29 @@ final class Article extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * @return BelongsToMany<Category,Article>
+     */
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'article_categories');
+    }
+
+    /**
+     * @return BelongsToMany<Tag,Article>
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'article_tags');
+    }
+
+    /**
+     * @return BelongsToMany<User,Article>
+     */
+    public function authors(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'article_authors')->withPivot('role');
     }
 }
