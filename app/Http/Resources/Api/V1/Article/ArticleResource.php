@@ -43,6 +43,11 @@ class ArticleResource extends JsonResource
                     'email' => $this->author->email,
                     'avatar_url' => $this->author->avatar_url,
                     'bio' => $this->author->bio,
+                    'twitter' => $this->author->twitter,
+                    'facebook' => $this->author->facebook,
+                    'linkedin' => $this->author->linkedin,
+                    'github' => $this->author->github,
+                    'website' => $this->author->website,
                 ] : null;
             }),
 
@@ -86,6 +91,11 @@ class ArticleResource extends JsonResource
                         'email' => $author->email,
                         'avatar_url' => $author->avatar_url,
                         'bio' => $author->bio,
+                        'twitter' => $author->twitter,
+                        'facebook' => $author->facebook,
+                        'linkedin' => $author->linkedin,
+                        'github' => $author->github,
+                        'website' => $author->website,
                         'role' => $pivot?->getAttribute('role'),
                     ];
                 })->values()->all();
