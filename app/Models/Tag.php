@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property int $id
@@ -32,5 +33,13 @@ final class Tag extends Model
     protected function casts(): array
     {
         return [];
+    }
+
+    /**
+     * @return BelongsToMany<Article,Tag>
+     */
+    public function articles(): BelongsToMany
+    {
+        return $this->belongsToMany(Article::class, 'article_tags');
     }
 }
