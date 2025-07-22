@@ -6,7 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property int $id
@@ -34,10 +34,10 @@ final class Category extends Model
     }
 
     /**
-     * @return HasMany<ArticleCategory,Category>
+     * @return BelongsToMany<Article,Category>
      */
-    public function articles(): HasMany
+    public function articles(): BelongsToMany
     {
-        return $this->hasMany(ArticleCategory::class);
+        return $this->belongsToMany(Article::class, 'article_categories');
     }
 }
