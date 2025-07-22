@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.3.0](https://github.com/mubbi/laravel-blog-api/compare/v1.2.3...v1.3.0) (2025-07-22)
+
+
+### Features
+
+* add test coverage for me controller ([c8549c9](https://github.com/mubbi/laravel-blog-api/commit/c8549c9106f3a5d54d34e7fba8b9b6a8c47b9966))
+* added Me controller for get user profile API ([29dc842](https://github.com/mubbi/laravel-blog-api/commit/29dc842af648c5dbd7c18467ecf9ec12f5d6ab96))
+* **article:** add all author related fields ([644b63a](https://github.com/mubbi/laravel-blog-api/commit/644b63a0993e3b406de5c64c56682e60910c0cb6))
+* **article:** added Get All and Show Article APIs ([3d8ea96](https://github.com/mubbi/laravel-blog-api/commit/3d8ea965a96fa36993384519693c7dfe21ccf797))
+* articles API ([dadb3ff](https://github.com/mubbi/laravel-blog-api/commit/dadb3ff6d4442f01619a2abd83509b7f95976acc))
+* **article:** update models to have respective relationships ([8fbb984](https://github.com/mubbi/laravel-blog-api/commit/8fbb984d89c3780942b1eebe90d68737ed909ff3))
+
+
+### Bug Fixes
+
+* fix user resource for undefined key access_token ([8ea86b8](https://github.com/mubbi/laravel-blog-api/commit/8ea86b8ef2766fd45cea9c4c0112e38fc112948f))
+
 ## [1.2.3](https://github.com/mubbi/laravel-blog-api/compare/v1.2.2...v1.2.3) (2025-07-19)
 
 
