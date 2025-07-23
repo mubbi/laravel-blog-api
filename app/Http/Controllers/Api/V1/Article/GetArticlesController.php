@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Article;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\V1\Article\GetArticlesRequest;
-use App\Http\Resources\Api\V1\Article\ArticleResource;
+use App\Http\Requests\V1\Article\GetArticlesRequest;
+use App\Http\Resources\MetaResource;
+use App\Http\Resources\V1\Article\ArticleResource;
 use App\Services\ArticleService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -26,7 +27,7 @@ class GetArticlesController extends Controller
      *
      * @unauthenticated
      *
-     * @response array{status: true, message: string, data: array{data: ArticleResource[], links: array, meta: array}}
+     * @response array{status: true, message: string, data: array{articles: ArticleResource[], meta: MetaResource}}
      */
     public function __invoke(GetArticlesRequest $request): JsonResponse
     {
@@ -50,7 +51,7 @@ class GetArticlesController extends Controller
             return response()->apiSuccess(
                 [
                     'articles' => $articleCollectionData['data'],
-                    'meta' => $articleCollectionData['meta'],
+                    'meta' => MetaResource::make($articleCollectionData['meta']),
                 ],
                 __('common.success')
             );
