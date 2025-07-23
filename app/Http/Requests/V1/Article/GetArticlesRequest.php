@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Api\V1\Article;
+namespace App\Http\Requests\V1\Article;
 
 use App\Enums\ArticleStatus;
 use Illuminate\Foundation\Http\FormRequest;
