@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/mubbi/laravel-blog-api/compare/v1.3.1...v1.4.0) (2025-07-23)
+
+
+### Features
+
+* **rate limiter:** applied rate limiter for APIs ([bb9226c](https://github.com/mubbi/laravel-blog-api/commit/bb9226cbe1fcea0bb48d8fba9987201f271cad27))
+* **rate limiter:** applied rate limiter for APIs ([795cbff](https://github.com/mubbi/laravel-blog-api/commit/795cbffc9955e025689cf0eb997410105e920635))
+
 ## [1.3.1](https://github.com/mubbi/laravel-blog-api/compare/v1.3.0...v1.3.1) (2025-07-23)
 
 
