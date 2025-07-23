@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/mubbi/laravel-blog-api/compare/v1.3.0...v1.3.1) (2025-07-23)
+
+
+### Bug Fixes
+
+* **article:** fix API Responses and paths ([0de982a](https://github.com/mubbi/laravel-blog-api/commit/0de982a8019e0e03e3b4054bbbedf7334cd7e3f0))
+* **article:** fix API Responses and paths ([a359ec4](https://github.com/mubbi/laravel-blog-api/commit/a359ec4220a6898784f210be63aacd5ddcf61b8c))
+
 ## [1.3.0](https://github.com/mubbi/laravel-blog-api/compare/v1.2.3...v1.3.0) (2025-07-22)
 
 
