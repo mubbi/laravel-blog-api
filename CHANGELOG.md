@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/mubbi/laravel-blog-api/compare/v1.4.0...v1.5.0) (2025-07-24)
+
+
+### Features
+
+* **categories & tags:** added New APIs for categories and tags ([44347d5](https://github.com/mubbi/laravel-blog-api/commit/44347d548373d0d1a8d599dae9de00a0ac4d3b24))
+* **categories & tags:** added New APIs for categories and tags ([6b53386](https://github.com/mubbi/laravel-blog-api/commit/6b53386903023fd120310733e49d5bcd09d4ef58))
+
 ## [1.4.0](https://github.com/mubbi/laravel-blog-api/compare/v1.3.1...v1.4.0) (2025-07-23)
 
 
