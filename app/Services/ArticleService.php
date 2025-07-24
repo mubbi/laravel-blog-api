@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Article;
+use App\Models\Category;
+use App\Models\Tag;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -127,20 +129,20 @@ class ArticleService
     /**
      * Get all categories
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\Category>
+     * @return \Illuminate\Database\Eloquent\Collection<int, Category>
      */
     public function getAllCategories()
     {
-        return \App\Models\Category::query()->get(['id', 'name', 'slug']);
+        return Category::query()->get(['id', 'name', 'slug']);
     }
 
     /**
      * Get all tags
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\Tag>
+     * @return \Illuminate\Database\Eloquent\Collection<int, Tag>
      */
     public function getAllTags()
     {
-        return \App\Models\Tag::query()->get(['id', 'name', 'slug']);
+        return Tag::query()->get(['id', 'name', 'slug']);
     }
 }
