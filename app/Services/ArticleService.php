@@ -123,4 +123,24 @@ class ArticleService
                 ->where('published_at', '<=', now());
         }
     }
+
+    /**
+     * Get all categories
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\Category>
+     */
+    public function getAllCategories()
+    {
+        return \App\Models\Category::query()->get(['id', 'name', 'slug']);
+    }
+
+    /**
+     * Get all tags
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\Tag>
+     */
+    public function getAllTags()
+    {
+        return \App\Models\Tag::query()->get(['id', 'name', 'slug']);
+    }
 }
