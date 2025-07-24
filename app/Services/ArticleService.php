@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Article;
+use App\Models\Category;
+use App\Models\Tag;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -122,5 +124,25 @@ class ArticleService
                 ->whereNotNull('published_at')
                 ->where('published_at', '<=', now());
         }
+    }
+
+    /**
+     * Get all categories
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, Category>
+     */
+    public function getAllCategories()
+    {
+        return Category::query()->get(['id', 'name', 'slug']);
+    }
+
+    /**
+     * Get all tags
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, Tag>
+     */
+    public function getAllTags()
+    {
+        return Tag::query()->get(['id', 'name', 'slug']);
     }
 }
