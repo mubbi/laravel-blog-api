@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
+Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function () {
     Route::get('/', function (Request $request) {
         return 'Laravel Blog API V1 Root is working';
     })->name('api.v1.status');
