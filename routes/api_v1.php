@@ -24,4 +24,10 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         Route::get('/', \App\Http\Controllers\Api\V1\Article\GetArticlesController::class)->name('api.v1.articles.index');
         Route::get('/{slug}', \App\Http\Controllers\Api\V1\Article\ShowArticleController::class)->name('api.v1.articles.show');
     });
+
+    // Category Routes (Public)
+    Route::get('categories', \App\Http\Controllers\Api\V1\Category\GetCategoriesController::class)->name('api.v1.categories.index');
+
+    // Tag Routes (Public)
+    Route::get('tags', \App\Http\Controllers\Api\V1\Tag\GetTagsController::class)->name('api.v1.tags.index');
 });

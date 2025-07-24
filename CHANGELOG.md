@@ -1,5 +1,54 @@
 # Changelog
 
+## [1.5.0](https://github.com/mubbi/laravel-blog-api/compare/v1.4.0...v1.5.0) (2025-07-24)
+
+
+### Features
+
+* **categories & tags:** added New APIs for categories and tags ([44347d5](https://github.com/mubbi/laravel-blog-api/commit/44347d548373d0d1a8d599dae9de00a0ac4d3b24))
+* **categories & tags:** added New APIs for categories and tags ([6b53386](https://github.com/mubbi/laravel-blog-api/commit/6b53386903023fd120310733e49d5bcd09d4ef58))
+
+## [1.4.0](https://github.com/mubbi/laravel-blog-api/compare/v1.3.1...v1.4.0) (2025-07-23)
+
+
+### Features
+
+* **rate limiter:** applied rate limiter for APIs ([bb9226c](https://github.com/mubbi/laravel-blog-api/commit/bb9226cbe1fcea0bb48d8fba9987201f271cad27))
+* **rate limiter:** applied rate limiter for APIs ([795cbff](https://github.com/mubbi/laravel-blog-api/commit/795cbffc9955e025689cf0eb997410105e920635))
+
+## [1.3.1](https://github.com/mubbi/laravel-blog-api/compare/v1.3.0...v1.3.1) (2025-07-23)
+
+
+### Bug Fixes
+
+* **article:** fix API Responses and paths ([0de982a](https://github.com/mubbi/laravel-blog-api/commit/0de982a8019e0e03e3b4054bbbedf7334cd7e3f0))
+* **article:** fix API Responses and paths ([a359ec4](https://github.com/mubbi/laravel-blog-api/commit/a359ec4220a6898784f210be63aacd5ddcf61b8c))
+
+## [1.3.0](https://github.com/mubbi/laravel-blog-api/compare/v1.2.3...v1.3.0) (2025-07-22)
+
+
+### Features
+
+* add test coverage for me controller ([c8549c9](https://github.com/mubbi/laravel-blog-api/commit/c8549c9106f3a5d54d34e7fba8b9b6a8c47b9966))
+* added Me controller for get user profile API ([29dc842](https://github.com/mubbi/laravel-blog-api/commit/29dc842af648c5dbd7c18467ecf9ec12f5d6ab96))
+* **article:** add all author related fields ([644b63a](https://github.com/mubbi/laravel-blog-api/commit/644b63a0993e3b406de5c64c56682e60910c0cb6))
+* **article:** added Get All and Show Article APIs ([3d8ea96](https://github.com/mubbi/laravel-blog-api/commit/3d8ea965a96fa36993384519693c7dfe21ccf797))
+* articles API ([dadb3ff](https://github.com/mubbi/laravel-blog-api/commit/dadb3ff6d4442f01619a2abd83509b7f95976acc))
+* **article:** update models to have respective relationships ([8fbb984](https://github.com/mubbi/laravel-blog-api/commit/8fbb984d89c3780942b1eebe90d68737ed909ff3))
+
+
+### Bug Fixes
+
+* fix user resource for undefined key access_token ([8ea86b8](https://github.com/mubbi/laravel-blog-api/commit/8ea86b8ef2766fd45cea9c4c0112e38fc112948f))
+
+## [1.2.3](https://github.com/mubbi/laravel-blog-api/compare/v1.2.2...v1.2.3) (2025-07-19)
+
+
+### Bug Fixes
+
+* fix test scripts to persist container ([293d12d](https://github.com/mubbi/laravel-blog-api/commit/293d12d3d3b0595d6a5f984a47c93bd599fb179b))
+* fixed port check issues ([d59abca](https://github.com/mubbi/laravel-blog-api/commit/d59abcaa3baf5332c0ba96652aa0b6c1316d7768))
+
 ## [1.2.2](https://github.com/mubbi/laravel-blog-api/compare/v1.2.1...v1.2.2) (2025-07-18)
 
 
