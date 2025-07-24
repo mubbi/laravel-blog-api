@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'ability' => \App\Http\Middleware\CheckTokenAbility::class,
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+            'api.logger' => \App\Http\Middleware\ApiLogger::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
