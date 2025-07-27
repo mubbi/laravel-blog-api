@@ -23,6 +23,7 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
     Route::prefix('articles')->group(function () {
         Route::get('/', \App\Http\Controllers\Api\V1\Article\GetArticlesController::class)->name('api.v1.articles.index');
         Route::get('/{slug}', \App\Http\Controllers\Api\V1\Article\ShowArticleController::class)->name('api.v1.articles.show');
+        Route::get('/{article:slug}/comments', \App\Http\Controllers\Api\V1\Article\GetCommentsController::class)->name('api.v1.articles.comments.index');
     });
 
     // Category Routes (Public)
