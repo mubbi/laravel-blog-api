@@ -14,6 +14,7 @@ A clean, modern, and production-ready Laravel Blog API built with the latest ver
 6. [SonarQube Analysis (Optional)](#sonarqube-analysis-optional)
 7. [Semantic Commits](#semantic-commits)
 8. [Help & Troubleshooting](#help--troubleshooting)
+9. [TODO: Missing APIs & Tasks](#-todo-missing-apis--tasks)
 
 ---
 
@@ -362,5 +363,49 @@ make docker-cleanup          # Clean up everything
 - **API**: http://localhost:8081
 - **Health**: http://localhost:8081/api/health
 - **SonarQube**: http://localhost:9000 (when started)
+
+## 🚧 TODO: Missing APIs & Tasks
+
+Based on the defined roles and permissions, the following admin and management APIs or features are missing or should be reviewed for implementation:
+
+- **NextJS Client App**
+  - Complete NextJS App to integrate all these APIs, it will be separate REPO once i complete the APIs
+
+- **Admin APIs**
+  - User management: list, create, update, delete, ban, block, restore users
+  - Role management: assign roles, manage roles, manage permissions
+  - View user activity logs
+  - Approve/ban/restore users
+  - Manage site-wide settings and options
+
+- **Article/Post Management**
+  - Approve, feature, pin, archive, restore, trash, and report posts (admin/editor)
+  - Edit/delete others' posts (admin/editor)
+
+- **Comment Management**
+  - Moderate, approve, edit, delete, and report comments (admin/editor)
+
+- **Taxonomy Management**
+  - Manage categories and tags (admin/editor)
+
+- **Newsletter Management**
+  - View/manage newsletter subscribers (admin/editor)
+
+- **Notification Management**
+  - View/manage/send notifications (admin/editor)
+
+- **Media Management**
+  - Upload, delete, and manage media (admin/editor)
+
+- **Analytics & Settings**
+  - View analytics dashboard (admin only)
+  - Manage site settings (admin only)
+
+- **General**
+  - Ensure all permission checks are enforced in controllers/routes
+  - Add missing API endpoints for all permissions listed in `PermissionSeeder` and `RolePermissionSeeder`
+  - Add integration and feature tests for all admin/management APIs
+
+> _Review the permissions in `database/seeders/PermissionSeeder.php` and `RolePermissionSeeder.php` to ensure all are mapped to actual API endpoints and controller logic._
 
 ---
