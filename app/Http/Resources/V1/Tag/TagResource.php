@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Resources\Api\V1\Tag;
+namespace App\Http\Resources\V1\Tag;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
