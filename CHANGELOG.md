@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.7.0](https://github.com/mubbi/laravel-blog-api/compare/v1.6.0...v1.7.0) (2025-07-27)
+
+
+### Features
+
+* **comments:** added Get Article comments API ([322cce3](https://github.com/mubbi/laravel-blog-api/commit/322cce35935bb03037446f27bae4bc71c2013e6b))
+* **comments:** added Get Article comments API ([fbff564](https://github.com/mubbi/laravel-blog-api/commit/fbff5647394d7c31bbd5beab4f02e433543cca9a))
+
+## [1.6.0](https://github.com/mubbi/laravel-blog-api/compare/v1.5.0...v1.6.0) (2025-07-24)
+
+
+### Features
+
+* **api logger:** added api logger to track requests and responses ([703b6f1](https://github.com/mubbi/laravel-blog-api/commit/703b6f16c7beb0f0b66a17fed2d7ff94deadf953))
+* **api logger:** added api logger to track requests and responses ([ef63e33](https://github.com/mubbi/laravel-blog-api/commit/ef63e33e7d58ef533d2cf0e77014f360f1a1c0c3))
+
 ## [1.5.0](https://github.com/mubbi/laravel-blog-api/compare/v1.4.0...v1.5.0) (2025-07-24)
 
 
