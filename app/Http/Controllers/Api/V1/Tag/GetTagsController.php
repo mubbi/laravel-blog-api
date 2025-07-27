@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Tag;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\V1\Tag\TagResource;
+use App\Http\Resources\V1\Tag\TagResource;
 use App\Services\ArticleService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
