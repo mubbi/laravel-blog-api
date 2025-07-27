@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $user_id
  * @property string $content
  * @property int|null $parent_comment_id
+ * @property-read int $replies_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Comment>|null $replies_page
  *
  * @mixin \Eloquent
  *
@@ -54,10 +56,12 @@ final class Comment extends Model
     }
 
     /**
-     * @return BelongsTo<Comment,Comment>
+     * Get the replies (child comments) for this comment.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\Comment, Comment>
      */
-    public function parent(): BelongsTo
+    public function replies(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->belongsTo(Comment::class, 'parent_comment_id');
+        return $this->hasMany(Comment::class, 'parent_comment_id');
     }
 }
