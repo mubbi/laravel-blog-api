@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Article;
 use App\Models\Category;
+use App\Models\Comment;
 use App\Models\Tag;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -144,5 +145,54 @@ class ArticleService
     public function getAllTags()
     {
         return Tag::query()->get(['id', 'name', 'slug']);
+    }
+
+    /**
+     * Get paginated comments for an article (with 1 child level or for a parent comment).
+     *
+     * Loads the comment's user, count of replies, and top replies (limited by $repliesPerPage).
+     *
+     * @param  int  $articleId  The ID of the article.
+     * @param  int|null  $parentId  The ID of the parent comment (if loading child comments).
+     * @param  int  $perPage  Number of parent comments per page.
+     * @param  int  $page  Current page number.
+     * @param  int  $repliesPerPage  Number of child comments per parent.
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<int, \App\Models\Comment>
+     */
+    public function getArticleComments(
+        int $articleId,
+        ?int $parentId = null,
+        int $perPage = 10,
+        int $page = 1,
+        int $repliesPerPage = 3
+    ): \Illuminate\Contracts\Pagination\LengthAwarePaginator {
+        $query = Comment::query()
+            ->where('article_id', $articleId)
+            ->when($parentId !== null, fn ($q) => $q->where('parent_comment_id', $parentId))
+            ->when($parentId === null, fn ($q) => $q->whereNull('parent_comment_id'))
+            ->orderBy('created_at');
+
+        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
+
+        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Comment> $comments */
+        $comments = $paginator->getCollection();
+
+        $comments->load(['user']);
+        $comments->loadCount('replies');
+
+        // Load replies for each parent comment
+        $comments->each(function (Comment $comment) use ($repliesPerPage) {
+            $replies = $comment->replies()
+                ->with('user')
+                ->withCount('replies')
+                ->orderBy('created_at')
+                ->limit($repliesPerPage)
+                ->get();
+
+            $comment->setRelation('replies_page', $replies);
+        });
+
+        // Replace the collection on paginator so it's returned with relations loaded
+        return $paginator->setCollection($comments);
     }
 }
