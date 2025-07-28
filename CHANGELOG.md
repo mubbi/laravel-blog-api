@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.1](https://github.com/mubbi/laravel-blog-api/compare/v1.7.0...v1.7.1) (2025-07-28)
+
+
+### Bug Fixes
+
+* **comments:** fixed N+1 problem in comments replies listing ([2650fe2](https://github.com/mubbi/laravel-blog-api/commit/2650fe28aef8661655779c395cf08e2c95cbc1d9))
+* **comments:** fixed N+1 problem in comments replies listing ([f7bde1b](https://github.com/mubbi/laravel-blog-api/commit/f7bde1b02ff2da55cf21d36926cb28174cd215ed))
+
 ## [1.7.0](https://github.com/mubbi/laravel-blog-api/compare/v1.6.0...v1.7.0) (2025-07-27)
 
 
