@@ -180,16 +180,23 @@ class ArticleService
         $comments->load(['user']);
         $comments->loadCount('replies');
 
-        // Load replies for each parent comment
-        $comments->each(function (Comment $comment) use ($repliesPerPage) {
-            $replies = $comment->replies()
-                ->with('user')
-                ->withCount('replies')
-                ->orderBy('created_at')
-                ->limit($repliesPerPage)
-                ->get();
+        // Collect IDs of parent comments
+        $parentCommentIds = $comments->pluck('id');
 
-            $comment->setRelation('replies_page', $replies);
+        // Fetch replies in batch (LIMIT repliesPerPage per parent)
+        $replies = Comment::query()
+            ->whereIn('parent_comment_id', $parentCommentIds)
+            ->with('user')
+            ->withCount('replies')
+            ->orderBy('created_at')
+            ->get()
+            ->groupBy('parent_comment_id');
+
+        // Attach limited replies to each comment
+        $comments->each(function (Comment $comment) use ($replies, $repliesPerPage) {
+            $replyCollection = $replies[$comment->id] ?? collect();
+            $limitedReplies = $replyCollection->take($repliesPerPage);
+            $comment->setRelation('replies_page', $limitedReplies);
         });
 
         // Replace the collection on paginator so it's returned with relations loaded
