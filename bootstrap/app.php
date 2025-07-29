@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ability' => \App\Http\Middleware\CheckTokenAbility::class,
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
             'api.logger' => \App\Http\Middleware\ApiLogger::class,
+            'optional.sanctum' => \App\Http\Middleware\OptionalSanctumAuthenticate::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
