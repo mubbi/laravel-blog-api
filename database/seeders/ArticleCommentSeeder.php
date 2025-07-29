@@ -28,6 +28,13 @@ class ArticleCommentSeeder extends Seeder
         $articles = Article::factory(100)->create();
 
         foreach ($articles as $article) {
+            // Add 0-3 authors to the authors relation, excluding the main author/created_by
+            $possibleAuthors = $users->where('id', '!=', $article->created_by);
+            $authorCount = rand(0, 3);
+            if ($authorCount > 0 && $possibleAuthors->count() > 0) {
+                $authorIds = $possibleAuthors->random(min($authorCount, $possibleAuthors->count()))->pluck('id')->toArray();
+                $article->authors()->attach($authorIds);
+            }
             // Attach 1-3 random categories to each article
             $article->categories()->attach($categories->random(rand(1, 3))->pluck('id')->toArray());
             // Attach 2-5 random tags to each article
