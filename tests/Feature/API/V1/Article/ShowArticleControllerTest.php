@@ -22,7 +22,7 @@ describe('API/V1/Article/ShowArticleController', function () {
         $article->categories()->attach($category->id);
         $article->tags()->attach($tag->id);
 
-        $response = $this->getJson("/api/v1/articles/{$article->slug}");
+        $response = $this->getJson(route('api.v1.articles.show', ['slug' => $article->slug]));
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -46,7 +46,6 @@ describe('API/V1/Article/ShowArticleController', function () {
                     'author' => [
                         'id',
                         'name',
-                        'email',
                         'avatar_url',
                         'bio',
                     ],
@@ -76,6 +75,7 @@ describe('API/V1/Article/ShowArticleController', function () {
     it('returns 404 when article not found by slug', function () {
         $response = $this->getJson('/api/v1/articles/non-existent-slug');
 
+        $response = $this->getJson(route('api.v1.articles.show', ['slug' => 'non-existent-slug']));
         $response->assertStatus(404)
             ->assertJson([
                 'status' => false,
@@ -93,7 +93,7 @@ describe('API/V1/Article/ShowArticleController', function () {
                 ->andThrow(new \Exception('Database connection failed'));
         });
 
-        $response = $this->getJson('/api/v1/articles/test-slug');
+        $response = $this->getJson(route('api.v1.articles.show', ['slug' => 'test-slug']));
 
         $response->assertStatus(500)
             ->assertJson([

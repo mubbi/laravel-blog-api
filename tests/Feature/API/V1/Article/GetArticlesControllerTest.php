@@ -18,7 +18,7 @@ describe('API/V1/Article/GetArticlesController', function () {
             ->published()
             ->create();
 
-        $response = $this->getJson('/api/v1/articles');
+        $response = $this->getJson(route('api.v1.articles.index'));
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -75,7 +75,7 @@ describe('API/V1/Article/GetArticlesController', function () {
             ->published()
             ->create();
 
-        $response = $this->getJson("/api/v1/articles?category_slug={$category->slug}");
+        $response = $this->getJson(route('api.v1.articles.index', ['category_slug' => $category->slug]));
 
         $response->assertStatus(200);
         expect($response->json('data.articles'))->toHaveCount(1);
@@ -102,7 +102,7 @@ describe('API/V1/Article/GetArticlesController', function () {
             ->published()
             ->create();
 
-        $response = $this->getJson("/api/v1/articles?tag_slug={$tag->slug}");
+        $response = $this->getJson(route('api.v1.articles.index', ['tag_slug' => $tag->slug]));
 
         $response->assertStatus(200);
         expect($response->json('data.articles'))->toHaveCount(1);
@@ -124,7 +124,7 @@ describe('API/V1/Article/GetArticlesController', function () {
             ->published()
             ->create(['title' => 'PHP Best Practices']);
 
-        $response = $this->getJson('/api/v1/articles?search=Laravel');
+        $response = $this->getJson(route('api.v1.articles.index', ['search' => 'Laravel']));
 
         $response->assertStatus(200);
         expect($response->json('data.articles'))->toHaveCount(1);
@@ -147,7 +147,7 @@ describe('API/V1/Article/GetArticlesController', function () {
             ->published()
             ->create();
 
-        $response = $this->getJson("/api/v1/articles?created_by={$author1->id}");
+        $response = $this->getJson(route('api.v1.articles.index', ['created_by' => $author1->id]));
 
         $response->assertStatus(200);
         expect($response->json('data.articles'))->toHaveCount(1);
@@ -169,7 +169,7 @@ describe('API/V1/Article/GetArticlesController', function () {
             ->draft()
             ->create();
 
-        $response = $this->getJson('/api/v1/articles?status=published');
+        $response = $this->getJson(route('api.v1.articles.index', ['status' => 'published']));
 
         $response->assertStatus(200);
         expect($response->json('data.articles'))->toHaveCount(1);
@@ -185,7 +185,7 @@ describe('API/V1/Article/GetArticlesController', function () {
             ->published()
             ->create();
 
-        $response = $this->getJson('/api/v1/articles?per_page=5&page=2');
+        $response = $this->getJson(route('api.v1.articles.index', ['per_page' => 5, 'page' => 2]));
 
         $response->assertStatus(200);
         expect($response->json('data.articles'))->toHaveCount(5);
@@ -208,7 +208,7 @@ describe('API/V1/Article/GetArticlesController', function () {
             ->published()
             ->create(['title' => 'Z Article']);
 
-        $response = $this->getJson('/api/v1/articles?sort_by=title&sort_direction=asc');
+        $response = $this->getJson(route('api.v1.articles.index', ['sort_by' => 'title', 'sort_direction' => 'asc']));
 
         $response->assertStatus(200);
         expect($response->json('data.articles.0.id'))->toBe($article1->id);
@@ -222,7 +222,7 @@ describe('API/V1/Article/GetArticlesController', function () {
                 ->andThrow(new \Exception('Database connection failed'));
         });
 
-        $response = $this->getJson('/api/v1/articles');
+        $response = $this->getJson(route('api.v1.articles.index'));
 
         $response->assertStatus(500)
             ->assertJson([

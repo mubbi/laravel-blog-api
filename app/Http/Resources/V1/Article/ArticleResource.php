@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\V1\Article;
 
+use App\Enums\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -36,11 +37,12 @@ class ArticleResource extends JsonResource
             'updated_at' => $this->updated_at?->toISOString(),
 
             // Relationships
-            'author' => $this->whenLoaded('author', function () {
+            // Original Author
+            'author' => $this->whenLoaded('author', function () use ($request) {
                 return $this->author ? [
                     'id' => $this->author->id,
                     'name' => $this->author->name,
-                    'email' => $this->author->email,
+                    'email' => $this->when((bool) $request->user()?->hasRole(UserRole::ADMINISTRATOR->value), $this->author->email),
                     'avatar_url' => $this->author->avatar_url,
                     'bio' => $this->author->bio,
                     'twitter' => $this->author->twitter,
@@ -77,18 +79,16 @@ class ArticleResource extends JsonResource
                 })->values()->all();
             }),
 
-            'authors' => $this->whenLoaded('authors', function () {
+            // Co-Authors
+            'authors' => $this->whenLoaded('authors', function () use ($request) {
                 /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $authors */
                 $authors = $this->authors;
 
-                return $authors->map(function ($author) {
-                    /** @var \Illuminate\Database\Eloquent\Relations\Pivot|null $pivot */
-                    $pivot = $author->getAttribute('pivot');
-
+                return $authors->map(function ($author) use ($request) {
                     return [
                         'id' => $author->id,
                         'name' => $author->name,
-                        'email' => $author->email,
+                        'email' => $this->when((bool) $request->user()?->hasRole(UserRole::ADMINISTRATOR->value), $author->email),
                         'avatar_url' => $author->avatar_url,
                         'bio' => $author->bio,
                         'twitter' => $author->twitter,
@@ -96,7 +96,6 @@ class ArticleResource extends JsonResource
                         'linkedin' => $author->linkedin,
                         'github' => $author->github,
                         'website' => $author->website,
-                        'role' => $pivot?->getAttribute('role'),
                     ];
                 })->values()->all();
             }),
