@@ -22,7 +22,12 @@ class ArticleService
     public function getArticles(array $params): LengthAwarePaginator
     {
         $query = Article::query()
-            ->with(['author:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->with([
+                'author:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
+                'categories:id,name,slug',
+                'tags:id,name,slug',
+                'authors:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
+            ])
             ->withCount('comments');
 
         // Apply filters
