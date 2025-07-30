@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.8.0](https://github.com/mubbi/laravel-blog-api/compare/v1.7.1...v1.8.0) (2025-07-29)
+
+
+### Features
+
+* **articles-seeder:** added multiple co authors seeding ([985bb50](https://github.com/mubbi/laravel-blog-api/commit/985bb501e49f24da9df5e04fafee4c0ff1771c77))
+* **article:** show authors and restrict email field to admins ([77acaf6](https://github.com/mubbi/laravel-blog-api/commit/77acaf6bafad2b2a1c0caec70a0ed14f0a7ba8f5))
+* **middleware:** added new middleware for public routes ([68f8d90](https://github.com/mubbi/laravel-blog-api/commit/68f8d905296e9861484c446059eba3dcef13d0c0))
+* **middleware:** apply optional sanctum auth middleware for guest routes ([fe37480](https://github.com/mubbi/laravel-blog-api/commit/fe37480cebb530189653029011b710aedb0d5a63))
+
+## [1.7.1](https://github.com/mubbi/laravel-blog-api/compare/v1.7.0...v1.7.1) (2025-07-28)
+
+
+### Bug Fixes
+
+* **comments:** fixed N+1 problem in comments replies listing ([2650fe2](https://github.com/mubbi/laravel-blog-api/commit/2650fe28aef8661655779c395cf08e2c95cbc1d9))
+* **comments:** fixed N+1 problem in comments replies listing ([f7bde1b](https://github.com/mubbi/laravel-blog-api/commit/f7bde1b02ff2da55cf21d36926cb28174cd215ed))
+
 ## [1.7.0](https://github.com/mubbi/laravel-blog-api/compare/v1.6.0...v1.7.0) (2025-07-27)
 
 
