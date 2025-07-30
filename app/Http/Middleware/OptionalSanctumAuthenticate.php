@@ -27,7 +27,7 @@ class OptionalSanctumAuthenticate
         $token = $request->bearerToken();
         if (is_string($token) && $token !== '') {
             $accessToken = PersonalAccessToken::findToken($token);
-            if ($accessToken !== null) {
+            if ($accessToken !== null && $accessToken instanceof PersonalAccessToken) {
                 $tokenable = $accessToken->tokenable;
                 // Check for 'access-api' ability
                 if ($tokenable instanceof User && $accessToken->can('access-api')) {

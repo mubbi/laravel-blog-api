@@ -19,9 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @mixin \Eloquent
  *
- * @use HasFactory<Comment>
- *
- * @phpstan-use HasFactory<Comment>
+ * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
 final class Comment extends Model
 {
@@ -40,28 +38,37 @@ final class Comment extends Model
     }
 
     /**
-     * @return BelongsTo<Article,Comment>
+     * @return BelongsTo<Article, Comment>
      */
     public function article(): BelongsTo
     {
-        return $this->belongsTo(Article::class);
+        /** @var BelongsTo<Article, Comment> $relation */
+        $relation = $this->belongsTo(Article::class);
+
+        return $relation;
     }
 
     /**
-     * @return BelongsTo<User,Comment>
+     * @return BelongsTo<User, Comment>
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        /** @var BelongsTo<User, Comment> $relation */
+        $relation = $this->belongsTo(User::class);
+
+        return $relation;
     }
 
     /**
      * Get the replies (child comments) for this comment.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\Comment, Comment>
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Comment, Comment>
      */
     public function replies(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(Comment::class, 'parent_comment_id');
+        /** @var \Illuminate\Database\Eloquent\Relations\HasMany<Comment, Comment> $relation */
+        $relation = $this->hasMany(Comment::class, 'parent_comment_id');
+
+        return $relation;
     }
 }

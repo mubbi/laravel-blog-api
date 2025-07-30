@@ -14,9 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @mixin \Eloquent
  *
- * @use HasFactory<Permission>
- *
- * @phpstan-use HasFactory<Permission>
+ * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
 final class Permission extends Model
 {

@@ -31,7 +31,9 @@ final class AuthService implements AuthServiceInterface
         $user->tokens()->delete();
 
         // Generate access token (15 minutes)
-        $accessTokenExpiration = now()->addMinutes((int) (config('sanctum.access_token_expiration') ?? 15));
+        /** @var mixed $accessTokenExpirationConfig */
+        $accessTokenExpirationConfig = config('sanctum.access_token_expiration');
+        $accessTokenExpiration = now()->addMinutes((int) ($accessTokenExpirationConfig ?? 15));
         $accessToken = $user->createToken(
             'access_token',
             ['access-api'],
@@ -39,7 +41,9 @@ final class AuthService implements AuthServiceInterface
         );
 
         // Generate refresh token (30 days)
-        $refreshTokenExpiration = now()->addMinutes((int) (config('sanctum.refresh_token_expiration') ?? 43200));
+        /** @var mixed $refreshTokenExpirationConfig */
+        $refreshTokenExpirationConfig = config('sanctum.refresh_token_expiration');
+        $refreshTokenExpiration = now()->addMinutes((int) ($refreshTokenExpirationConfig ?? 43200));
         $refreshToken = $user->createToken(
             'refresh_token',
             ['refresh-token'],
@@ -65,15 +69,22 @@ final class AuthService implements AuthServiceInterface
         // Find the refresh token
         $token = \Laravel\Sanctum\PersonalAccessToken::findToken($refreshToken);
 
-        if (! $token || ! $token->can('refresh-token')) {
+        if (! $token || ! $token instanceof \Laravel\Sanctum\PersonalAccessToken || ! $token->can('refresh-token')) {
             throw new UnauthorizedException(__('auth.invalid_refresh_token'));
         }
 
-        /** @var User $user */
-        $user = $token->tokenable;
+        $user = null;
+        if ($token->tokenable instanceof User) {
+            $user = $token->tokenable;
+        }
+        if (! $user) {
+            throw new UnauthorizedException(__('auth.invalid_refresh_token'));
+        }
 
         // Check if refresh token is expired
-        if ($token->expires_at && $token->expires_at->isPast()) {
+        /** @var \Illuminate\Support\Carbon|null $tokenExpiresAt */
+        $tokenExpiresAt = $token->expires_at;
+        if ($tokenExpiresAt && $tokenExpiresAt->isPast()) {
             $token->delete();
             throw new UnauthorizedException(__('auth.refresh_token_expired'));
         }
@@ -82,7 +93,9 @@ final class AuthService implements AuthServiceInterface
         $user->tokens()->where('abilities', 'like', '%access-api%')->delete();
 
         // Generate new access token
-        $accessTokenExpiration = now()->addMinutes((int) (config('sanctum.access_token_expiration') ?? 15));
+        /** @var mixed $accessTokenExpirationConfig */
+        $accessTokenExpirationConfig = config('sanctum.access_token_expiration');
+        $accessTokenExpiration = now()->addMinutes((int) ($accessTokenExpirationConfig ?? 15));
         $accessToken = $user->createToken(
             'access_token',
             ['access-api'],
@@ -96,7 +109,7 @@ final class AuthService implements AuthServiceInterface
         $user->access_token = $accessToken->plainTextToken;
         $user->refresh_token = $refreshToken;
         $user->access_token_expires_at = $accessTokenExpiration;
-        $user->refresh_token_expires_at = $token->expires_at;
+        $user->refresh_token_expires_at = $tokenExpiresAt;
 
         return $user;
     }

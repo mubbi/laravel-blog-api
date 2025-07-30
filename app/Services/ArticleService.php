@@ -34,10 +34,15 @@ class ArticleService
         $this->applyFilters($query, $params);
 
         // Apply sorting
-        $query->orderBy($params['sort_by'], $params['sort_direction']);
+        $sortBy = $params['sort_by'] ?? 'published_at';
+        $sortDirection = $params['sort_direction'] ?? 'desc';
+        $query->orderBy((string) $sortBy, (string) $sortDirection);
 
         // Apply pagination
-        return $query->paginate($params['per_page'], ['*'], 'page', $params['page']);
+        $perPage = $params['per_page'] ?? 15;
+        $page = $params['page'] ?? 1;
+
+        return $query->paginate((int) $perPage, ['*'], 'page', (int) $page);
     }
 
     /**
@@ -67,7 +72,9 @@ class ArticleService
     {
         // Search in title, subtitle, excerpt, and content
         if (! empty($params['search'])) {
-            $searchTerm = (string) $params['search'];
+            /** @var mixed $searchParam */
+            $searchParam = $params['search'];
+            $searchTerm = (string) $searchParam;
             $query->where(function (Builder $q) use ($searchTerm) {
                 $q->where('title', 'like', "%{$searchTerm}%")
                     ->orWhere('subtitle', 'like', "%{$searchTerm}%")
@@ -78,7 +85,7 @@ class ArticleService
 
         // Filter by status
         if (! empty($params['status'])) {
-            $query->where('status', $params['status']);
+            $query->where('status', (string) $params['status']);
         }
 
         // Filter by categories (support multiple categories)
@@ -106,13 +113,13 @@ class ArticleService
         // Filter by author (from article_authors table)
         if (! empty($params['author_id'])) {
             $query->whereHas('authors', function (Builder $q) use ($params) {
-                $q->where('user_id', $params['author_id']);
+                $q->where('user_id', (int) $params['author_id']);
             });
         }
 
         // Filter by creator
         if (! empty($params['created_by'])) {
-            $query->where('created_by', $params['created_by']);
+            $query->where('created_by', (int) $params['created_by']);
         }
 
         // Filter by publication date range

@@ -38,7 +38,10 @@ class AppServiceProvider extends ServiceProvider
         } else {
             // Rate Limiting for API routes
             RateLimiter::for('api', function (Request $request) {
-                return Limit::perMinute((int) config('rate-limiting.api.default_rate_limit'))
+                $rateLimit = config('rate-limiting.api.default_rate_limit');
+                $rateLimitInt = is_numeric($rateLimit) ? (int) $rateLimit : 60;
+
+                return Limit::perMinute($rateLimitInt)
                     ->by($request->user()?->id ?: $request->ip());
             });
         }

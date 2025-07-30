@@ -15,9 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  *
  * @mixin \Eloquent
  *
- * @use HasFactory<Tag>
- *
- * @phpstan-use HasFactory<Tag>
+ * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
 final class Tag extends Model
 {
@@ -36,10 +34,13 @@ final class Tag extends Model
     }
 
     /**
-     * @return BelongsToMany<Article,Tag>
+     * @return BelongsToMany<Article, Tag, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
      */
     public function articles(): BelongsToMany
     {
-        return $this->belongsToMany(Article::class, 'article_tags');
+        /** @var BelongsToMany<Article, Tag, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
+        $relation = $this->belongsToMany(Article::class, 'article_tags');
+
+        return $relation;
     }
 }
