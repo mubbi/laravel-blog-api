@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @mixin \Eloquent
  *
- * @phpstan-use HasFactory<NewsletterSubscriber>
+ * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
 final class NewsletterSubscriber extends Model
 {
@@ -39,10 +39,13 @@ final class NewsletterSubscriber extends Model
     }
 
     /**
-     * @return BelongsTo<User,NewsletterSubscriber>
+     * @return BelongsTo<User, NewsletterSubscriber>
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        /** @var BelongsTo<User, NewsletterSubscriber> $relation */
+        $relation = $this->belongsTo(User::class);
+
+        return $relation;
     }
 }

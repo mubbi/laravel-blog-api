@@ -30,11 +30,11 @@ class ArticleResource extends JsonResource
             'content_markdown' => $this->content_markdown,
             'featured_image' => $this->featured_image,
             'status' => $this->status,
-            'published_at' => $this->published_at?->toISOString(),
+            'published_at' => ($this->published_at instanceof \DateTimeInterface ? $this->published_at->toISOString() : $this->published_at),
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
-            'created_at' => $this->created_at?->toISOString(),
-            'updated_at' => $this->updated_at?->toISOString(),
+            'created_at' => ($this->created_at instanceof \DateTimeInterface ? $this->created_at->toISOString() : $this->created_at),
+            'updated_at' => ($this->updated_at instanceof \DateTimeInterface ? $this->updated_at->toISOString() : $this->updated_at),
 
             // Relationships
             // Original Author

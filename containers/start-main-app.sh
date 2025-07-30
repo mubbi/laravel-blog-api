@@ -18,22 +18,9 @@ trap shutdown SIGTERM SIGINT
 # Remove any existing ready marker
 rm -f /var/www/html/storage/laravel_ready
 
-# Universal permission fix for all systems
+# Fix permissions at startup
 echo "[MAIN] SETUP: Fixing Laravel directory permissions..."
-# Ensure www-data user owns all files (www-data is standard across systems)
-chown -R www-data:www-data /var/www/html 2>/dev/null || true
-# Set proper permissions for storage and cache directories
-chmod -R 775 /var/www/html/storage 2>/dev/null || true
-chmod -R 775 /var/www/html/bootstrap/cache 2>/dev/null || true
-# Ensure specific subdirectories have correct permissions
-chmod -R 775 /var/www/html/storage/framework/cache 2>/dev/null || true
-chmod -R 775 /var/www/html/storage/framework/sessions 2>/dev/null || true
-chmod -R 775 /var/www/html/storage/framework/testing 2>/dev/null || true
-chmod -R 775 /var/www/html/storage/framework/views 2>/dev/null || true
-chmod -R 775 /var/www/html/storage/logs 2>/dev/null || true
-chmod -R 775 /var/www/html/storage/app 2>/dev/null || true
-# Make artisan executable
-chmod +x /var/www/html/artisan 2>/dev/null || true
+/usr/local/bin/fix-permissions.sh
 
 # Wait for database to be ready
 echo "[MAIN] WAITING: Database connection..."
@@ -96,12 +83,9 @@ php artisan config:clear
 php artisan config:cache
 php artisan route:cache
 
-# Universal permission fix after optimization
+# Fix permissions after optimization
 echo "[MAIN] SETUP: Fixing permissions after optimization..."
-chown -R www-data:www-data /var/www/html/storage 2>/dev/null || true
-chown -R www-data:www-data /var/www/html/bootstrap/cache 2>/dev/null || true
-chmod -R 775 /var/www/html/storage 2>/dev/null || true
-chmod -R 775 /var/www/html/bootstrap/cache 2>/dev/null || true
+/usr/local/bin/fix-permissions.sh
 
 # Create ready marker to signal that the app is fully set up
 echo "[MAIN] SUCCESS: Application setup complete! Creating ready marker..."

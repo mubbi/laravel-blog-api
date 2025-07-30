@@ -40,7 +40,6 @@ class UserResource extends JsonResource
                 $roles = $this->resource->roles;
 
                 foreach ($roles as $role) {
-                    /** @var \App\Models\Role $role */
                     foreach ($role->permissions as $permission) {
                         /** @var \App\Models\Permission $permission */
                         $permissionSlugs[] = $permission->slug;
@@ -54,11 +53,23 @@ class UserResource extends JsonResource
                 fn () => [
                     'access_token' => $this->resource->getAttributes()['access_token'],
                     'refresh_token' => $this->resource->getAttributes()['refresh_token'] ?? null,
-                    'access_token_expires_at' => optional($this->resource->getAttributes()['access_token_expires_at'] ?? null)?->toISOString(),
-                    'refresh_token_expires_at' => optional($this->resource->getAttributes()['refresh_token_expires_at'] ?? null)?->toISOString(),
+                    'access_token_expires_at' => $this->formatDateTime($this->resource->getAttributes()['access_token_expires_at'] ?? null),
+                    'refresh_token_expires_at' => $this->formatDateTime($this->resource->getAttributes()['refresh_token_expires_at'] ?? null),
                     'token_type' => 'Bearer',
                 ]
             ),
         ];
+    }
+
+    /**
+     * Format a datetime value to ISO string if it's a DateTimeInterface.
+     */
+    private function formatDateTime(mixed $value): mixed
+    {
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d\TH:i:s.v\Z');
+        }
+
+        return $value;
     }
 }

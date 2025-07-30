@@ -14,9 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @mixin \Eloquent
  *
- * @use HasFactory<ArticleCategory>
- *
- * @phpstan-use HasFactory<ArticleCategory>
+ * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
 final class ArticleCategory extends Model
 {
@@ -37,18 +35,24 @@ final class ArticleCategory extends Model
     }
 
     /**
-     * @return BelongsTo<Article,ArticleCategory>
+     * @return BelongsTo<Article, ArticleCategory>
      */
     public function article(): BelongsTo
     {
-        return $this->belongsTo(Article::class);
+        /** @var BelongsTo<Article, ArticleCategory> $relation */
+        $relation = $this->belongsTo(Article::class);
+
+        return $relation;
     }
 
     /**
-     * @return BelongsTo<Category,ArticleCategory>
+     * @return BelongsTo<Category, ArticleCategory>
      */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        /** @var BelongsTo<Category, ArticleCategory> $relation */
+        $relation = $this->belongsTo(Category::class);
+
+        return $relation;
     }
 }
