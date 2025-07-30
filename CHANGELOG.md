@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/mubbi/laravel-blog-api/compare/v1.8.0...v1.8.1) (2025-07-30)
+
+
+### Bug Fixes
+
+* **phpstan:** removed ignore rules and applied type strict stubs ([19f44a0](https://github.com/mubbi/laravel-blog-api/commit/19f44a09d682a2bd7e14c9c8f06eb7c92477d399))
+
 ## [1.8.0](https://github.com/mubbi/laravel-blog-api/compare/v1.7.1...v1.8.0) (2025-07-29)
 
 
