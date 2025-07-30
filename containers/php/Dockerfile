@@ -67,9 +67,11 @@ COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY start-services.sh /usr/local/bin/start-services.sh
 COPY start-main-app.sh /usr/local/bin/start-main-app.sh
 COPY start-queue-worker.sh /usr/local/bin/start-queue-worker.sh
+COPY fix-permissions.sh /usr/local/bin/fix-permissions.sh
 RUN chmod +x /usr/local/bin/start-services.sh
 RUN chmod +x /usr/local/bin/start-main-app.sh
 RUN chmod +x /usr/local/bin/start-queue-worker.sh
+RUN chmod +x /usr/local/bin/fix-permissions.sh
 
 # Create necessary Laravel directories and set proper permissions
 RUN mkdir -p /var/www/html/storage/app/public \

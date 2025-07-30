@@ -1,5 +1,11 @@
 #!/bin/bash
 
+echo "[QUEUE] Starting Laravel queue worker..."
+
+# Fix permissions at startup
+echo "[QUEUE] SETUP: Fixing Laravel directory permissions..."
+/usr/local/bin/fix-permissions.sh
+
 echo "[QUEUE] Waiting for main Laravel application to be ready..."
 
 # Function to check if main application is ready
