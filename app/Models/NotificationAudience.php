@@ -15,9 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @mixin \Eloquent
  *
- * @use HasFactory<NotificationAudience>
- *
- * @phpstan-use HasFactory<NotificationAudience>
+ * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
 final class NotificationAudience extends Model
 {
@@ -36,18 +34,24 @@ final class NotificationAudience extends Model
     }
 
     /**
-     * @return BelongsTo<Notification,NotificationAudience>
+     * @return BelongsTo<Notification, NotificationAudience>
      */
     public function notification(): BelongsTo
     {
-        return $this->belongsTo(Notification::class);
+        /** @var BelongsTo<Notification, NotificationAudience> $relation */
+        $relation = $this->belongsTo(Notification::class);
+
+        return $relation;
     }
 
     /**
-     * @return BelongsTo<User,NotificationAudience>
+     * @return BelongsTo<User, NotificationAudience>
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        /** @var BelongsTo<User, NotificationAudience> $relation */
+        $relation = $this->belongsTo(User::class);
+
+        return $relation;
     }
 }

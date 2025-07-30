@@ -33,15 +33,29 @@ class GetCommentsController extends Controller
         $params = $request->withDefaults();
 
         try {
-            $parentId = $params['parent_id'] !== null ? (int) $params['parent_id'] : null;
+            /** @var mixed $parentIdInput */
+            $parentIdInput = $request->input('parent_id');
+            /** @var mixed $commentIdInput */
+            $commentIdInput = $request->input('comment_id');
+            /** @var mixed $userIdInput */
+            $userIdInput = $request->input('user_id');
+            $parentId = is_numeric($parentIdInput) ? (int) $parentIdInput : null;
+            $commentId = is_numeric($commentIdInput) ? (int) $commentIdInput : null;
+            $userId = is_numeric($userIdInput) ? (int) $userIdInput : null;
 
+            /** @var mixed $perPageParam */
+            $perPageParam = $params['per_page'] ?? 10;
+            /** @var mixed $pageParam */
+            $pageParam = $params['page'] ?? 1;
+            $perPage = (int) $perPageParam;
+            $page = (int) $pageParam;
             $commentsDataResponse = CommentResource::collection($this->articleService->getArticleComments(
                 $article->id,
                 $parentId,
-                (int) $params['per_page'],
-                (int) $params['page']
+                $perPage,
+                $page
             ));
-            /** @var array{data: array, meta: array} $commentsData */
+            /** @var array{data: array<int, mixed>, meta: array<string, mixed>} $commentsData */
             $commentsData = $commentsDataResponse->response()->getData(true);
 
             return response()->apiSuccess(

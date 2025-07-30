@@ -15,9 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  *
  * @mixin \Eloquent
  *
- * @use HasFactory<Role>
- *
- * @phpstan-use HasFactory<Role>
+ * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
 final class Role extends Model
 {

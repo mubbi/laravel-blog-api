@@ -41,10 +41,12 @@ class ScrambleServiceProvider extends ServiceProvider
             ->routes(function (Route $route): bool {
                 return Str::startsWith($route->uri, 'api/');
             })
-            ->withDocumentTransformers(function (OpenApi $openApi): void {
-                $openApi->secure(
-                    SecurityScheme::http('bearer')
-                );
+            ->withDocumentTransformers(function (mixed $openApi): void {
+                if ($openApi instanceof OpenApi) {
+                    $openApi->secure(
+                        SecurityScheme::http('bearer')
+                    );
+                }
             });
     }
 }

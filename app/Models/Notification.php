@@ -15,9 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @mixin \Eloquent
  *
- * @use HasFactory<Notification>
- *
- * @phpstan-use HasFactory<Notification>
+ * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
 final class Notification extends Model
 {

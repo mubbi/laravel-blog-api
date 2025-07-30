@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  *
  * @mixin \Eloquent
  *
- * @phpstan-use HasFactory<Category>
+ * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
 final class Category extends Model
 {
@@ -34,10 +34,13 @@ final class Category extends Model
     }
 
     /**
-     * @return BelongsToMany<Article,Category>
+     * @return BelongsToMany<Article, Category, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
      */
     public function articles(): BelongsToMany
     {
-        return $this->belongsToMany(Article::class, 'article_categories');
+        /** @var BelongsToMany<Article, Category, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
+        $relation = $this->belongsToMany(Article::class, 'article_categories');
+
+        return $relation;
     }
 }

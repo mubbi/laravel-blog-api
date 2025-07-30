@@ -30,7 +30,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @mixin \Eloquent
  *
- * @use HasFactory<Article>
+ * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
 final class Article extends Model
 {
@@ -52,58 +52,79 @@ final class Article extends Model
     }
 
     /**
-     * @return BelongsTo<User,Article>
+     * @return BelongsTo<User, Article>
      */
     public function author(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        /** @var BelongsTo<User, Article> $relation */
+        $relation = $this->belongsTo(User::class, 'created_by');
+
+        return $relation;
     }
 
     /**
-     * @return BelongsTo<User,Article>
+     * @return BelongsTo<User, Article>
      */
     public function approver(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        /** @var BelongsTo<User, Article> $relation */
+        $relation = $this->belongsTo(User::class, 'approved_by');
+
+        return $relation;
     }
 
     /**
-     * @return BelongsTo<User,Article>
+     * @return BelongsTo<User, Article>
      */
     public function updater(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        /** @var BelongsTo<User, Article> $relation */
+        $relation = $this->belongsTo(User::class, 'updated_by');
+
+        return $relation;
     }
 
     /**
-     * @return HasMany<Comment,Article>
+     * @return HasMany<Comment, Article>
      */
     public function comments(): HasMany
     {
-        return $this->hasMany(Comment::class);
+        /** @var HasMany<Comment, Article> $relation */
+        $relation = $this->hasMany(Comment::class);
+
+        return $relation;
     }
 
     /**
-     * @return BelongsToMany<Category,Article>
+     * @return BelongsToMany<Category, Article, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
      */
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(Category::class, 'article_categories');
+        /** @var BelongsToMany<Category, Article, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
+        $relation = $this->belongsToMany(Category::class, 'article_categories');
+
+        return $relation;
     }
 
     /**
-     * @return BelongsToMany<Tag,Article>
+     * @return BelongsToMany<Tag, Article, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
      */
     public function tags(): BelongsToMany
     {
-        return $this->belongsToMany(Tag::class, 'article_tags');
+        /** @var BelongsToMany<Tag, Article, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
+        $relation = $this->belongsToMany(Tag::class, 'article_tags');
+
+        return $relation;
     }
 
     /**
-     * @return BelongsToMany<User,Article>
+     * @return BelongsToMany<User, Article, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
      */
     public function authors(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'article_authors')->withPivot('role');
+        /** @var BelongsToMany<User, Article, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
+        $relation = $this->belongsToMany(User::class, 'article_authors')->withPivot('role');
+
+        return $relation;
     }
 }

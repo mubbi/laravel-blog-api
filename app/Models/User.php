@@ -25,16 +25,18 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $github
  * @property string|null $website
  * @property string|null $token Dynamic property set by auth service
+
+ * @property string|null $access_token
+ * @property string|null $refresh_token
+ * @property (\Illuminate\Support\Carbon|\Carbon\CarbonImmutable)|null $access_token_expires_at
+ * @property (\Illuminate\Support\Carbon|\Carbon\CarbonImmutable)|null $refresh_token_expires_at
  *
  * @mixin \Eloquent
  *
- * @use HasFactory<User>
- *
- * @phpstan-use HasFactory<User>
+ * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
 final class User extends Authenticatable
 {
-    /** @use HasFactory<\\Database\\Factories\\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
