@@ -14,7 +14,7 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
 
     // User Routes
     Route::middleware(['auth:sanctum', 'ability:access-api'])->group(function () {
-        Route::get('/me', \App\Http\Controllers\Api\V1\User\MeController::class);
+        Route::get('/me', \App\Http\Controllers\Api\V1\User\MeController::class)->name('api.v1.me');
         Route::put('/profile', \App\Http\Controllers\Api\V1\User\UpdateProfileController::class)->name('api.v1.user.profile.update');
 
         Route::post('/auth/logout', \App\Http\Controllers\Api\V1\Auth\LogoutController::class)->name('api.v1.auth.logout');

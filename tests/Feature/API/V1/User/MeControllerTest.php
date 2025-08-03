@@ -17,7 +17,7 @@ describe('API/V1/User/MeController', function () {
         Sanctum::actingAs($user, ['access-api']);
 
         // Make request to /me endpoint
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert response structure
         $response
@@ -51,7 +51,7 @@ describe('API/V1/User/MeController', function () {
 
     it('returns 401 when not authenticated', function () {
         // Make request without authentication
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert unauthorized response
         $response->assertStatus(401);
@@ -68,7 +68,7 @@ describe('API/V1/User/MeController', function () {
         Sanctum::actingAs($user, ['read']);
 
         // Make request to /me endpoint
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert unauthorized response
         $response->assertStatus(401);
@@ -92,7 +92,7 @@ describe('API/V1/User/MeController', function () {
         Sanctum::actingAs($user, ['access-api']);
 
         // Make request to /me endpoint
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert response structure and content
         $response
@@ -132,7 +132,7 @@ describe('API/V1/User/MeController', function () {
         Sanctum::actingAs($user, ['access-api']);
 
         // Make request to /me endpoint
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert response structure and content
         $response
@@ -166,7 +166,7 @@ describe('API/V1/User/MeController', function () {
         Sanctum::actingAs($user, ['access-api']);
 
         // Make request to /me endpoint
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert response includes email verification
         $response
@@ -194,7 +194,7 @@ describe('API/V1/User/MeController', function () {
         Sanctum::actingAs($user, ['access-api']);
 
         // Make request to /me endpoint
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert response includes null email verification
         $response
@@ -223,7 +223,7 @@ describe('API/V1/User/MeController', function () {
         Sanctum::actingAs($user, ['access-api']);
 
         // Make request to /me endpoint
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert response includes long bio
         $response
@@ -250,7 +250,7 @@ describe('API/V1/User/MeController', function () {
         Sanctum::actingAs($user, ['access-api']);
 
         // Make request to /me endpoint
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert response handles special characters
         $response
@@ -277,7 +277,7 @@ describe('API/V1/User/MeController', function () {
         Sanctum::actingAs($user, ['access-api']);
 
         // Make request to /me endpoint
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert response handles long email
         $response
@@ -309,7 +309,7 @@ describe('API/V1/User/MeController', function () {
         Sanctum::actingAs($user, ['access-api']);
 
         // Make request to /me endpoint
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert response structure
         $response
@@ -353,7 +353,7 @@ describe('API/V1/User/MeController', function () {
         Sanctum::actingAs($user, ['access-api']);
 
         // Make request to /me endpoint
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert response includes banned status
         $response
@@ -380,7 +380,7 @@ describe('API/V1/User/MeController', function () {
         Sanctum::actingAs($user, ['access-api']);
 
         // Make request to /me endpoint
-        $response = $this->getJson('/api/v1/me');
+        $response = $this->getJson(route('api.v1.me'));
 
         // Assert response includes blocked status
         $response

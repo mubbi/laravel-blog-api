@@ -8,7 +8,7 @@ describe('API/V1/Category/GetCategoriesController', function () {
     it('can get all categories', function () {
         Category::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/v1/categories');
+        $response = $this->getJson(route('api.v1.categories.index'));
 
         $response->assertStatus(200)
             ->assertJson(['status' => true])
@@ -32,7 +32,7 @@ describe('API/V1/Category/GetCategoriesController', function () {
                 ->andThrow(new Exception('fail'));
         });
 
-        $response = $this->getJson('/api/v1/categories');
+        $response = $this->getJson(route('api.v1.categories.index'));
 
         $response->assertStatus(500)
             ->assertJson(['status' => false])
