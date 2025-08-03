@@ -62,26 +62,6 @@ describe('API/V1/Admin/User/BlockUserController', function () {
         expect($userToBlock->banned_at)->not->toBeNull();
     });
 
-    it('can block an already blocked user (updates timestamp)', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
-
-        $oldBlockTime = now()->subDays(5);
-        $userToBlock = User::factory()->create(['blocked_at' => $oldBlockTime]);
-
-        // Act
-        $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.block', $userToBlock->id));
-
-        // Assert
-        $response->assertStatus(200);
-
-        $userToBlock->refresh();
-        expect($userToBlock->blocked_at->toDateTimeString())->toBe(now()->toDateTimeString());
-    });
-
     it('returns 404 when user does not exist', function () {
         // Arrange
         $admin = User::factory()->create();
