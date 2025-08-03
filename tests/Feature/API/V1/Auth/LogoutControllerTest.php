@@ -51,7 +51,7 @@ describe('API/V1/Auth/LogoutController', function () {
             $mock->shouldReceive('logout')
                 ->with($user)
                 ->once()
-                ->andThrow(new \Exception('Database connection failed'));
+                ->andThrow(new \Exception(__('common.database_connection_failed')));
         });
 
         // Attempt logout which will trigger unexpected exception

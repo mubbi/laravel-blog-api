@@ -12,6 +12,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property int $id
  * @property string $name
  * @property string $slug
+ * @property \Illuminate\Support\Carbon $created_at
+ * @property \Illuminate\Support\Carbon $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Permission> $permissions
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $users
  *
  * @mixin \Eloquent
  *
@@ -42,6 +46,19 @@ final class Role extends Model
     {
         /** @var BelongsToMany<Permission, Role, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
         $relation = $this->belongsToMany(Permission::class);
+
+        return $relation;
+    }
+
+    /**
+     * The users that belong to the role.
+     *
+     * @return BelongsToMany<User, Role, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
+     */
+    public function users(): BelongsToMany
+    {
+        /** @var BelongsToMany<User, Role, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
+        $relation = $this->belongsToMany(User::class);
 
         return $relation;
     }

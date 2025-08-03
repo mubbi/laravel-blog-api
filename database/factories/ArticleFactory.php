@@ -42,8 +42,15 @@ final class ArticleFactory extends Factory
             'meta_title' => $this->faker->optional()->sentence,
             'meta_description' => $this->faker->optional()->text(200),
             'created_by' => User::factory(),
-            'approved_by' => User::factory(),
-            'updated_by' => User::factory(),
+            'approved_by' => null, // Will be set based on status
+            'updated_by' => null,
+            'is_featured' => false,
+            'is_pinned' => false,
+            'featured_at' => null,
+            'pinned_at' => null,
+            'report_count' => 0,
+            'last_reported_at' => null,
+            'report_reason' => null,
         ];
     }
 
@@ -55,6 +62,7 @@ final class ArticleFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => ArticleStatus::PUBLISHED->value,
             'published_at' => now(),
+            'approved_by' => User::factory(),
         ]);
     }
 
@@ -66,6 +74,55 @@ final class ArticleFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => ArticleStatus::DRAFT->value,
             'published_at' => null,
+            'approved_by' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the article is under review.
+     */
+    public function review(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => ArticleStatus::REVIEW->value,
+            'published_at' => null,
+            'approved_by' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the article is scheduled.
+     */
+    public function scheduled(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => ArticleStatus::SCHEDULED->value,
+            'published_at' => $this->faker->dateTimeBetween('+1 day', '+1 month'),
+            'approved_by' => User::factory(),
+        ]);
+    }
+
+    /**
+     * Indicate that the article is archived.
+     */
+    public function archived(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => ArticleStatus::ARCHIVED->value,
+            'published_at' => $this->faker->dateTimeBetween('-1 year', '-1 day'),
+            'approved_by' => User::factory(),
+        ]);
+    }
+
+    /**
+     * Indicate that the article is trashed.
+     */
+    public function trashed(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => ArticleStatus::TRASHED->value,
+            'published_at' => null,
+            'approved_by' => null,
         ]);
     }
 }

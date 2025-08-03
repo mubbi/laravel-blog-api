@@ -11,7 +11,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property int $id
  * @property int $notification_id
- * @property int $user_id
+ * @property string $audience_type
+ * @property int|null $audience_id
+ * @property \Illuminate\Support\Carbon $created_at
+ * @property \Illuminate\Support\Carbon $updated_at
+ * @property-read Notification $notification
+ * @property-read User|null $user
  *
  * @mixin \Eloquent
  *
@@ -45,12 +50,14 @@ final class NotificationAudience extends Model
     }
 
     /**
+     * Get the user for this audience (if audience_type is 'user')
+     *
      * @return BelongsTo<User, NotificationAudience>
      */
     public function user(): BelongsTo
     {
         /** @var BelongsTo<User, NotificationAudience> $relation */
-        $relation = $this->belongsTo(User::class);
+        $relation = $this->belongsTo(User::class, 'audience_id');
 
         return $relation;
     }

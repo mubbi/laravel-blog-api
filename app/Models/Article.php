@@ -25,8 +25,24 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $meta_title
  * @property string|null $meta_description
  * @property int $created_by
- * @property int $approved_by
+ * @property int|null $approved_by
  * @property int|null $updated_by
+ * @property bool $is_featured
+ * @property bool $is_pinned
+ * @property \Illuminate\Support\Carbon|null $featured_at
+ * @property \Illuminate\Support\Carbon|null $pinned_at
+ * @property int $report_count
+ * @property \Illuminate\Support\Carbon|null $last_reported_at
+ * @property string|null $report_reason
+ * @property \Illuminate\Support\Carbon $created_at
+ * @property \Illuminate\Support\Carbon $updated_at
+ * @property-read User $author
+ * @property-read User|null $approver
+ * @property-read User|null $updater
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Comment> $comments
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Category> $categories
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Tag> $tags
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $authors
  *
  * @mixin \Eloquent
  *
@@ -48,6 +64,11 @@ final class Article extends Model
         return [
             'published_at' => 'datetime',
             'status' => ArticleStatus::class,
+            'featured_at' => 'datetime',
+            'pinned_at' => 'datetime',
+            'last_reported_at' => 'datetime',
+            'is_featured' => 'boolean',
+            'is_pinned' => 'boolean',
         ];
     }
 

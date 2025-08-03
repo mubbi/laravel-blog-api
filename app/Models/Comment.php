@@ -4,26 +4,46 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CommentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
  * @property int $article_id
- * @property int $user_id
+ * @property int|null $user_id
  * @property string $content
  * @property int|null $parent_comment_id
+ * @property CommentStatus $status
+ * @property \Illuminate\Support\Carbon|null $approved_at
+ * @property int|null $approved_by
+ * @property int $report_count
+ * @property \Illuminate\Support\Carbon|null $last_reported_at
+ * @property string|null $report_reason
+ * @property string|null $moderator_notes
+ * @property string|null $admin_note
+ * @property string|null $deleted_reason
+ * @property int|null $deleted_by
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property \Illuminate\Support\Carbon $created_at
+ * @property \Illuminate\Support\Carbon $updated_at
  * @property-read int $replies_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Comment>|null $replies_page
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Comment>|null $replies_page
+ * @property-read Article $article
+ * @property-read User|null $user
+ * @property-read User|null $approver
+ * @property-read User|null $deletedBy
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Comment> $replies
  *
  * @mixin \Eloquent
  *
  * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
-final class Comment extends Model
+class Comment extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $guarded = [];
 
@@ -34,7 +54,12 @@ final class Comment extends Model
      */
     protected function casts(): array
     {
-        return [];
+        return [
+            'status' => CommentStatus::class,
+            'approved_at' => 'datetime',
+            'last_reported_at' => 'datetime',
+            'deleted_at' => 'datetime',
+        ];
     }
 
     /**
@@ -68,6 +93,28 @@ final class Comment extends Model
     {
         /** @var \Illuminate\Database\Eloquent\Relations\HasMany<Comment, Comment> $relation */
         $relation = $this->hasMany(Comment::class, 'parent_comment_id');
+
+        return $relation;
+    }
+
+    /**
+     * @return BelongsTo<User, Comment>
+     */
+    public function approver(): BelongsTo
+    {
+        /** @var BelongsTo<User, Comment> $relation */
+        $relation = $this->belongsTo(User::class, 'approved_by');
+
+        return $relation;
+    }
+
+    /**
+     * @return BelongsTo<User, Comment>
+     */
+    public function deletedBy(): BelongsTo
+    {
+        /** @var BelongsTo<User, Comment> $relation */
+        $relation = $this->belongsTo(User::class, 'deleted_by');
 
         return $relation;
     }

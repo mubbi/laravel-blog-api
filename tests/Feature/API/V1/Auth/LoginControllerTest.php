@@ -67,7 +67,7 @@ describe('API/V1/Auth/LoginController', function () {
         $this->mock(AuthServiceInterface::class, function (MockInterface $mock) {
             $mock->shouldReceive('login')
                 ->with('test@example.com', 'AnotherValid123!')
-                ->andThrow(new \Exception('Database connection failed'));
+                ->andThrow(new \Exception(__('common.database_connection_failed')));
         });
 
         // Attempt login which will trigger unexpected exception

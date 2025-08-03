@@ -27,7 +27,8 @@ final class NotificationAudienceFactory extends Factory
     {
         return [
             'notification_id' => Notification::factory(),
-            'user_id' => User::factory(),
+            'audience_type' => 'user',
+            'audience_id' => User::factory(),
         ];
     }
 }

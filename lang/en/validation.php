@@ -180,6 +180,22 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'type' => [
+            'required' => 'The notification type is required.',
+        ],
+        'message' => [
+            'required' => 'The notification message is required.',
+        ],
+        'message.title' => [
+            'required' => 'The notification title is required.',
+        ],
+        'audiences' => [
+            'required' => 'At least one audience must be selected.',
+            'min' => 'At least one audience must be selected.',
+        ],
+        'user_ids' => [
+            'required_if' => 'User IDs are required when targeting specific users.',
+        ],
     ],
 
     /*
