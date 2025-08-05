@@ -118,8 +118,11 @@ describe('API/V1/Admin/User/BlockUserController', function () {
             ->postJson(route('api.v1.admin.users.block', $admin->id));
 
         // Assert
-        $response->assertStatus(200); // This is allowed in current implementation
-        // Note: In a real application, you might want to prevent self-blocking
+        $response->assertStatus(403)
+            ->assertJson([
+                'status' => false,
+                'message' => __('common.cannot_block_self'),
+            ]);
     });
 
     it('maintains other user properties when blocking', function () {

@@ -129,7 +129,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         $response->assertStatus(401);
     });
 
-    it('allows admin to unban themselves', function () {
+    it('prevents admin from unbanning themselves', function () {
         // Arrange
         $admin = User::factory()->create(['banned_at' => now()]);
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
@@ -140,10 +140,14 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
             ->postJson(route('api.v1.admin.users.unban', $admin->id));
 
         // Assert
-        $response->assertStatus(200);
+        $response->assertStatus(403)
+            ->assertJson([
+                'status' => false,
+                'message' => __('common.cannot_unban_self'),
+            ]);
 
         $admin->refresh();
-        expect($admin->banned_at)->toBeNull();
+        expect($admin->banned_at)->not->toBeNull(); // Should remain banned
     });
 
     it('maintains other user properties when unbanning', function () {

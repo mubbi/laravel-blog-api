@@ -129,7 +129,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         $response->assertStatus(401);
     });
 
-    it('allows admin to unblock themselves', function () {
+    it('prevents admin from unblocking themselves', function () {
         // Arrange
         $admin = User::factory()->create(['blocked_at' => now()]);
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
@@ -140,10 +140,14 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
             ->postJson(route('api.v1.admin.users.unblock', $admin->id));
 
         // Assert
-        $response->assertStatus(200);
+        $response->assertStatus(403)
+            ->assertJson([
+                'status' => false,
+                'message' => __('common.cannot_unblock_self'),
+            ]);
 
         $admin->refresh();
-        expect($admin->blocked_at)->toBeNull();
+        expect($admin->blocked_at)->not->toBeNull(); // Should remain blocked
     });
 
     it('maintains other user properties when unblocking', function () {

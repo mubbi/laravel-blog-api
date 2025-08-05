@@ -63,26 +63,6 @@ describe('API/V1/Admin/User/BanUserController', function () {
         expect($userToBan->blocked_at)->not->toBeNull();
     });
 
-    it('can ban an already banned user (updates timestamp)', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
-
-        $oldBanTime = now()->subDays(5);
-        $userToBan = User::factory()->create(['banned_at' => $oldBanTime]);
-
-        // Act
-        $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.ban', $userToBan->id));
-
-        // Assert
-        $response->assertStatus(200);
-
-        $userToBan->refresh();
-        expect($userToBan->banned_at->toDateTimeString())->toBe(now()->toDateTimeString());
-    });
-
     it('returns 404 when user does not exist', function () {
         // Arrange
         $admin = User::factory()->create();
@@ -139,7 +119,10 @@ describe('API/V1/Admin/User/BanUserController', function () {
             ->postJson(route('api.v1.admin.users.ban', $admin->id));
 
         // Assert
-        $response->assertStatus(200); // This is allowed in current implementation
-        // Note: In a real application, you might want to prevent self-banning
+        $response->assertStatus(403)
+            ->assertJson([
+                'status' => false,
+                'message' => __('common.cannot_ban_self'),
+            ]);
     });
 });

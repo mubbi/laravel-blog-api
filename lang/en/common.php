@@ -30,6 +30,11 @@ return [
     'user_blocked_successfully' => 'User blocked successfully.',
     'user_unblocked_successfully' => 'User unblocked successfully.',
     'profile_updated_successfully' => 'Profile updated successfully.',
+    'cannot_delete_self' => 'You cannot delete your own account.',
+    'cannot_ban_self' => 'You cannot ban your own account.',
+    'cannot_unban_self' => 'You cannot unban your own account.',
+    'cannot_block_self' => 'You cannot block your own account.',
+    'cannot_unblock_self' => 'You cannot unblock your own account.',
 
     // Article Management
     'article_not_found' => 'Article not found.',

@@ -154,8 +154,11 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
             ->deleteJson(route('api.v1.admin.users.destroy', $admin->id));
 
         // Assert
-        $response->assertStatus(200); // This is allowed in current implementation
-        // Note: In a real application, you might want to prevent self-deletion
+        $response->assertStatus(403)
+            ->assertJson([
+                'status' => false,
+                'message' => __('common.cannot_delete_self'),
+            ]);
     });
 
     it('deletes user with verified email', function () {

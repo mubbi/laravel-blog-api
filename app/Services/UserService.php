@@ -125,9 +125,13 @@ final class UserService
 
     /**
      * Delete a user
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function deleteUser(int $id): bool
     {
+        $this->preventSelfAction($id, 'cannot_delete_self');
+
         $user = User::findOrFail($id);
 
         /** @var bool $deleted */
@@ -138,9 +142,13 @@ final class UserService
 
     /**
      * Ban a user
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function banUser(int $id): User
     {
+        $this->preventSelfAction($id, 'cannot_ban_self');
+
         $user = User::findOrFail($id);
         $user->update(['banned_at' => now()]);
 
@@ -149,9 +157,13 @@ final class UserService
 
     /**
      * Unban a user
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function unbanUser(int $id): User
     {
+        $this->preventSelfAction($id, 'cannot_unban_self');
+
         $user = User::findOrFail($id);
         $user->update(['banned_at' => null]);
 
@@ -160,9 +172,13 @@ final class UserService
 
     /**
      * Block a user
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function blockUser(int $id): User
     {
+        $this->preventSelfAction($id, 'cannot_block_self');
+
         $user = User::findOrFail($id);
         $user->update(['blocked_at' => now()]);
 
@@ -171,9 +187,13 @@ final class UserService
 
     /**
      * Unblock a user
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function unblockUser(int $id): User
     {
+        $this->preventSelfAction($id, 'cannot_unblock_self');
+
         $user = User::findOrFail($id);
         $user->update(['blocked_at' => null]);
 
@@ -211,6 +231,20 @@ final class UserService
         $user->roles()->sync($roleIds);
 
         return $user->load(['roles:id,name,slug']);
+    }
+
+    /**
+     * Prevent users from performing actions on themselves
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    private function preventSelfAction(int $id, string $errorKey): void
+    {
+        $currentUser = auth()->user();
+
+        if ($currentUser && $id === $currentUser->id) {
+            throw new \Illuminate\Auth\Access\AuthorizationException(__("common.{$errorKey}"));
+        }
     }
 
     /**

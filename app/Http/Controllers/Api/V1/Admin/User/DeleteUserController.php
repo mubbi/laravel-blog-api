@@ -34,6 +34,18 @@ final class DeleteUserController extends Controller
                 null,
                 __('common.user_deleted_successfully')
             );
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            /**
+             * Forbidden - Cannot delete self
+             *
+             * @status 403
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return response()->apiError(
+                $e->getMessage(),
+                Response::HTTP_FORBIDDEN
+            );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             /**
              * User not found
