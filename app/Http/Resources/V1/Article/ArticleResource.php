@@ -30,7 +30,11 @@ class ArticleResource extends JsonResource
             'content_markdown' => $this->content_markdown,
             'featured_image' => $this->featured_image,
             'status' => $this->status,
+            'status_display' => $this->status->displayName(),
             'published_at' => ($this->published_at instanceof \DateTimeInterface ? $this->published_at->toISOString() : $this->published_at),
+            'is_featured' => $this->is_featured,
+            'is_pinned' => $this->is_pinned,
+            'report_count' => $this->report_count,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
             'created_at' => ($this->created_at instanceof \DateTimeInterface ? $this->created_at->toISOString() : $this->created_at),
@@ -50,6 +54,24 @@ class ArticleResource extends JsonResource
                     'linkedin' => $this->author->linkedin,
                     'github' => $this->author->github,
                     'website' => $this->author->website,
+                ] : null;
+            }),
+
+            'approver' => $this->whenLoaded('approver', function () use ($request) {
+                return $this->approver ? [
+                    'id' => $this->approver->id,
+                    'name' => $this->approver->name,
+                    'email' => $this->when((bool) $request->user()?->hasRole(UserRole::ADMINISTRATOR->value), $this->approver->email),
+                    'avatar_url' => $this->approver->avatar_url,
+                ] : null;
+            }),
+
+            'updater' => $this->whenLoaded('updater', function () use ($request) {
+                return $this->updater ? [
+                    'id' => $this->updater->id,
+                    'name' => $this->updater->name,
+                    'email' => $this->when((bool) $request->user()?->hasRole(UserRole::ADMINISTRATOR->value), $this->updater->email),
+                    'avatar_url' => $this->updater->avatar_url,
                 ] : null;
             }),
 

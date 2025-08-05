@@ -14,12 +14,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $user_id
  * @property bool $is_verified
  * @property \Illuminate\Support\Carbon $subscribed_at
+ * @property \Illuminate\Support\Carbon $created_at
+ * @property \Illuminate\Support\Carbon $updated_at
+ * @property-read User|null $user
  *
  * @mixin \Eloquent
  *
  * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
-final class NewsletterSubscriber extends Model
+class NewsletterSubscriber extends Model
 {
     use HasFactory;
 

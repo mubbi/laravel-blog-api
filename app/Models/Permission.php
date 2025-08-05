@@ -6,11 +6,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property int $id
  * @property string $name
  * @property string $slug
+ * @property \Illuminate\Support\Carbon $created_at
+ * @property \Illuminate\Support\Carbon $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Role> $roles
  *
  * @mixin \Eloquent
  *
@@ -30,5 +34,18 @@ final class Permission extends Model
     protected function casts(): array
     {
         return [];
+    }
+
+    /**
+     * The roles that belong to the permission.
+     *
+     * @return BelongsToMany<Role, Permission, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
+     */
+    public function roles(): BelongsToMany
+    {
+        /** @var BelongsToMany<Role, Permission, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
+        $relation = $this->belongsToMany(Role::class);
+
+        return $relation;
     }
 }

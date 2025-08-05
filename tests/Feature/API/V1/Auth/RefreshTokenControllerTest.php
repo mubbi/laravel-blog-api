@@ -79,7 +79,7 @@ describe('API/V1/Auth/RefreshTokenController', function () {
             $mock->shouldReceive('refreshToken')
                 ->with('some-refresh-token')
                 ->once()
-                ->andThrow(new \Exception('Database connection failed'));
+                ->andThrow(new \Exception(__('common.database_connection_failed')));
         });
 
         // Attempt to refresh token which will trigger unexpected exception

@@ -43,8 +43,8 @@ class RefreshTokenRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'refresh_token.required' => 'The refresh token is required.',
-            'refresh_token.string' => 'The refresh token must be a string.',
+            'refresh_token.required' => __('validation.required', ['attribute' => 'refresh token']),
+            'refresh_token.string' => __('validation.string', ['attribute' => 'refresh token']),
         ];
     }
 }

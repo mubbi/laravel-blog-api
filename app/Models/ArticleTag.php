@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property int $article_id
  * @property int $tag_id
+ * @property-read Article $article
+ * @property-read Tag $tag
  *
  * @mixin \Eloquent
  *
