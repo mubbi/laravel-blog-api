@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/mubbi/laravel-blog-api/compare/v1.9.0...v1.10.0) (2025-08-05)
+
+
+### Features
+
+* add more permissions ([e5a8844](https://github.com/mubbi/laravel-blog-api/commit/e5a88445a0d394b0098140ce5a7edfbab9b008ed))
+
 ## [1.9.0](https://github.com/mubbi/laravel-blog-api/compare/v1.8.1...v1.9.0) (2025-08-05)
 
 
