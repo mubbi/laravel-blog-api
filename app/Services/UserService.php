@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Constants\CacheKeys;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 
 final class UserService
@@ -41,14 +43,20 @@ final class UserService
     }
 
     /**
-     * Get a single user by ID
+     * Get a single user by ID with cached roles and permissions
      */
     public function getUserById(int $id): User
     {
-        return User::query()
+        $user = User::query()
             ->with(['roles:id,name,slug'])
             ->withCount(['articles', 'comments'])
             ->findOrFail($id);
+
+        // Pre-warm cache for this user
+        $user->getCachedRoles();
+        $user->getCachedPermissions();
+
+        return $user;
     }
 
     /**
@@ -201,27 +209,37 @@ final class UserService
     }
 
     /**
-     * Get all roles
+     * Get all roles with cached permissions
      *
      * @return \Illuminate\Database\Eloquent\Collection<int, Role>
      */
     public function getAllRoles(): \Illuminate\Database\Eloquent\Collection
     {
-        return Role::query()->with(['permissions:id,name,slug'])->get();
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Role> $result */
+        $result = Cache::remember(CacheKeys::ALL_ROLES_CACHE_KEY, CacheKeys::CACHE_TTL, function () {
+            return Role::query()->with(['permissions:id,name,slug'])->get();
+        });
+
+        return $result;
     }
 
     /**
-     * Get all permissions
+     * Get all permissions with caching
      *
      * @return \Illuminate\Database\Eloquent\Collection<int, Permission>
      */
     public function getAllPermissions(): \Illuminate\Database\Eloquent\Collection
     {
-        return Permission::query()->get();
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Permission> $result */
+        $result = Cache::remember(CacheKeys::ALL_PERMISSIONS_CACHE_KEY, CacheKeys::CACHE_TTL, function () {
+            return Permission::query()->get();
+        });
+
+        return $result;
     }
 
     /**
-     * Assign roles to user
+     * Assign roles to user and clear cache
      *
      * @param  array<int>  $roleIds
      */
@@ -230,7 +248,39 @@ final class UserService
         $user = User::findOrFail($userId);
         $user->roles()->sync($roleIds);
 
+        // Clear user-specific caches
+        $user->clearCache();
+
         return $user->load(['roles:id,name,slug']);
+    }
+
+    /**
+     * Get users with pre-warmed caches
+     *
+     * @param  array<string, mixed>  $params
+     * @return LengthAwarePaginator<int, User>
+     */
+    public function getUsersWithWarmedCaches(array $params): LengthAwarePaginator
+    {
+        $paginator = $this->getUsers($params);
+
+        // Pre-warm cache for users in the current page
+        foreach ($paginator->items() as $user) {
+            $user->getCachedRoles();
+            $user->getCachedPermissions();
+        }
+
+        return $paginator;
+    }
+
+    /**
+     * Increment cache version (for testing purposes)
+     */
+    public function incrementCacheVersion(): void
+    {
+        /** @var int $currentVersion */
+        $currentVersion = Cache::get('user_cache_version', 1);
+        Cache::put('user_cache_version', $currentVersion + 1, CacheKeys::CACHE_TTL);
     }
 
     /**

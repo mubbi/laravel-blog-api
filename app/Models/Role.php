@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Constants\CacheKeys;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -26,6 +27,44 @@ final class Role extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    /**
+     * Boot the model and register event listeners
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        // Clear user caches when role permissions are updated
+        self::updated(function (Role $role) {
+            $role->clearUserCaches();
+        });
+
+        // Clear user caches when role is deleted
+        self::deleted(function (Role $role) {
+            $role->clearUserCaches();
+        });
+    }
+
+    /**
+     * Clear caches for all users who have this role
+     */
+    private function clearUserCaches(): void
+    {
+        // Instead of clearing individual user caches, increment the cache version
+        // This will invalidate all user caches at once
+        $this->incrementCacheVersion();
+    }
+
+    /**
+     * Increment cache version to invalidate all user caches
+     */
+    private function incrementCacheVersion(): void
+    {
+        /** @var int $currentVersion */
+        $currentVersion = \Illuminate\Support\Facades\Cache::get('user_cache_version', 1);
+        \Illuminate\Support\Facades\Cache::put('user_cache_version', $currentVersion + 1, CacheKeys::CACHE_TTL);
+    }
 
     /**
      * Get the attributes that should be cast.

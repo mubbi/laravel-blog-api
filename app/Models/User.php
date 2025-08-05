@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Traits\HasCachedRolesAndPermissions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -44,7 +45,7 @@ use Laravel\Sanctum\HasApiTokens;
  */
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasCachedRolesAndPermissions, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -75,6 +76,24 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    /**
+     * Boot the model and register event listeners
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        // Clear cache when user is updated
+        static::updated(function (User $user) {
+            $user->clearCache();
+        });
+
+        // Clear cache when user is deleted
+        static::deleted(function (User $user) {
+            $user->clearCache();
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -113,12 +132,52 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if the user has any of the given roles.
+     *
+     * @param  array<int, string>  $roles
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        $userRoles = $this->roles->pluck('name')->toArray();
+
+        return ! empty(array_intersect($roles, $userRoles));
+    }
+
+    /**
+     * Check if the user has all of the given roles.
+     *
+     * @param  array<int, string>  $roles
+     */
+    public function hasAllRoles(array $roles): bool
+    {
+        $userRoles = $this->roles->pluck('name')->toArray();
+
+        return empty(array_diff($roles, $userRoles));
+    }
+
+    /**
      * Check if the user has a given permission via their roles.
      */
     public function hasPermission(string $permission): bool
     {
         try {
-            // Load roles with permissions to avoid N+1 queries
+            // Try to get from cache first (most efficient)
+            if ($this->hasCachedPermission($permission)) {
+                return true;
+            }
+
+            // If cache miss, check if roles are already loaded
+            if ($this->relationLoaded('roles')) {
+                foreach ($this->roles as $role) {
+                    if ($role->relationLoaded('permissions')) {
+                        if ($role->permissions->contains('name', $permission)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // Fallback to database query with eager loading
             $this->load('roles.permissions');
 
             foreach ($this->roles as $role) {
@@ -136,6 +195,79 @@ class User extends Authenticatable
                 'permission' => $permission,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Check if the user has any of the given permissions.
+     *
+     * @param  array<int, string>  $permissions
+     */
+    public function hasAnyPermission(array $permissions): bool
+    {
+        try {
+            // Try to get from cache first
+            if ($this->hasAnyCachedPermission($permissions)) {
+                return true;
+            }
+
+            // Fallback to database query
+            $this->load('roles.permissions');
+
+            foreach ($this->roles as $role) {
+                foreach ($role->permissions as $permission) {
+                    if (in_array($permission->name, $permissions, true)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        } catch (\Throwable $e) {
+            \Log::error('hasAnyPermission error', [
+                'user_id' => $this->id,
+                'permissions' => $permissions,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Check if the user has all of the given permissions.
+     *
+     * @param  array<int, string>  $permissions
+     */
+    public function hasAllPermissions(array $permissions): bool
+    {
+        try {
+            // Try to get from cache first
+            if ($this->hasAllCachedPermissions($permissions)) {
+                return true;
+            }
+
+            // Fallback to database query
+            $this->load('roles.permissions');
+
+            $userPermissions = [];
+            foreach ($this->roles as $role) {
+                foreach ($role->permissions as $permission) {
+                    $userPermissions[] = $permission->name;
+                }
+            }
+
+            $userPermissions = array_unique($userPermissions);
+
+            return empty(array_diff($permissions, $userPermissions));
+        } catch (\Throwable $e) {
+            \Log::error('hasAllPermissions error', [
+                'user_id' => $this->id,
+                'permissions' => $permissions,
+                'error' => $e->getMessage(),
             ]);
 
             return false;

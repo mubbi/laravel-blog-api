@@ -32,6 +32,9 @@ class UserResource extends JsonResource
             'website' => $this->resource->website,
             'roles' => $this->whenLoaded('roles', function () {
                 return $this->resource->roles->pluck('slug');
+            }, function () {
+                // Fallback to cached roles if not loaded
+                return $this->resource->getCachedRoles();
             }),
             'permissions' => $this->whenLoaded('roles', function () {
                 $permissionSlugs = [];
@@ -47,6 +50,9 @@ class UserResource extends JsonResource
                 }
 
                 return array_values(array_unique($permissionSlugs));
+            }, function () {
+                // Fallback to cached permissions if not loaded
+                return $this->resource->getCachedPermissions();
             }),
             $this->mergeWhen(
                 array_key_exists('access_token', $this->resource->getAttributes()),
