@@ -14,9 +14,54 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
 
     // User Routes
     Route::middleware(['auth:sanctum', 'ability:access-api'])->group(function () {
-        Route::get('/me', \App\Http\Controllers\Api\V1\User\MeController::class);
+        Route::get('/me', \App\Http\Controllers\Api\V1\User\MeController::class)->name('api.v1.me');
+        Route::put('/profile', \App\Http\Controllers\Api\V1\User\UpdateProfileController::class)->name('api.v1.user.profile.update');
 
         Route::post('/auth/logout', \App\Http\Controllers\Api\V1\Auth\LogoutController::class)->name('api.v1.auth.logout');
+    });
+
+    // Admin Routes
+    Route::middleware(['auth:sanctum', 'ability:access-api'])->prefix('admin')->group(function () {
+        // User Management
+        Route::prefix('users')->group(function () {
+            Route::get('/', \App\Http\Controllers\Api\V1\Admin\User\GetUsersController::class)->name('api.v1.admin.users.index');
+            Route::post('/', \App\Http\Controllers\Api\V1\Admin\User\CreateUserController::class)->name('api.v1.admin.users.store');
+            Route::get('/{id}', \App\Http\Controllers\Api\V1\Admin\User\ShowUserController::class)->name('api.v1.admin.users.show');
+            Route::put('/{id}', \App\Http\Controllers\Api\V1\Admin\User\UpdateUserController::class)->name('api.v1.admin.users.update');
+            Route::delete('/{id}', \App\Http\Controllers\Api\V1\Admin\User\DeleteUserController::class)->name('api.v1.admin.users.destroy');
+            Route::post('/{id}/ban', \App\Http\Controllers\Api\V1\Admin\User\BanUserController::class)->name('api.v1.admin.users.ban');
+            Route::post('/{id}/unban', \App\Http\Controllers\Api\V1\Admin\User\UnbanUserController::class)->name('api.v1.admin.users.unban');
+            Route::post('/{id}/block', \App\Http\Controllers\Api\V1\Admin\User\BlockUserController::class)->name('api.v1.admin.users.block');
+            Route::post('/{id}/unblock', \App\Http\Controllers\Api\V1\Admin\User\UnblockUserController::class)->name('api.v1.admin.users.unblock');
+        });
+
+        // Article Management
+        Route::prefix('articles')->group(function () {
+            Route::get('/', \App\Http\Controllers\Api\V1\Admin\Article\GetArticlesController::class)->name('api.v1.admin.articles.index');
+            Route::get('/{id}', \App\Http\Controllers\Api\V1\Admin\Article\ShowArticleController::class)->name('api.v1.admin.articles.show');
+            Route::post('/{id}/approve', \App\Http\Controllers\Api\V1\Admin\Article\ApproveArticleController::class)->name('api.v1.admin.articles.approve');
+            Route::post('/{id}/feature', \App\Http\Controllers\Api\V1\Admin\Article\FeatureArticleController::class)->name('api.v1.admin.articles.feature');
+            Route::post('/{id}/report', \App\Http\Controllers\Api\V1\Admin\Article\ReportArticleController::class)->name('api.v1.admin.articles.report');
+        });
+
+        // Comment Management
+        Route::prefix('comments')->group(function () {
+            Route::get('/', \App\Http\Controllers\Api\V1\Admin\Comment\GetCommentsController::class)->name('api.v1.admin.comments.index');
+            Route::post('/{id}/approve', \App\Http\Controllers\Api\V1\Admin\Comment\ApproveCommentController::class)->name('api.v1.admin.comments.approve');
+            Route::delete('/{id}', \App\Http\Controllers\Api\V1\Admin\Comment\DeleteCommentController::class)->name('api.v1.admin.comments.destroy');
+        });
+
+        // Newsletter Management
+        Route::prefix('newsletter')->group(function () {
+            Route::get('/subscribers', \App\Http\Controllers\Api\V1\Admin\Newsletter\GetSubscribersController::class)->name('api.v1.admin.newsletter.subscribers.index');
+            Route::delete('/subscribers/{id}', \App\Http\Controllers\Api\V1\Admin\Newsletter\DeleteSubscriberController::class)->name('api.v1.admin.newsletter.subscribers.destroy');
+        });
+
+        // Notification Management
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', \App\Http\Controllers\Api\V1\Admin\Notification\GetNotificationsController::class)->name('api.v1.admin.notifications.index');
+            Route::post('/', \App\Http\Controllers\Api\V1\Admin\Notification\CreateNotificationController::class)->name('api.v1.admin.notifications.store');
+        });
     });
 
     // Public Routes

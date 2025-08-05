@@ -24,6 +24,8 @@ class ArticleService
         $query = Article::query()
             ->with([
                 'author:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
+                'approver:id,name,email,avatar_url',
+                'updater:id,name,email,avatar_url',
                 'categories:id,name,slug',
                 'tags:id,name,slug',
                 'authors:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
@@ -53,6 +55,8 @@ class ArticleService
         return Article::query()
             ->with([
                 'author:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
+                'approver:id,name,email,avatar_url',
+                'updater:id,name,email,avatar_url',
                 'categories:id,name,slug',
                 'tags:id,name,slug',
                 'authors:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',

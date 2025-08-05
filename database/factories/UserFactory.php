@@ -46,6 +46,8 @@ class UserFactory extends Factory
             'linkedin' => fake()->userName(),
             'github' => fake()->userName(),
             'website' => fake()->url(),
+            'banned_at' => null,
+            'blocked_at' => null,
         ];
     }
 
@@ -66,6 +68,26 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the user is banned.
+     */
+    public function banned(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'banned_at' => now(),
+        ]);
+    }
+
+    /**
+     * Indicate that the user is blocked.
+     */
+    public function blocked(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'blocked_at' => now(),
         ]);
     }
 }

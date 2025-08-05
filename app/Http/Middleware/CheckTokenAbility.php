@@ -21,7 +21,7 @@ class CheckTokenAbility
 
         if (! $token || ! $token->can($ability)) {
             return response()->apiError(
-                __('Unauthorized. Invalid token or insufficient permissions.'),
+                __('common.unauthorized_token'),
                 Response::HTTP_UNAUTHORIZED
             );
         }

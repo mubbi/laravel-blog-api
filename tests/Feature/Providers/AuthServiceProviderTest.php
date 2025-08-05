@@ -187,7 +187,7 @@ describe('AuthServiceProvider', function () {
         // We'll mock the Schema facade to throw an exception
         Schema::shouldReceive('hasTable')
             ->with('permissions')
-            ->andThrow(new \Exception('Database connection failed'));
+            ->andThrow(new \Exception(__('common.database_connection_failed')));
 
         // Boot provider - should not throw exception
         $provider = new AuthServiceProvider(app());

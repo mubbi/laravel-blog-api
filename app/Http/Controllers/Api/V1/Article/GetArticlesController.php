@@ -45,7 +45,7 @@ class GetArticlesController extends Controller
 
             // Ensure we have the expected array structure
             if (! is_array($articleCollectionData) || ! isset($articleCollectionData['data'], $articleCollectionData['meta'])) {
-                throw new \RuntimeException('Unexpected response format from ArticleResource collection');
+                throw new \RuntimeException(__('common.unexpected_response_format'));
             }
 
             return response()->apiSuccess(

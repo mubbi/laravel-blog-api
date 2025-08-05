@@ -8,7 +8,7 @@ describe('API/V1/Tag/GetTagsController', function () {
     it('can get all tags', function () {
         Tag::factory()->count(4)->create();
 
-        $response = $this->getJson('/api/v1/tags');
+        $response = $this->getJson(route('api.v1.tags.index'));
 
         $response->assertStatus(200)
             ->assertJson(['status' => true])
@@ -32,7 +32,7 @@ describe('API/V1/Tag/GetTagsController', function () {
                 ->andThrow(new Exception('fail'));
         });
 
-        $response = $this->getJson('/api/v1/tags');
+        $response = $this->getJson(route('api.v1.tags.index'));
 
         $response->assertStatus(500)
             ->assertJson(['status' => false])

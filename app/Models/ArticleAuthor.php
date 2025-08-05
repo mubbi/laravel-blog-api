@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $article_id
  * @property int $user_id
  * @property ArticleAuthorRole|null $role
+ * @property-read Article $article
+ * @property-read User $user
  *
  * @mixin \Eloquent
  *

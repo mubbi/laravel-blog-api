@@ -73,8 +73,6 @@ describe('API/V1/Article/ShowArticleController', function () {
     });
 
     it('returns 404 when article not found by slug', function () {
-        $response = $this->getJson('/api/v1/articles/non-existent-slug');
-
         $response = $this->getJson(route('api.v1.articles.show', ['slug' => 'non-existent-slug']));
         $response->assertStatus(404)
             ->assertJson([
