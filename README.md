@@ -371,40 +371,58 @@ Based on the defined roles and permissions, the following admin and management A
 - **NextJS Client App**
   - Complete NextJS App to integrate all these APIs, it will be separate REPO once i complete the APIs
 
-- **Admin APIs**
-  - User management: list, create, update, delete, ban, block, restore users
-  - Role management: assign roles, manage roles, manage permissions
-  - View user activity logs
-  - Approve/ban/restore users
-  - Manage site-wide settings and options
+- **Role Management**
+  - Assign roles, manage roles, manage permissions
+  - Role CRUD operations
+  - Permission assignment and management
+  - User role assignment
 
 - **Article/Post Management**
-  - Approve, feature, pin, archive, restore, trash, and report posts (admin/editor)
-  - Edit/delete others' posts (admin/editor)
+  - Create, update, delete articles
+  - Pin, archive, restore, trash articles
+  - Like/dislike articles
+  - Article status management (draft, published, archived)
 
 - **Comment Management**
-  - Moderate, approve, edit, delete, and report comments (admin/editor)
+  - Create, update, delete comments
+  - Report comments
+  - User comment management
 
 - **Taxonomy Management**
   - Manage categories and tags (admin/editor)
-
-- **Newsletter Management**
-  - View/manage newsletter subscribers (admin/editor)
-
-- **Notification Management**
-  - View/manage/send notifications (admin/editor)
+  - Category CRUD operations
+  - Tag CRUD operations
+  - Hierarchical category management
 
 - **Media Management**
   - Upload, delete, and manage media (admin/editor)
+  - File upload system
+  - Media library management
+  - Image optimization and storage
+
+- **Newsletter Management**
+  - Newsletter subscription endpoints
+  - User notification management
+  - Email subscription handling
 
 - **Analytics & Settings**
   - View analytics dashboard (admin only)
   - Manage site settings (admin only)
+  - Site statistics and metrics
+  - User activity tracking
+
+- **Social/Community Features**
+  - User follow/unfollow system
+  - User profile management
+  - Social interaction features
 
 - **General**
   - Ensure all permission checks are enforced in controllers/routes
   - Add missing API endpoints for all permissions listed in `PermissionSeeder` and `RolePermissionSeeder`
-  - Add integration and feature tests for all admin/management APIs
+  - Add integration and feature tests for all remaining APIs
+  - Implement rate limiting for all public endpoints
+  - Optimize database queries and add proper indexing
+  - Implement caching strategies for better performance
 
 > _Review the permissions in `database/seeders/PermissionSeeder.php` and `RolePermissionSeeder.php` to ensure all are mapped to actual API endpoints and controller logic._
 
