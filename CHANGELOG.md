@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/mubbi/laravel-blog-api/compare/v1.8.1...v1.9.0) (2025-08-05)
+
+
+### Features
+
+* **api:** implemented missing modules ([43314ab](https://github.com/mubbi/laravel-blog-api/commit/43314abd370c7c44802152b3e8b6e07fd26a9e9d))
+
 ## [1.8.1](https://github.com/mubbi/laravel-blog-api/compare/v1.8.0...v1.8.1) (2025-07-30)
 
 
