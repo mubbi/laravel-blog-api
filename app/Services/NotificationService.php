@@ -94,7 +94,8 @@ final class NotificationService
      */
     public function getNotifications(FilterNotificationDTO $dto): LengthAwarePaginator
     {
-        $query = $this->notificationRepository->query();
+        $query = $this->notificationRepository->query()
+            ->with(['audiences']);
 
         if ($dto->search !== null) {
             $query->where(function (Builder $q) use ($dto) {
