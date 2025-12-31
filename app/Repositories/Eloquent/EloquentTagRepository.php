@@ -11,9 +11,21 @@ use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Eloquent implementation of TagRepositoryInterface
+ *
+ * @extends BaseEloquentRepository<Tag>
  */
-final class EloquentTagRepository implements TagRepositoryInterface
+final class EloquentTagRepository extends BaseEloquentRepository implements TagRepositoryInterface
 {
+    /**
+     * Get the model class name
+     *
+     * @return class-string<Tag>
+     */
+    protected function getModelClass(): string
+    {
+        return Tag::class;
+    }
+
     /**
      * Create a new tag
      *
@@ -21,19 +33,10 @@ final class EloquentTagRepository implements TagRepositoryInterface
      */
     public function create(array $data): Tag
     {
-        return Tag::create($data);
-    }
+        /** @var Tag $tag */
+        $tag = parent::create($data);
 
-    /**
-     * Update an existing tag
-     *
-     * @param  array<string, mixed>  $data
-     */
-    public function update(int $id, array $data): bool
-    {
-        $tag = $this->findOrFail($id);
-
-        return $tag->update($data);
+        return $tag;
     }
 
     /**
@@ -41,7 +44,10 @@ final class EloquentTagRepository implements TagRepositoryInterface
      */
     public function findById(int $id): ?Tag
     {
-        return Tag::find($id);
+        /** @var Tag|null $tag */
+        $tag = parent::findById($id);
+
+        return $tag;
     }
 
     /**
@@ -51,7 +57,10 @@ final class EloquentTagRepository implements TagRepositoryInterface
      */
     public function findOrFail(int $id): Tag
     {
-        return Tag::findOrFail($id);
+        /** @var Tag $tag */
+        $tag = parent::findOrFail($id);
+
+        return $tag;
     }
 
     /**
@@ -87,6 +96,9 @@ final class EloquentTagRepository implements TagRepositoryInterface
      */
     public function query(): Builder
     {
-        return Tag::query();
+        /** @var Builder<Tag> $builder */
+        $builder = parent::query();
+
+        return $builder;
     }
 }

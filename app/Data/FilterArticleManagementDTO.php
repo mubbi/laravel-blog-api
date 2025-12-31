@@ -36,26 +36,7 @@ final class FilterArticleManagementDTO
      */
     public static function fromRequest(GetArticlesRequest $request): self
     {
-        $validated = $request->validated();
-
-        return new self(
-            page: isset($validated['page']) ? (int) $validated['page'] : 1,
-            perPage: isset($validated['per_page']) ? (int) $validated['per_page'] : 15,
-            sortBy: isset($validated['sort_by']) ? (string) $validated['sort_by'] : 'created_at',
-            sortDirection: isset($validated['sort_direction']) ? (string) $validated['sort_direction'] : 'desc',
-            search: isset($validated['search']) ? (string) $validated['search'] : null,
-            status: isset($validated['status']) ? ArticleStatus::from((string) $validated['status']) : null,
-            authorId: isset($validated['author_id']) ? (int) $validated['author_id'] : null,
-            categoryId: isset($validated['category_id']) ? (int) $validated['category_id'] : null,
-            tagId: isset($validated['tag_id']) ? (int) $validated['tag_id'] : null,
-            isFeatured: isset($validated['is_featured']) ? (bool) $validated['is_featured'] : null,
-            isPinned: isset($validated['is_pinned']) ? (bool) $validated['is_pinned'] : null,
-            hasReports: isset($validated['has_reports']) ? (bool) $validated['has_reports'] : null,
-            createdAfter: isset($validated['created_after']) ? (string) $validated['created_after'] : null,
-            createdBefore: isset($validated['created_before']) ? (string) $validated['created_before'] : null,
-            publishedAfter: isset($validated['published_after']) ? (string) $validated['published_after'] : null,
-            publishedBefore: isset($validated['published_before']) ? (string) $validated['published_before'] : null,
-        );
+        return self::fromArray($request->validated());
     }
 
     /**

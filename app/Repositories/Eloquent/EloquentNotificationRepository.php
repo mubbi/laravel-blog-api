@@ -11,9 +11,21 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Eloquent implementation of NotificationRepositoryInterface
+ *
+ * @extends BaseEloquentRepository<Notification>
  */
-final class EloquentNotificationRepository implements NotificationRepositoryInterface
+final class EloquentNotificationRepository extends BaseEloquentRepository implements NotificationRepositoryInterface
 {
+    /**
+     * Get the model class name
+     *
+     * @return class-string<Notification>
+     */
+    protected function getModelClass(): string
+    {
+        return Notification::class;
+    }
+
     /**
      * Create a new notification
      *
@@ -21,19 +33,10 @@ final class EloquentNotificationRepository implements NotificationRepositoryInte
      */
     public function create(array $data): Notification
     {
-        return Notification::create($data);
-    }
+        /** @var Notification $notification */
+        $notification = parent::create($data);
 
-    /**
-     * Update an existing notification
-     *
-     * @param  array<string, mixed>  $data
-     */
-    public function update(int $id, array $data): bool
-    {
-        $notification = $this->findOrFail($id);
-
-        return $notification->update($data);
+        return $notification;
     }
 
     /**
@@ -41,7 +44,10 @@ final class EloquentNotificationRepository implements NotificationRepositoryInte
      */
     public function findById(int $id): ?Notification
     {
-        return Notification::find($id);
+        /** @var Notification|null $notification */
+        $notification = parent::findById($id);
+
+        return $notification;
     }
 
     /**
@@ -51,20 +57,10 @@ final class EloquentNotificationRepository implements NotificationRepositoryInte
      */
     public function findOrFail(int $id): Notification
     {
-        return Notification::findOrFail($id);
-    }
+        /** @var Notification $notification */
+        $notification = parent::findOrFail($id);
 
-    /**
-     * Delete a notification
-     */
-    public function delete(int $id): bool
-    {
-        $notification = $this->findOrFail($id);
-
-        /** @var bool $result */
-        $result = $notification->delete();
-
-        return $result;
+        return $notification;
     }
 
     /**
@@ -74,7 +70,10 @@ final class EloquentNotificationRepository implements NotificationRepositoryInte
      */
     public function query(): Builder
     {
-        return Notification::query();
+        /** @var Builder<Notification> $builder */
+        $builder = parent::query();
+
+        return $builder;
     }
 
     /**
@@ -85,10 +84,10 @@ final class EloquentNotificationRepository implements NotificationRepositoryInte
      */
     public function paginate(array $params): LengthAwarePaginator
     {
-        $perPage = $params['per_page'] ?? 15;
-        $page = $params['page'] ?? 1;
+        /** @var LengthAwarePaginator<int, Notification> $paginator */
+        $paginator = parent::paginate($params);
 
-        return $this->query()->paginate((int) $perPage, ['*'], 'page', (int) $page);
+        return $paginator;
     }
 
     /**

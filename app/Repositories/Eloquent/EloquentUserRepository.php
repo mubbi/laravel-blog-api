@@ -12,9 +12,21 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Eloquent implementation of UserRepositoryInterface
+ *
+ * @extends BaseEloquentRepository<User>
  */
-final class EloquentUserRepository implements UserRepositoryInterface
+final class EloquentUserRepository extends BaseEloquentRepository implements UserRepositoryInterface
 {
+    /**
+     * Get the model class name
+     *
+     * @return class-string<User>
+     */
+    protected function getModelClass(): string
+    {
+        return User::class;
+    }
+
     /**
      * Create a new user
      *
@@ -22,19 +34,10 @@ final class EloquentUserRepository implements UserRepositoryInterface
      */
     public function create(array $data): User
     {
-        return User::create($data);
-    }
+        /** @var User $user */
+        $user = parent::create($data);
 
-    /**
-     * Update an existing user
-     *
-     * @param  array<string, mixed>  $data
-     */
-    public function update(int $id, array $data): bool
-    {
-        $user = $this->findOrFail($id);
-
-        return $user->update($data);
+        return $user;
     }
 
     /**
@@ -42,7 +45,10 @@ final class EloquentUserRepository implements UserRepositoryInterface
      */
     public function findById(int $id): ?User
     {
-        return User::find($id);
+        /** @var User|null $user */
+        $user = parent::findById($id);
+
+        return $user;
     }
 
     /**
@@ -52,20 +58,10 @@ final class EloquentUserRepository implements UserRepositoryInterface
      */
     public function findOrFail(int $id): User
     {
-        return User::findOrFail($id);
-    }
+        /** @var User $user */
+        $user = parent::findOrFail($id);
 
-    /**
-     * Delete a user
-     */
-    public function delete(int $id): bool
-    {
-        $user = $this->findOrFail($id);
-
-        /** @var bool $result */
-        $result = $user->delete();
-
-        return $result;
+        return $user;
     }
 
     /**
@@ -75,7 +71,10 @@ final class EloquentUserRepository implements UserRepositoryInterface
      */
     public function query(): Builder
     {
-        return User::query();
+        /** @var Builder<User> $builder */
+        $builder = parent::query();
+
+        return $builder;
     }
 
     /**
@@ -86,10 +85,10 @@ final class EloquentUserRepository implements UserRepositoryInterface
      */
     public function paginate(array $params): LengthAwarePaginator
     {
-        $perPage = $params['per_page'] ?? 15;
-        $page = $params['page'] ?? 1;
+        /** @var LengthAwarePaginator<int, User> $paginator */
+        $paginator = parent::paginate($params);
 
-        return $this->query()->paginate((int) $perPage, ['*'], 'page', (int) $page);
+        return $paginator;
     }
 
     /**

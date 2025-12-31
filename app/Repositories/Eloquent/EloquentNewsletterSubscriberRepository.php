@@ -11,9 +11,21 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Eloquent implementation of NewsletterSubscriberRepositoryInterface
+ *
+ * @extends BaseEloquentRepository<NewsletterSubscriber>
  */
-final class EloquentNewsletterSubscriberRepository implements NewsletterSubscriberRepositoryInterface
+final class EloquentNewsletterSubscriberRepository extends BaseEloquentRepository implements NewsletterSubscriberRepositoryInterface
 {
+    /**
+     * Get the model class name
+     *
+     * @return class-string<NewsletterSubscriber>
+     */
+    protected function getModelClass(): string
+    {
+        return NewsletterSubscriber::class;
+    }
+
     /**
      * Create a new newsletter subscriber
      *
@@ -21,19 +33,10 @@ final class EloquentNewsletterSubscriberRepository implements NewsletterSubscrib
      */
     public function create(array $data): NewsletterSubscriber
     {
-        return NewsletterSubscriber::create($data);
-    }
+        /** @var NewsletterSubscriber $subscriber */
+        $subscriber = parent::create($data);
 
-    /**
-     * Update an existing newsletter subscriber
-     *
-     * @param  array<string, mixed>  $data
-     */
-    public function update(int $id, array $data): bool
-    {
-        $subscriber = $this->findOrFail($id);
-
-        return $subscriber->update($data);
+        return $subscriber;
     }
 
     /**
@@ -41,7 +44,10 @@ final class EloquentNewsletterSubscriberRepository implements NewsletterSubscrib
      */
     public function findById(int $id): ?NewsletterSubscriber
     {
-        return NewsletterSubscriber::find($id);
+        /** @var NewsletterSubscriber|null $subscriber */
+        $subscriber = parent::findById($id);
+
+        return $subscriber;
     }
 
     /**
@@ -51,20 +57,10 @@ final class EloquentNewsletterSubscriberRepository implements NewsletterSubscrib
      */
     public function findOrFail(int $id): NewsletterSubscriber
     {
-        return NewsletterSubscriber::findOrFail($id);
-    }
+        /** @var NewsletterSubscriber $subscriber */
+        $subscriber = parent::findOrFail($id);
 
-    /**
-     * Delete a newsletter subscriber
-     */
-    public function delete(int $id): bool
-    {
-        $subscriber = $this->findOrFail($id);
-
-        /** @var bool $result */
-        $result = $subscriber->delete();
-
-        return $result;
+        return $subscriber;
     }
 
     /**
@@ -74,7 +70,10 @@ final class EloquentNewsletterSubscriberRepository implements NewsletterSubscrib
      */
     public function query(): Builder
     {
-        return NewsletterSubscriber::query();
+        /** @var Builder<NewsletterSubscriber> $builder */
+        $builder = parent::query();
+
+        return $builder;
     }
 
     /**
@@ -85,10 +84,10 @@ final class EloquentNewsletterSubscriberRepository implements NewsletterSubscrib
      */
     public function paginate(array $params): LengthAwarePaginator
     {
-        $perPage = $params['per_page'] ?? 15;
-        $page = $params['page'] ?? 1;
+        /** @var LengthAwarePaginator<int, NewsletterSubscriber> $paginator */
+        $paginator = parent::paginate($params);
 
-        return $this->query()->paginate((int) $perPage, ['*'], 'page', (int) $page);
+        return $paginator;
     }
 
     /**

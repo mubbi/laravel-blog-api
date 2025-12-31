@@ -7,13 +7,26 @@ namespace App\Repositories\Eloquent;
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Eloquent implementation of ArticleRepositoryInterface
+ *
+ * @extends BaseEloquentRepository<Article>
  */
-final class EloquentArticleRepository implements ArticleRepositoryInterface
+final class EloquentArticleRepository extends BaseEloquentRepository implements ArticleRepositoryInterface
 {
+    /**
+     * Get the model class name
+     *
+     * @return class-string<Article>
+     */
+    protected function getModelClass(): string
+    {
+        return Article::class;
+    }
+
     /**
      * Create a new article
      *
@@ -21,19 +34,10 @@ final class EloquentArticleRepository implements ArticleRepositoryInterface
      */
     public function create(array $data): Article
     {
-        return Article::create($data);
-    }
+        /** @var Article $article */
+        $article = parent::create($data);
 
-    /**
-     * Update an existing article
-     *
-     * @param  array<string, mixed>  $data
-     */
-    public function update(int $id, array $data): bool
-    {
-        $article = $this->findOrFail($id);
-
-        return $article->update($data);
+        return $article;
     }
 
     /**
@@ -41,7 +45,10 @@ final class EloquentArticleRepository implements ArticleRepositoryInterface
      */
     public function findById(int $id): ?Article
     {
-        return Article::find($id);
+        /** @var Article|null $article */
+        $article = parent::findById($id);
+
+        return $article;
     }
 
     /**
@@ -51,7 +58,10 @@ final class EloquentArticleRepository implements ArticleRepositoryInterface
      */
     public function findOrFail(int $id): Article
     {
-        return Article::findOrFail($id);
+        /** @var Article $article */
+        $article = parent::findOrFail($id);
+
+        return $article;
     }
 
     /**
@@ -73,26 +83,16 @@ final class EloquentArticleRepository implements ArticleRepositoryInterface
     }
 
     /**
-     * Delete an article
-     */
-    public function delete(int $id): bool
-    {
-        $article = $this->findOrFail($id);
-
-        /** @var bool $result */
-        $result = $article->delete();
-
-        return $result;
-    }
-
-    /**
      * Get a query builder instance
      *
      * @return Builder<Article>
      */
     public function query(): Builder
     {
-        return Article::query();
+        /** @var Builder<Article> $builder */
+        $builder = parent::query();
+
+        return $builder;
     }
 
     /**
@@ -103,9 +103,9 @@ final class EloquentArticleRepository implements ArticleRepositoryInterface
      */
     public function paginate(array $params): LengthAwarePaginator
     {
-        $perPage = $params['per_page'] ?? 15;
-        $page = $params['page'] ?? 1;
+        /** @var LengthAwarePaginator<int, Article> $paginator */
+        $paginator = parent::paginate($params);
 
-        return $this->query()->paginate((int) $perPage, ['*'], 'page', (int) $page);
+        return $paginator;
     }
 }

@@ -11,9 +11,21 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Eloquent implementation of CommentRepositoryInterface
+ *
+ * @extends BaseEloquentRepository<Comment>
  */
-final class EloquentCommentRepository implements CommentRepositoryInterface
+final class EloquentCommentRepository extends BaseEloquentRepository implements CommentRepositoryInterface
 {
+    /**
+     * Get the model class name
+     *
+     * @return class-string<Comment>
+     */
+    protected function getModelClass(): string
+    {
+        return Comment::class;
+    }
+
     /**
      * Create a new comment
      *
@@ -21,19 +33,10 @@ final class EloquentCommentRepository implements CommentRepositoryInterface
      */
     public function create(array $data): Comment
     {
-        return Comment::create($data);
-    }
+        /** @var Comment $comment */
+        $comment = parent::create($data);
 
-    /**
-     * Update an existing comment
-     *
-     * @param  array<string, mixed>  $data
-     */
-    public function update(int $id, array $data): bool
-    {
-        $comment = $this->findOrFail($id);
-
-        return $comment->update($data);
+        return $comment;
     }
 
     /**
@@ -41,7 +44,10 @@ final class EloquentCommentRepository implements CommentRepositoryInterface
      */
     public function findById(int $id): ?Comment
     {
-        return Comment::find($id);
+        /** @var Comment|null $comment */
+        $comment = parent::findById($id);
+
+        return $comment;
     }
 
     /**
@@ -51,20 +57,10 @@ final class EloquentCommentRepository implements CommentRepositoryInterface
      */
     public function findOrFail(int $id): Comment
     {
-        return Comment::findOrFail($id);
-    }
+        /** @var Comment $comment */
+        $comment = parent::findOrFail($id);
 
-    /**
-     * Delete a comment (soft delete)
-     */
-    public function delete(int $id): bool
-    {
-        $comment = $this->findOrFail($id);
-
-        /** @var bool $result */
-        $result = $comment->delete();
-
-        return $result;
+        return $comment;
     }
 
     /**
@@ -87,7 +83,10 @@ final class EloquentCommentRepository implements CommentRepositoryInterface
      */
     public function query(): Builder
     {
-        return Comment::query();
+        /** @var Builder<Comment> $builder */
+        $builder = parent::query();
+
+        return $builder;
     }
 
     /**
@@ -98,9 +97,9 @@ final class EloquentCommentRepository implements CommentRepositoryInterface
      */
     public function paginate(array $params): LengthAwarePaginator
     {
-        $perPage = $params['per_page'] ?? 15;
-        $page = $params['page'] ?? 1;
+        /** @var LengthAwarePaginator<int, Comment> $paginator */
+        $paginator = parent::paginate($params);
 
-        return $this->query()->paginate((int) $perPage, ['*'], 'page', (int) $page);
+        return $paginator;
     }
 }

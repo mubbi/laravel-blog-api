@@ -11,9 +11,21 @@ use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Eloquent implementation of CategoryRepositoryInterface
+ *
+ * @extends BaseEloquentRepository<Category>
  */
-final class EloquentCategoryRepository implements CategoryRepositoryInterface
+final class EloquentCategoryRepository extends BaseEloquentRepository implements CategoryRepositoryInterface
 {
+    /**
+     * Get the model class name
+     *
+     * @return class-string<Category>
+     */
+    protected function getModelClass(): string
+    {
+        return Category::class;
+    }
+
     /**
      * Create a new category
      *
@@ -21,19 +33,10 @@ final class EloquentCategoryRepository implements CategoryRepositoryInterface
      */
     public function create(array $data): Category
     {
-        return Category::create($data);
-    }
+        /** @var Category $category */
+        $category = parent::create($data);
 
-    /**
-     * Update an existing category
-     *
-     * @param  array<string, mixed>  $data
-     */
-    public function update(int $id, array $data): bool
-    {
-        $category = $this->findOrFail($id);
-
-        return $category->update($data);
+        return $category;
     }
 
     /**
@@ -41,7 +44,10 @@ final class EloquentCategoryRepository implements CategoryRepositoryInterface
      */
     public function findById(int $id): ?Category
     {
-        return Category::find($id);
+        /** @var Category|null $category */
+        $category = parent::findById($id);
+
+        return $category;
     }
 
     /**
@@ -51,7 +57,10 @@ final class EloquentCategoryRepository implements CategoryRepositoryInterface
      */
     public function findOrFail(int $id): Category
     {
-        return Category::findOrFail($id);
+        /** @var Category $category */
+        $category = parent::findOrFail($id);
+
+        return $category;
     }
 
     /**
@@ -87,6 +96,9 @@ final class EloquentCategoryRepository implements CategoryRepositoryInterface
      */
     public function query(): Builder
     {
-        return Category::query();
+        /** @var Builder<Category> $builder */
+        $builder = parent::query();
+
+        return $builder;
     }
 }

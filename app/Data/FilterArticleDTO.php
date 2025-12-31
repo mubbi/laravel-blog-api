@@ -36,22 +36,7 @@ final class FilterArticleDTO
      */
     public static function fromPublicRequest(GetArticlesRequest $request): self
     {
-        $validated = $request->validated();
-
-        return new self(
-            page: isset($validated['page']) ? (int) $validated['page'] : 1,
-            perPage: isset($validated['per_page']) ? (int) $validated['per_page'] : 15,
-            sortBy: isset($validated['sort_by']) ? (string) $validated['sort_by'] : 'published_at',
-            sortDirection: isset($validated['sort_direction']) ? (string) $validated['sort_direction'] : 'desc',
-            search: isset($validated['search']) ? (string) $validated['search'] : null,
-            status: isset($validated['status']) ? ArticleStatus::from((string) $validated['status']) : null,
-            categorySlugs: isset($validated['category_slug']) ? (is_array($validated['category_slug']) ? array_map(fn ($v) => (string) $v, $validated['category_slug']) : [(string) $validated['category_slug']]) : null,
-            tagSlugs: isset($validated['tag_slug']) ? (is_array($validated['tag_slug']) ? array_map(fn ($v) => (string) $v, $validated['tag_slug']) : [(string) $validated['tag_slug']]) : null,
-            authorId: isset($validated['author_id']) ? (int) $validated['author_id'] : null,
-            createdBy: isset($validated['created_by']) ? (int) $validated['created_by'] : null,
-            publishedAfter: isset($validated['published_after']) ? (string) $validated['published_after'] : null,
-            publishedBefore: isset($validated['published_before']) ? (string) $validated['published_before'] : null,
-        );
+        return self::fromArray($request->validated());
     }
 
     /**
