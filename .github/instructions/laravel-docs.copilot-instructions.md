@@ -1,3 +1,15 @@
+---
+applyTo: "**"
+---
+
+# Laravel Documentation Reference for GitHub Copilot
+
+> **Note:** This file contains the complete Laravel documentation for reference purposes. For project-specific development standards and patterns, see:
+> - `.cursor/rules/development-guide-ai.mdc` - General Laravel development standards
+> - `.cursor/rules/laravel-blog-api-rules.mdc` - Project-specific patterns and requirements
+> - `.github/instructions/project.copilot-instructions.md` - Project-specific Copilot instructions
+
+This documentation is provided as reference material for GitHub Copilot to understand Laravel framework features, APIs, and conventions. Always prioritize project-specific patterns and standards from the `.cursor/rules/` directory when generating code.
 
 ================================================
 FILE: readme.md

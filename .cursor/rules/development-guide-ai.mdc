@@ -1,0 +1,374 @@
+---
+description: Development rules to follow while developing the project
+globs:
+alwaysApply: true
+---
+
+# Laravel Development Standards for Cursor AI
+
+> **Note:** This is a general Laravel development guide. For project-specific requirements, patterns, and configurations, see `laravel-blog-api-rules.mdc`.
+
+**Tech Stack:** PHP 8.2+, Laravel 12+, MySQL 8+
+
+## Core Principles
+
+- **SOLID**, **YAGNI**, **KISS**
+- **Strict typing**: `declare(strict_types=1);` in all PHP files
+- **Thin controllers**: No business logic
+- **Type safety**: All properties, parameters, return types explicit
+- **PHPStan level 10**: No ignored errors (project requirement)
+
+## PHP Standards
+
+### Type Safety (Mandatory)
+- Scalar type hints, return types, property types
+- Union types (`string|int`), nullable types (`?Type`)
+- Readonly properties for DTOs
+- Enums for fixed value sets
+
+```php
+declare(strict_types=1);
+
+enum UserStatus: string
+{
+    case ACTIVE = 'active';
+    case INACTIVE = 'inactive';
+}
+
+class UserDTO
+{
+    public function __construct(
+        public readonly string $email,
+        public readonly UserStatus $status
+    ) {}
+}
+```
+
+### Modern PHP Features
+- Readonly properties, Enums, Match expressions
+- Named arguments, Attributes (PHP 8.0+)
+- Constructor property promotion
+
+## Laravel Architecture
+
+### Project Structure
+```
+app/
+├── Actions/              # Complex orchestration (use sparingly per YAGNI)
+├── Data/                 # DTOs (create as needed)
+├── Enums/                # Type-safe constants
+├── Http/
+│   ├── Controllers/      # Thin, API/V1/
+│   ├── Requests/         # Form Requests
+│   └── Resources/        # API Resources
+├── Models/
+├── Policies/             # Authorization
+├── Repositories/         # Data access layer (use per decision matrix)
+│   ├── Contracts/         # Interfaces
+│   └── Eloquent/          # Implementations
+└── Services/             # Business logic
+```
+
+Note: This is a general structure. See project-specific rules for exact directory structure used in this project.
+
+### Controllers (Thin)
+- Only: validation, authorization, delegation, response formatting
+- Use Form Requests, Policies, Services/Actions
+- Return typed `JsonResponse` with Resources
+- Use dependency injection with readonly properties
+- Be final classes for immutability
+- Note: For this project, use invokable pattern with `__invoke()` method (see project-specific rules)
+
+### Form Requests
+- Always use for validation
+- Implement `authorize()` when needed
+- Custom messages and attributes
+- Note: For this project, implement `withDefaults()` method (see project-specific rules)
+
+### API Resources
+- Always use for API responses
+- Separate resources for different contexts
+- Note: For this project, use specific response format with `status`, `message`, and `data` fields (see project-specific rules)
+
+## Pattern Stack (YAGNI)
+
+### Decision Matrix
+| Complexity | Action | Service | Repository | DTO |
+|------------|--------|---------|------------|-----|
+| Complex (multi-service) | ✅ | ✅ | ✅ | ✅ |
+| Medium (business logic) | ❌ | ✅ | ✅ | ✅ |
+| Simple (data access) | ❌ | ❌ | ✅ | ✅ |
+| Very Simple | ❌ | ❌ | ✅ | ⚠️ |
+
+### Complex Operations
+```
+Controller → Action → Service → Repository → Model
+            ↓
+          DTO
+```
+
+### Simple CRUD
+```
+Controller → Service → Repository → Model
+            ↓
+          DTO
+```
+
+### DTOs (Always Recommended)
+- Prevent array abuse, ensure type safety
+- Readonly properties, `toArray()` method
+- Static factory methods
+
+```php
+final class UserDTO
+{
+    public function __construct(
+        public readonly string $email,
+        public readonly string $password,
+        public readonly ?string $name = null,
+    ) {}
+
+    public static function fromRequest(StoreUserRequest $request): self
+    {
+        return new self(
+            email: $request->validated('email'),
+            password: $request->validated('password'),
+            name: $request->validated('name'),
+        );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'email' => $this->email,
+            'password' => $this->password,
+            'name' => $this->name,
+        ];
+    }
+}
+```
+
+### Services
+- Business logic only
+- Depend on repositories, not models
+- Constructor injection
+
+```php
+final class UserService
+{
+    public function __construct(
+        private readonly UserRepositoryInterface $repository
+    ) {}
+
+    public function register(UserDTO $dto): User
+    {
+        return $this->repository->create($dto->toArray());
+    }
+}
+```
+
+### Repositories
+- Data access only
+- Interface + Eloquent implementation
+- Bind in service provider
+
+```php
+interface UserRepositoryInterface
+{
+    public function create(array $data): User;
+    public function findById(int $id): ?User;
+}
+
+class EloquentUserRepository implements UserRepositoryInterface
+{
+    public function create(array $data): User
+    {
+        return User::create($data);
+    }
+}
+```
+
+### Actions (Complex Orchestration Only)
+- Single-purpose operations
+- Orchestrate multiple services
+- Use only when needed (YAGNI)
+
+```php
+final class RegisterUserAction
+{
+    public function __construct(
+        private readonly UserService $userService,
+        private readonly EmailService $emailService
+    ) {}
+
+    public function execute(UserDTO $dto): User
+    {
+        $user = $this->userService->register($dto);
+        $this->emailService->sendVerificationEmail($user);
+        return $user;
+    }
+}
+```
+
+## Database Standards
+
+### Migrations
+- Always reversible (`down()` method)
+- Add indexes in migrations
+- Foreign key constraints
+
+```php
+Schema::create('orders', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+    $table->string('status')->index();
+    $table->timestamps();
+    $table->softDeletes();
+    $table->index(['user_id', 'status']);
+});
+```
+
+### Eloquent Best Practices
+- **Eager load** relationships (`with()`, `load()`) - mandatory
+- Use `select()` to limit columns
+- Use `chunk()` or `cursor()` for large datasets
+- Query scopes for reusable logic
+
+```php
+// ✅ Good
+User::with('orders')->get();
+User::select('id', 'name')->get();
+User::chunk(100, fn($users) => /* process */);
+
+// ❌ Bad
+User::all(); // N+1 risk, SELECT *
+```
+
+### Transactions
+- Mandatory for multi-step writes
+- Keep transactions short
+
+```php
+DB::transaction(function () {
+    $order = $this->orderRepo->create(...);
+    $this->paymentRepo->capture($order, ...);
+});
+```
+
+## Testing (Pest)
+
+### Test Structure
+- AAA pattern (Arrange, Act, Assert)
+- Use factories, `RefreshDatabase`
+- Minimum 80% coverage (project requirement)
+- Use BDD-style testing with Pest PHP 3.8+
+
+Note: See project-specific rules for detailed test templates and patterns used in this project.
+
+## Security
+
+### Authentication & Authorization
+- Use Policies/Gates
+- Check in controllers and form requests
+
+```php
+// Policy
+class OrderPolicy
+{
+    public function update(User $user, Order $order): bool
+    {
+        return $user->id === $order->user_id;
+    }
+}
+
+// Controller
+public function update(UpdateOrderRequest $request, Order $order)
+{
+    $this->authorize('update', $order);
+    // ...
+}
+```
+
+### Mass Assignment
+- Always use `$fillable` or `$guarded`
+- Never `$request->all()` without filtering
+- Use validated data only
+
+```php
+// ✅ Good
+$user->update($request->validated());
+
+// ❌ Bad
+$user->update($request->all());
+```
+
+### SQL Injection Prevention
+- Always use Eloquent/Query Builder
+- Parameter binding for raw queries
+
+```php
+// ✅ Good
+User::where('email', $email)->first();
+DB::select('SELECT * FROM users WHERE email = ?', [$email]);
+
+// ❌ Bad
+DB::select("SELECT * FROM users WHERE email = '{$email}'");
+```
+
+## Performance
+
+### Database
+- Eager load relationships
+- Select specific columns
+- Add indexes for frequently queried columns
+- Use pagination for large datasets
+
+### Caching
+- Cache expensive operations
+- Use cache tags (Redis) for grouped invalidation
+
+```php
+$users = Cache::remember('users.active', 600, function () {
+    return User::where('status', 'active')->get();
+});
+```
+
+### Queues
+- Use for heavy tasks (emails, file processing, API calls)
+- Implement retry logic with exponential backoff
+
+## Error Handling
+
+### Custom Exceptions
+- Domain-specific exceptions
+- Meaningful messages, appropriate HTTP codes
+- Note: For this project, see project-specific error handling patterns in `laravel-blog-api-rules.mdc`
+
+### Logging
+- Structured logging with context
+- Never log sensitive data
+- Appropriate log levels
+
+## Anti-Patterns (Forbidden)
+
+❌ Fat controllers with business logic  
+❌ Business logic in views  
+❌ Raw queries everywhere  
+❌ Untyped arrays instead of DTOs  
+❌ N+1 queries (not using `with()`)  
+❌ No transactions for multi-step writes  
+❌ Secrets in code  
+❌ No authorization checks  
+❌ Mass assignment vulnerabilities  
+❌ Over-engineering (using all patterns for simple operations)
+
+## Code Style
+
+- **Laravel Pint** (mandatory)
+- **PSR-12** compliance
+- **Final classes** for immutability
+- **Comprehensive PHPDoc** for public methods
+
+## Final Rule
+
+> **If it is not tested, typed, documented, and formatted — it is not production-ready.**
