@@ -299,11 +299,9 @@ describe('API/V1/User/MeController', function () {
             'email' => 'role@example.com',
         ]);
 
-        // Attach roles to user (if roles exist in seeder)
-        $adminRole = \App\Models\Role::where('name', 'administrator')->first();
-        if ($adminRole) {
-            $user->roles()->attach($adminRole->id);
-        }
+        // Attach roles to user
+        $adminRole = \App\Models\Role::where('name', \App\Enums\UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($user, $adminRole);
 
         // Authenticate the user with Sanctum
         Sanctum::actingAs($user, ['access-api']);

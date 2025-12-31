@@ -6,6 +6,8 @@ alwaysApply: true
 
 # Cursor Rules for Laravel 12 Blog API Project
 
+> **Note:** This document contains project-specific rules and patterns. General Laravel development standards are covered in `development-guide-ai.mdc`. Both documents should be followed together.
+
 ## Project Overview
 
 This is a modern Laravel 12 Blog API built with PHP 8.4, featuring clean architecture, comprehensive testing, Docker-based development environment, and advanced code quality tools. The API serves as a production-ready backend for a blog platform with authentication, role-based permissions, content management, and automated quality assurance.
@@ -26,6 +28,8 @@ This is a modern Laravel 12 Blog API built with PHP 8.4, featuring clean archite
 - **Git Tools**: Husky hooks, semantic commits, automated validation
 
 ## PHP Coding Standards (MANDATORY)
+
+> **Note:** General PHP and Laravel standards are covered in `development-guide-ai.mdc`. This section covers project-specific requirements and additions.
 
 ### File Structure Requirements
 
@@ -228,6 +232,8 @@ final class Article extends Model
 
 ## Controller Guidelines (MANDATORY)
 
+> **Note:** General controller principles are in `development-guide-ai.mdc`. This section covers project-specific patterns.
+
 ### Single Action Controllers
 
 Controllers must:
@@ -238,7 +244,7 @@ Controllers must:
 - Return **typed responses**, e.g., `JsonResponse`
 - Use **Resource classes** for API responses
 - Be **final classes** for immutability
-- Use **invokable pattern** with `__invoke()` method
+- **Use invokable pattern** with `__invoke()` method (project-specific requirement)
 
 ### Controller Template
 
@@ -299,6 +305,8 @@ final class YourController extends Controller
 
 ## Request Validation Guidelines
 
+> **Note:** General Form Request patterns are in `development-guide-ai.mdc`. This section shows the project-specific template with `withDefaults()` method.
+
 ### Form Request Template
 
 ```php
@@ -358,6 +366,8 @@ final class YourRequest extends FormRequest
 
 ## Service Layer Guidelines
 
+> **Note:** General service patterns are in `development-guide-ai.mdc`. This section shows the project-specific template.
+
 ### Service Template
 
 ```php
@@ -400,6 +410,8 @@ final class YourService implements YourServiceInterface
 ```
 
 ## Model Guidelines
+
+> **Note:** General model patterns are in `development-guide-ai.mdc`. This section shows the project-specific template with PHPStan level 10 compliance.
 
 ### Model Template
 
@@ -498,6 +510,8 @@ final class User extends Authenticatable
 
 ## Resource Guidelines
 
+> **Note:** General resource patterns are in `development-guide-ai.mdc`. This section shows the project-specific template with conditional merging.
+
 ### Resource Template
 
 ```php
@@ -583,6 +597,8 @@ enum UserRole: string
 
 ## Testing Guidelines
 
+> **Note:** General testing principles are in `development-guide-ai.mdc`. This section shows the project-specific test template with response format assertions.
+
 ### Pest Test Template
 
 ```php
@@ -661,6 +677,8 @@ make shell               # Access container shell
 
 ## Error Handling Guidelines
 
+> **Note:** General error handling principles are in `development-guide-ai.mdc`. This section shows the project-specific exception handling pattern used in controllers.
+
 ### Exception Handling Pattern
 
 All controllers should follow this error handling pattern:
@@ -713,9 +731,11 @@ final class ArticleNotFoundException extends Exception
 
 ## Security Best Practices
 
+> **Note:** General security principles are in `development-guide-ai.mdc`. This section covers project-specific security requirements.
+
 ### Authentication & Authorization
 
-- Use **Laravel Sanctum** for API authentication with Bearer tokens
+- Use **Laravel Sanctum** for API authentication with Bearer tokens (project-specific)
 - Implement **ability-based token permissions** for fine-grained access
 - Use **role-based access control** with permissions
 - Apply **least-privilege principles**
@@ -732,6 +752,8 @@ final class ArticleNotFoundException extends Exception
 
 ## Performance & Optimization
 
+> **Note:** General performance principles are in `development-guide-ai.mdc`. This section covers project-specific optimizations.
+
 ### Database Optimization
 
 - **Eager load relationships** to prevent N+1 queries
@@ -739,7 +761,7 @@ final class ArticleNotFoundException extends Exception
 - **Paginate large datasets** with `paginate()`
 - **Queue long-running tasks**
 - **Optimize database indexes**
-- Use **Redis for sessions and application cache**
+- Use **Redis for sessions and application cache** (project uses Redis)
 
 ### Query Optimization
 
@@ -750,13 +772,15 @@ final class ArticleNotFoundException extends Exception
 
 ## Code Quality Standards
 
+> **Note:** General code quality principles are in `development-guide-ai.mdc`. This section covers project-specific quality gates and tooling.
+
 ### Quality Gates
 
-- **Minimum 80% test coverage** enforced
-- **PHPStan level 10** static analysis compliance
+- **Minimum 80% test coverage** enforced (project requirement)
+- **PHPStan level 10** static analysis compliance (project requirement)
 - **Laravel Pint** code formatting
 - **Pest PHP** BDD-style testing
-- **SonarQube integration** for comprehensive analysis
+- **SonarQube integration** for comprehensive analysis (optional)
 
 ### Git Hooks & Automation
 

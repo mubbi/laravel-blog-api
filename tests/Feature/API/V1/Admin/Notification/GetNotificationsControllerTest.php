@@ -14,7 +14,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         Notification::factory()->count(5)->create();
 
@@ -53,7 +53,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         Notification::factory()->create(['type' => NotificationType::SYSTEM_ALERT]);
         Notification::factory()->create(['type' => NotificationType::NEW_COMMENT]);
@@ -76,7 +76,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         Notification::factory()->create([
             'message' => ['title' => 'System maintenance', 'body' => 'Scheduled maintenance'],
@@ -103,7 +103,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $oldNotification = Notification::factory()->create([
             'created_at' => now()->subDays(10),
@@ -133,7 +133,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         Notification::factory()->create(['created_at' => now()->subDays(3)]);
         Notification::factory()->create(['created_at' => now()->subDays(1)]);
@@ -159,7 +159,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         Notification::factory()->count(25)->create();
 
@@ -182,7 +182,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         // Act
         $response = $this->actingAs($user)
@@ -204,7 +204,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -221,7 +221,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Mock NotificationService to throw exception
         $this->mock(\App\Services\NotificationService::class, function ($mock) {
@@ -253,7 +253,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $complexMessage = [
             'title' => 'Complex Notification',
@@ -288,7 +288,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $systemNotification = Notification::factory()->create([
             'type' => NotificationType::SYSTEM_ALERT,
@@ -319,7 +319,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -346,7 +346,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         Notification::factory()->count(100)->create();
 
@@ -369,7 +369,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Create notifications with different characteristics
         Notification::factory()->create([
@@ -413,7 +413,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $notification = Notification::factory()->create([
             'type' => NotificationType::SYSTEM_ALERT,

@@ -15,7 +15,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $subscriber = NewsletterSubscriber::factory()->create([
             'email' => 'test@example.com',
@@ -50,7 +50,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $subscriber = NewsletterSubscriber::factory()->create([
             'is_verified' => true,
@@ -80,7 +80,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $subscriber = NewsletterSubscriber::factory()->create([
             'is_verified' => false,
@@ -110,7 +110,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $subscriber = NewsletterSubscriber::factory()->create([
             'email' => 'test@example.com',
@@ -137,7 +137,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $nonExistentId = 99999;
 
@@ -161,7 +161,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $newsletterSubscriber = NewsletterSubscriber::factory()->create([
             'email' => 'test@example.com',
@@ -196,7 +196,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $subscriber = NewsletterSubscriber::factory()->create([
             'email' => 'test@example.com',
@@ -224,7 +224,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $subscriber = NewsletterSubscriber::factory()->create([
             'email' => 'test@example.com',
@@ -262,7 +262,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $subscriber = NewsletterSubscriber::factory()->create([
             'email' => 'test@example.com',
@@ -294,7 +294,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $subscriber = NewsletterSubscriber::factory()->create([
             'email' => 'test@example.com',
@@ -326,7 +326,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $user = User::factory()->create();
         $subscriber = NewsletterSubscriber::factory()->create([
@@ -359,7 +359,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $subscriber = NewsletterSubscriber::factory()->create([
             'user_id' => null,
@@ -386,7 +386,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $subscriber = NewsletterSubscriber::factory()->create([
             'email' => 'longtime@example.com',
@@ -418,7 +418,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $nonExistentId = 99999;
 

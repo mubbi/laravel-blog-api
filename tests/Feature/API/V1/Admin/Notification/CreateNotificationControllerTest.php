@@ -13,7 +13,7 @@ describe('API/V1/Admin/Notification/CreateNotificationController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $notificationData = [
             'type' => NotificationType::SYSTEM_ALERT->value,
@@ -66,7 +66,7 @@ describe('API/V1/Admin/Notification/CreateNotificationController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $notificationData = [
             'type' => NotificationType::SYSTEM_ALERT->value,

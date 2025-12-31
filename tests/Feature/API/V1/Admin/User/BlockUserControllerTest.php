@@ -11,7 +11,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToBlock = User::factory()->create();
 
@@ -46,7 +46,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToBlock = User::factory()->create(['banned_at' => now()]);
 
@@ -66,7 +66,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -84,7 +84,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $userToBlock = User::factory()->create();
 
@@ -111,7 +111,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -129,7 +129,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $originalData = [
             'name' => 'John Doe',
