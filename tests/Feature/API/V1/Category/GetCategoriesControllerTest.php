@@ -36,7 +36,7 @@ describe('API/V1/Category/GetCategoriesController', function () {
 
         $response->assertStatus(500)
             ->assertJson(['status' => false])
-            ->assertJson(['message' => __('common.error')])
+            ->assertJson(['message' => __('common.something_went_wrong')])
             ->assertJsonStructure([
                 'data',
                 'error',

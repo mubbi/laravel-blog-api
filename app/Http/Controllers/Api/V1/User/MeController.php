@@ -11,28 +11,49 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 #[Group('User', weight: 0)]
-class MeController extends Controller
+final class MeController extends Controller
 {
     /**
-     * User Profile API
+     * Get Authenticated User Profile
      *
-     * Handle the incoming request to get the authenticated user.
+     * Retrieves the complete profile information of the currently authenticated user, including
+     * personal details, roles, and permissions. This endpoint is commonly used to populate user
+     * profile pages, verify authentication status, and check user permissions and roles.
+     *
+     * **Authentication:**
+     * Requires a valid Bearer token in the Authorization header. The user information is
+     * automatically determined from the token.
+     *
+     * **Response:**
+     * Returns the authenticated user's profile with all associated roles and permissions
+     * loaded. The response includes user details, roles, and all available permissions.
      *
      * @response array{status: true, message: string, data: UserResource}
      */
     public function __invoke(Request $request): JsonResponse
     {
-        /**
-         * Successful response
-         */
+        try {
+            /**
+             * Successful response
+             */
 
-        /** @var \App\Models\User $user */
-        $user = $request->user();
-        $user->load(['roles.permissions']);
+            /** @var \App\Models\User $user */
+            $user = $request->user();
+            $user->load(['roles.permissions']);
 
-        return response()->apiSuccess(
-            new \App\Http\Resources\V1\Auth\UserResource($user),
-            __('common.success')
-        );
+            return response()->apiSuccess(
+                new \App\Http\Resources\V1\Auth\UserResource($user),
+                __('common.success')
+            );
+        } catch (\Throwable $e) {
+            /**
+             * Internal server error
+             *
+             * @status 500
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return $this->handleException($e, $request);
+        }
     }
 }

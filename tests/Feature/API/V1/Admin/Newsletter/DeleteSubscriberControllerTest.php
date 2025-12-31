@@ -270,8 +270,10 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Mock NewsletterService to throw ModelNotFoundException
         $this->mock(NewsletterService::class, function ($mock) {
+            $exception = new ModelNotFoundException;
+            $exception->setModel(\App\Models\NewsletterSubscriber::class);
             $mock->shouldReceive('deleteSubscriber')
-                ->andThrow(new ModelNotFoundException);
+                ->andThrow($exception);
         });
 
         // Act

@@ -25,7 +25,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.comments.destroy', $comment->id), [
-                'admin_note' => 'Deleted for violation',
+                'reason' => 'Deleted for violation',
             ]);
 
         // Assert
@@ -60,7 +60,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.comments.destroy', $comment->id), [
-                'admin_note' => 'Deleted pending comment',
+                'reason' => 'Deleted pending comment',
             ]);
 
         // Assert
@@ -89,7 +89,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.comments.destroy', $comment->id), [
-                'admin_note' => 'Deleted rejected comment',
+                'reason' => 'Deleted rejected comment',
             ]);
 
         // Assert
@@ -143,7 +143,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.comments.destroy', $nonExistentId), [
-                'admin_note' => 'Test note',
+                'reason' => 'Test note',
             ]);
 
         // Assert
@@ -169,7 +169,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         // Act
         $response = $this->actingAs($user)
             ->deleteJson(route('api.v1.admin.comments.destroy', $comment->id), [
-                'admin_note' => 'Test note',
+                'reason' => 'Test note',
             ]);
 
         // Assert
@@ -204,11 +204,19 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.comments.destroy', $comment->id), [
-                'admin_note' => str_repeat('a', 501), // Exceeds max length
+                'reason' => str_repeat('a', 501), // Exceeds max length
             ]);
 
-        // Assert - admin_note is optional and not strictly validated
-        $response->assertStatus(200);
+        // Assert - reason field validation (max 500 characters)
+        $response->assertStatus(422)
+            ->assertJson([
+                'status' => false,
+                'message' => 'The reason field must not be greater than 500 characters.',
+                'data' => null,
+                'error' => [
+                    'reason' => ['The reason field must not be greater than 500 characters.'],
+                ],
+            ]);
     });
 
     it('handles service exception and logs error', function () {
@@ -230,7 +238,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.comments.destroy', $comment->id), [
-                'admin_note' => 'Test note',
+                'reason' => 'Test note',
             ]);
 
         // Assert
@@ -261,14 +269,16 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
 
         // Mock CommentService to throw ModelNotFoundException
         $this->mock(CommentService::class, function ($mock) {
+            $exception = new ModelNotFoundException;
+            $exception->setModel(\App\Models\Comment::class);
             $mock->shouldReceive('deleteComment')
-                ->andThrow(new ModelNotFoundException);
+                ->andThrow($exception);
         });
 
         // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.comments.destroy', $comment->id), [
-                'admin_note' => 'Test note',
+                'reason' => 'Test note',
             ]);
 
         // Assert
@@ -299,7 +309,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.comments.destroy', $comment->id), [
-                'admin_note' => 'Permanently deleted',
+                'reason' => 'Permanently deleted',
             ]);
 
         // Assert
@@ -335,7 +345,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.comments.destroy', $comment->id), [
-                'admin_note' => 'Deleted with relations',
+                'reason' => 'Deleted with relations',
             ]);
 
         // Assert
@@ -369,7 +379,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.comments.destroy', $comment->id), [
-                'admin_note' => 'Final deletion note',
+                'reason' => 'Final deletion note',
             ]);
 
         // Assert

@@ -21,7 +21,7 @@ final class GetSubscribersRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user !== null && $user->can('view_newsletter_subscribers');
+        return $user !== null && $user->hasPermission('view_newsletter_subscribers');
     }
 
     /**
@@ -38,6 +38,7 @@ final class GetSubscribersRequest extends FormRequest
             'subscribed_at_to' => ['nullable', 'date', 'after_or_equal:subscribed_at_from'],
             'sort_by' => ['nullable', 'string', 'in:created_at,updated_at,email,is_verified'],
             'sort_order' => ['nullable', 'string', 'in:asc,desc'],
+            'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }
@@ -50,6 +51,7 @@ final class GetSubscribersRequest extends FormRequest
     public function withDefaults(): array
     {
         return array_merge([
+            'page' => 1,
             'sort_by' => 'created_at',
             'sort_order' => 'desc',
             'per_page' => 15,

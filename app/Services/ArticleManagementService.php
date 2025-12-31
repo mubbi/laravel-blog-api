@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Data\FilterArticleManagementDTO;
+use App\Data\ReportArticleDTO;
 use App\Enums\ArticleStatus;
 use App\Models\Article;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,31 +13,29 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 final class ArticleManagementService
 {
+    public function __construct(
+        private readonly \App\Repositories\Contracts\ArticleRepositoryInterface $articleRepository
+    ) {}
+
     /**
      * Get articles with filters and pagination for admin management
      *
-     * @param  array<string, mixed>  $params
      * @return LengthAwarePaginator<int, Article>
      */
-    public function getArticles(array $params): LengthAwarePaginator
+    public function getArticles(FilterArticleManagementDTO $dto): LengthAwarePaginator
     {
-        $query = Article::query()
+        $query = $this->articleRepository->query()
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->withCount(['comments', 'authors']);
 
         // Apply filters
-        $this->applyFilters($query, $params);
+        $this->applyFilters($query, $dto);
 
         // Apply sorting
-        $sortBy = $params['sort_by'] ?? 'created_at';
-        $sortDirection = $params['sort_direction'] ?? 'desc';
-        $query->orderBy((string) $sortBy, (string) $sortDirection);
+        $query->orderBy($dto->sortBy, $dto->sortDirection);
 
         // Apply pagination
-        $perPage = $params['per_page'] ?? 15;
-        $page = $params['page'] ?? 1;
-
-        return $query->paginate((int) $perPage, ['*'], 'page', (int) $page);
+        return $query->paginate($dto->perPage, ['*'], 'page', $dto->page);
     }
 
     /**
@@ -43,7 +43,7 @@ final class ArticleManagementService
      */
     public function getArticleById(int $id): Article
     {
-        return Article::query()
+        return $this->articleRepository->query()
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug', 'comments.user:id,name,email'])
             ->withCount(['comments', 'authors'])
             ->findOrFail($id);
@@ -54,14 +54,17 @@ final class ArticleManagementService
      */
     public function approveArticle(int $id, int $approvedBy): Article
     {
-        $article = Article::findOrFail($id);
-        $article->update([
+        $this->articleRepository->update($id, [
             'status' => ArticleStatus::PUBLISHED,
             'approved_by' => $approvedBy,
             'published_at' => now(),
         ]);
 
-        return $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article = $this->articleRepository->query()
+            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->findOrFail($id);
+
+        return $article;
     }
 
     /**
@@ -69,13 +72,16 @@ final class ArticleManagementService
      */
     public function rejectArticle(int $id, int $rejectedBy): Article
     {
-        $article = Article::findOrFail($id);
-        $article->update([
+        $this->articleRepository->update($id, [
             'status' => ArticleStatus::DRAFT,
             'approved_by' => $rejectedBy,
         ]);
 
-        return $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article = $this->articleRepository->query()
+            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->findOrFail($id);
+
+        return $article;
     }
 
     /**
@@ -84,15 +90,18 @@ final class ArticleManagementService
     public function featureArticle(int $id): Article
     {
         try {
-            $article = Article::findOrFail($id);
+            $article = $this->articleRepository->findOrFail($id);
             $newFeaturedStatus = ! $article->is_featured;
-            $article->update([
+
+            $this->articleRepository->update($id, [
                 'is_featured' => $newFeaturedStatus,
                 'featured_at' => $newFeaturedStatus ? now() : null,
             ]);
 
             /** @var Article $freshArticle */
-            $freshArticle = $article->fresh();
+            $freshArticle = $this->articleRepository->query()
+                ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+                ->findOrFail($id);
 
             return $freshArticle;
         } catch (\Throwable $e) {
@@ -110,13 +119,16 @@ final class ArticleManagementService
      */
     public function unfeatureArticle(int $id): Article
     {
-        $article = Article::findOrFail($id);
-        $article->update([
+        $this->articleRepository->update($id, [
             'is_featured' => false,
             'featured_at' => null,
         ]);
 
-        return $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article = $this->articleRepository->query()
+            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->findOrFail($id);
+
+        return $article;
     }
 
     /**
@@ -124,13 +136,16 @@ final class ArticleManagementService
      */
     public function pinArticle(int $id): Article
     {
-        $article = Article::findOrFail($id);
-        $article->update([
+        $this->articleRepository->update($id, [
             'is_pinned' => true,
             'pinned_at' => now(),
         ]);
 
-        return $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article = $this->articleRepository->query()
+            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->findOrFail($id);
+
+        return $article;
     }
 
     /**
@@ -138,13 +153,16 @@ final class ArticleManagementService
      */
     public function unpinArticle(int $id): Article
     {
-        $article = Article::findOrFail($id);
-        $article->update([
+        $this->articleRepository->update($id, [
             'is_pinned' => false,
             'pinned_at' => null,
         ]);
 
-        return $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article = $this->articleRepository->query()
+            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->findOrFail($id);
+
+        return $article;
     }
 
     /**
@@ -152,12 +170,15 @@ final class ArticleManagementService
      */
     public function archiveArticle(int $id): Article
     {
-        $article = Article::findOrFail($id);
-        $article->update([
+        $this->articleRepository->update($id, [
             'status' => ArticleStatus::ARCHIVED,
         ]);
 
-        return $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article = $this->articleRepository->query()
+            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->findOrFail($id);
+
+        return $article;
     }
 
     /**
@@ -165,12 +186,15 @@ final class ArticleManagementService
      */
     public function restoreArticle(int $id): Article
     {
-        $article = Article::findOrFail($id);
-        $article->update([
+        $this->articleRepository->update($id, [
             'status' => ArticleStatus::PUBLISHED,
         ]);
 
-        return $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article = $this->articleRepository->query()
+            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->findOrFail($id);
+
+        return $article;
     }
 
     /**
@@ -178,12 +202,15 @@ final class ArticleManagementService
      */
     public function trashArticle(int $id): Article
     {
-        $article = Article::findOrFail($id);
-        $article->update([
+        $this->articleRepository->update($id, [
             'status' => ArticleStatus::TRASHED,
         ]);
 
-        return $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article = $this->articleRepository->query()
+            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->findOrFail($id);
+
+        return $article;
     }
 
     /**
@@ -191,12 +218,15 @@ final class ArticleManagementService
      */
     public function restoreFromTrash(int $id): Article
     {
-        $article = Article::findOrFail($id);
-        $article->update([
+        $this->articleRepository->update($id, [
             'status' => ArticleStatus::DRAFT,
         ]);
 
-        return $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article = $this->articleRepository->query()
+            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->findOrFail($id);
+
+        return $article;
     }
 
     /**
@@ -204,27 +234,27 @@ final class ArticleManagementService
      */
     public function deleteArticle(int $id): bool
     {
-        $article = Article::findOrFail($id);
-
-        /** @var bool $deleted */
-        $deleted = $article->delete();
-
-        return $deleted;
+        return $this->articleRepository->delete($id);
     }
 
     /**
      * Report an article
      */
-    public function reportArticle(int $id, string $reason): Article
+    public function reportArticle(int $id, ReportArticleDTO $dto): Article
     {
-        $article = Article::findOrFail($id);
-        $article->update([
+        $article = $this->articleRepository->findOrFail($id);
+
+        $this->articleRepository->update($id, [
             'report_count' => $article->report_count + 1,
             'last_reported_at' => now(),
-            'report_reason' => $reason,
+            'report_reason' => $dto->getReason(),
         ]);
 
-        return $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $updatedArticle = $this->articleRepository->query()
+            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->findOrFail($id);
+
+        return $updatedArticle;
     }
 
     /**
@@ -232,73 +262,72 @@ final class ArticleManagementService
      */
     public function clearArticleReports(int $id): Article
     {
-        $article = Article::findOrFail($id);
-        $article->update([
+        $this->articleRepository->update($id, [
             'report_count' => 0,
             'last_reported_at' => null,
             'report_reason' => null,
         ]);
 
-        return $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article = $this->articleRepository->query()
+            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->findOrFail($id);
+
+        return $article;
     }
 
     /**
      * Apply filters to the query
      *
      * @param  Builder<Article>  $query
-     * @param  array<string, mixed>  $params
      */
-    private function applyFilters(Builder $query, array $params): void
+    private function applyFilters(Builder $query, FilterArticleManagementDTO $dto): void
     {
         // Search in title and content
-        if (! empty($params['search'])) {
-            /** @var mixed $searchParam */
-            $searchParam = $params['search'];
-            $searchTerm = (string) $searchParam;
-            $query->where(function (Builder $q) use ($searchTerm) {
-                $q->where('title', 'like', "%{$searchTerm}%")
-                    ->orWhere('content_markdown', 'like', "%{$searchTerm}%")
-                    ->orWhere('excerpt', 'like', "%{$searchTerm}%");
+        if ($dto->search !== null) {
+            $query->where(function (Builder $q) use ($dto) {
+                $q->where('title', 'like', "%{$dto->search}%")
+                    ->orWhere('content_markdown', 'like', "%{$dto->search}%")
+                    ->orWhere('excerpt', 'like', "%{$dto->search}%");
             });
         }
 
         // Filter by status
-        if (! empty($params['status'])) {
-            $query->where('status', $params['status']);
+        if ($dto->status !== null) {
+            $query->where('status', $dto->status->value);
         }
 
         // Filter by author
-        if (! empty($params['author_id'])) {
-            $query->where('created_by', (int) $params['author_id']);
+        if ($dto->authorId !== null) {
+            $query->where('created_by', $dto->authorId);
         }
 
         // Filter by category
-        if (! empty($params['category_id'])) {
-            $query->whereHas('categories', function (Builder $q) use ($params) {
-                $q->where('categories.id', (int) $params['category_id']);
+        if ($dto->categoryId !== null) {
+            $query->whereHas('categories', function (Builder $q) use ($dto) {
+                $q->where('categories.id', $dto->categoryId);
             });
         }
 
         // Filter by tag
-        if (! empty($params['tag_id'])) {
-            $query->whereHas('tags', function (Builder $q) use ($params) {
-                $q->where('tags.id', (int) $params['tag_id']);
+        if ($dto->tagId !== null) {
+            $query->whereHas('tags', function (Builder $q) use ($dto) {
+                $q->where('tags.id', $dto->tagId);
             });
         }
 
         // Filter by featured status
-        if (isset($params['is_featured'])) {
-            $query->where('is_featured', (bool) $params['is_featured']);
+        if ($dto->isFeatured !== null) {
+            $query->where('is_featured', $dto->isFeatured);
         }
 
         // Filter by pinned status
-        if (isset($params['is_pinned'])) {
-            $query->where('is_pinned', (bool) $params['is_pinned']);
+        if ($dto->isPinned !== null) {
+            $query->where('is_pinned', $dto->isPinned);
         }
 
         // Filter by reported articles
-        if (isset($params['has_reports'])) {
-            if ((bool) $params['has_reports']) {
+        if ($dto->hasReports !== null) {
+            if ($dto->hasReports) {
                 $query->where('report_count', '>', 0);
             } else {
                 $query->where('report_count', 0);
@@ -306,20 +335,20 @@ final class ArticleManagementService
         }
 
         // Filter by date range
-        if (! empty($params['created_after'])) {
-            $query->where('created_at', '>=', $params['created_after']);
+        if ($dto->createdAfter !== null) {
+            $query->where('created_at', '>=', $dto->createdAfter);
         }
 
-        if (! empty($params['created_before'])) {
-            $query->where('created_at', '<=', $params['created_before']);
+        if ($dto->createdBefore !== null) {
+            $query->where('created_at', '<=', $dto->createdBefore);
         }
 
-        if (! empty($params['published_after'])) {
-            $query->where('published_at', '>=', $params['published_after']);
+        if ($dto->publishedAfter !== null) {
+            $query->where('published_at', '>=', $dto->publishedAfter);
         }
 
-        if (! empty($params['published_before'])) {
-            $query->where('published_at', '<=', $params['published_before']);
+        if ($dto->publishedBefore !== null) {
+            $query->where('published_at', '<=', $dto->publishedBefore);
         }
     }
 }

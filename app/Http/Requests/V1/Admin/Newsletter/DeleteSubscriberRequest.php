@@ -15,7 +15,7 @@ final class DeleteSubscriberRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user !== null && $user->can('manage_newsletter_subscribers');
+        return $user !== null && $user->hasPermission('manage_newsletter_subscribers');
     }
 
     /**

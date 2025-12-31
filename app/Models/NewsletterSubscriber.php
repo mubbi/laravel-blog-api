@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
-class NewsletterSubscriber extends Model
+final class NewsletterSubscriber extends Model
 {
     use HasFactory;
 

@@ -20,9 +20,25 @@ final class FeatureArticleController extends Controller
     ) {}
 
     /**
-     * Feature Article
+     * Feature Article (Admin)
      *
-     * Mark an article as featured
+     * Marks an article as featured, making it prominently displayed in featured sections
+     * and listings. Featured articles are typically highlighted on the homepage, featured
+     * sections, or special collections. This is a toggle operation - calling it on an
+     * already featured article will unfeature it.
+     *
+     * **Authentication & Authorization:**
+     * Requires a valid Bearer token with `access-api` ability and `feature_posts` permission.
+     *
+     * **Route Parameters:**
+     * - `id` (integer, required): The unique identifier of the article to feature/unfeature
+     *
+     * **Response:**
+     * Returns the updated article object with the featured status toggled. The article's
+     * `is_featured` flag will be updated accordingly.
+     *
+     * **Note:** Featured articles should typically be published articles, though the system
+     * may allow featuring articles in other statuses depending on implementation.
      *
      * @response array{status: true, message: string, data: ArticleManagementResource}
      */
@@ -36,15 +52,23 @@ final class FeatureArticleController extends Controller
                 __('common.article_featured_successfully')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->apiError(
-                __('common.article_not_found'),
-                Response::HTTP_NOT_FOUND
-            );
+            /**
+             * Article not found
+             *
+             * @status 404
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return $this->handleException($e, $request);
         } catch (\Throwable $e) {
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            /**
+             * Internal server error
+             *
+             * @status 500
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return $this->handleException($e, $request);
         }
     }
 }

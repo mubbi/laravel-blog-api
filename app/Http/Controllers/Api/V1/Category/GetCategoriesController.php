@@ -12,18 +12,31 @@ use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 #[Group('Categories', weight: 2)]
-class GetCategoriesController extends Controller
+final class GetCategoriesController extends Controller
 {
     public function __construct(private readonly ArticleService $articleService) {}
 
     /**
-     * Get All Categories
+     * Get All Article Categories
+     *
+     * Retrieves a complete list of all available article categories in the system. Categories
+     * are used to organize and classify articles. This endpoint returns all categories with
+     * their metadata including slug, name, description, and article counts. Categories are
+     * typically displayed in navigation menus and filter interfaces.
+     *
+     * **Response:**
+     * Returns an array of all categories with their associated metadata. Each category includes
+     * its unique identifier, slug, display name, description (if available), and the total
+     * number of published articles in that category.
+     *
+     * **Note:** This endpoint returns all categories regardless of whether they contain articles.
+     * Categories without articles will show an article count of 0.
      *
      * @unauthenticated
      *
      * @response array{status: true, message: string, data: CategoryResource[]}
      */
-    public function __invoke(): JsonResponse
+    public function __invoke(\Illuminate\Http\Request $request): JsonResponse
     {
         try {
             $categories = $this->articleService->getAllCategories();
@@ -33,12 +46,14 @@ class GetCategoriesController extends Controller
                 __('common.success')
             );
         } catch (\Throwable $e) {
-            return response()->apiError(
-                __('common.error'),
-                Response::HTTP_INTERNAL_SERVER_ERROR,
-                null,
-                $e->getMessage()
-            );
+            /**
+             * Internal server error
+             *
+             * @status 500
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return $this->handleException($e, $request);
         }
     }
 }

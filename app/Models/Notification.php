@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
-class Notification extends Model
+final class Notification extends Model
 {
     use HasFactory;
 

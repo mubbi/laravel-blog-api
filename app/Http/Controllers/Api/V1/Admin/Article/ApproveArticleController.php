@@ -20,9 +20,25 @@ final class ApproveArticleController extends Controller
     ) {}
 
     /**
-     * Approve Article
+     * Approve and Publish Article (Admin)
      *
-     * Approve an article and publish it
+     * Approves an article and changes its status to published, making it visible to public users.
+     * This endpoint is used in content moderation workflows to review and approve articles that
+     * are in draft or review status. The approving admin's ID is recorded for audit purposes.
+     *
+     * **Authentication & Authorization:**
+     * Requires a valid Bearer token with `access-api` ability and `approve_posts` permission.
+     *
+     * **Route Parameters:**
+     * - `id` (integer, required): The unique identifier of the article to approve
+     *
+     * **Response:**
+     * Returns the updated article object with the approved status and published date set.
+     * The article's status will be changed to "published" and it will become visible through
+     * public endpoints.
+     *
+     * **Note:** Only articles in draft or review status can be approved. Already published
+     * articles remain published and do not need approval.
      *
      * @response array{status: true, message: string, data: ArticleManagementResource}
      */
@@ -39,15 +55,23 @@ final class ApproveArticleController extends Controller
                 __('common.article_approved_successfully')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->apiError(
-                __('common.article_not_found'),
-                Response::HTTP_NOT_FOUND
-            );
+            /**
+             * Article not found
+             *
+             * @status 404
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return $this->handleException($e, $request);
         } catch (\Throwable $e) {
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            /**
+             * Internal server error
+             *
+             * @status 500
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return $this->handleException($e, $request);
         }
     }
 }

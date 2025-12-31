@@ -20,9 +20,24 @@ final class UnblockUserController extends Controller
     ) {}
 
     /**
-     * Unblock User
+     * Unblock User Account (Admin)
      *
-     * Remove block from a user to restore their access to features
+     * Removes the block from a previously blocked user account, restoring their full access
+     * to all features. The user's account status will be restored to active, and all feature
+     * restrictions will be lifted. Users cannot unblock their own account through this endpoint.
+     *
+     * **Authentication & Authorization:**
+     * Requires a valid Bearer token with `access-api` ability and `restore_users` permission.
+     *
+     * **Route Parameters:**
+     * - `id` (integer, required): The unique identifier of the user to unblock
+     *
+     * **Response:**
+     * Returns the updated user object with the block removed and full access restored.
+     * The user's account status will be changed from "blocked" back to "active".
+     *
+     * **Note:** This endpoint only affects blocked users. Users with other statuses (e.g., banned)
+     * should use the appropriate unban endpoint if needed.
      *
      * @response array{status: true, message: string, data: UserDetailResource}
      */
@@ -43,10 +58,7 @@ final class UnblockUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                $e->getMessage(),
-                Response::HTTP_FORBIDDEN
-            );
+            return $this->handleException($e, $request);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             /**
              * User not found
@@ -55,10 +67,7 @@ final class UnblockUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.user_not_found'),
-                Response::HTTP_NOT_FOUND
-            );
+            return $this->handleException($e, $request);
         } catch (\Throwable $e) {
             /**
              * Internal server error
@@ -67,10 +76,7 @@ final class UnblockUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return $this->handleException($e, $request);
         }
     }
 }

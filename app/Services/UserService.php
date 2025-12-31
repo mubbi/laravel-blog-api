@@ -5,41 +5,44 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Constants\CacheKeys;
+use App\Data\CreateUserDTO;
+use App\Data\FilterUserDTO;
+use App\Data\UpdateUserDTO;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 final class UserService
 {
+    public function __construct(
+        private readonly UserRepositoryInterface $userRepository
+    ) {}
+
     /**
      * Get users with filters and pagination
      *
-     * @param  array<string, mixed>  $params
      * @return LengthAwarePaginator<int, User>
      */
-    public function getUsers(array $params): LengthAwarePaginator
+    public function getUsers(FilterUserDTO $dto): LengthAwarePaginator
     {
-        $query = User::query()
+        $query = $this->userRepository->query()
             ->with(['roles:id,name,slug'])
             ->withCount(['articles', 'comments']);
 
         // Apply filters
-        $this->applyFilters($query, $params);
+        $this->applyFilters($query, $dto);
 
         // Apply sorting
-        $sortBy = $params['sort_by'] ?? 'created_at';
-        $sortDirection = $params['sort_direction'] ?? 'desc';
-        $query->orderBy((string) $sortBy, (string) $sortDirection);
+        $query->orderBy($dto->sortBy, $dto->sortDirection);
 
         // Apply pagination
-        $perPage = $params['per_page'] ?? 15;
-        $page = $params['page'] ?? 1;
-
-        return $query->paginate((int) $perPage, ['*'], 'page', (int) $page);
+        return $query->paginate($dto->perPage, ['*'], 'page', $dto->page);
     }
 
     /**
@@ -47,7 +50,7 @@ final class UserService
      */
     public function getUserById(int $id): User
     {
-        $user = User::query()
+        $user = $this->userRepository->query()
             ->with(['roles:id,name,slug'])
             ->withCount(['articles', 'comments'])
             ->findOrFail($id);
@@ -61,74 +64,54 @@ final class UserService
 
     /**
      * Create a new user
-     *
-     * @param  array<string, mixed>  $data
      */
-    public function createUser(array $data): User
+    public function createUser(CreateUserDTO $dto): User
     {
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make((string) $data['password']),
-            'avatar_url' => $data['avatar_url'] ?? null,
-            'bio' => $data['bio'] ?? null,
-            'twitter' => $data['twitter'] ?? null,
-            'facebook' => $data['facebook'] ?? null,
-            'linkedin' => $data['linkedin'] ?? null,
-            'github' => $data['github'] ?? null,
-            'website' => $data['website'] ?? null,
-            'banned_at' => $data['banned_at'] ?? null,
-            'blocked_at' => $data['blocked_at'] ?? null,
-        ]);
+        return DB::transaction(function () use ($dto) {
+            $userData = $dto->toArray();
+            $userData['password'] = Hash::make($dto->password);
 
-        // Assign default role if specified
-        if (isset($data['role_id'])) {
-            /** @var Role $role */
-            $role = Role::findOrFail($data['role_id']);
-            $user->roles()->attach($role->id);
-        }
+            $user = $this->userRepository->create($userData);
 
-        return $user->load(['roles:id,name,slug']);
+            // Assign default role if specified
+            if ($dto->roleId !== null) {
+                /** @var Role $role */
+                $role = Role::findOrFail($dto->roleId);
+                $user->roles()->attach($role->id);
+            }
+
+            return $user->load(['roles:id,name,slug']);
+        });
     }
 
     /**
      * Update an existing user
-     *
-     * @param  array<string, mixed>  $data
      */
-    public function updateUser(int $id, array $data): User
+    public function updateUser(int $id, UpdateUserDTO $dto): User
     {
-        $user = User::findOrFail($id);
+        return DB::transaction(function () use ($id, $dto) {
+            $user = $this->userRepository->findOrFail($id);
 
-        $updateData = [
-            'name' => array_key_exists('name', $data) ? $data['name'] : $user->name,
-            'email' => array_key_exists('email', $data) ? $data['email'] : $user->email,
-            'avatar_url' => array_key_exists('avatar_url', $data) ? $data['avatar_url'] : $user->avatar_url,
-            'bio' => array_key_exists('bio', $data) ? $data['bio'] : $user->bio,
-            'twitter' => array_key_exists('twitter', $data) ? $data['twitter'] : $user->twitter,
-            'facebook' => array_key_exists('facebook', $data) ? $data['facebook'] : $user->facebook,
-            'linkedin' => array_key_exists('linkedin', $data) ? $data['linkedin'] : $user->linkedin,
-            'github' => array_key_exists('github', $data) ? $data['github'] : $user->github,
-            'website' => array_key_exists('website', $data) ? $data['website'] : $user->website,
-            'banned_at' => array_key_exists('banned_at', $data) ? $data['banned_at'] : $user->banned_at,
-            'blocked_at' => array_key_exists('blocked_at', $data) ? $data['blocked_at'] : $user->blocked_at,
-        ];
+            $updateData = $dto->toArray();
 
-        // Update password if provided
-        if (isset($data['password'])) {
-            $updateData['password'] = Hash::make((string) $data['password']);
-        }
+            // Update password if provided
+            if ($dto->password !== null) {
+                $updateData['password'] = Hash::make($dto->password);
+            }
 
-        $user->update($updateData);
+            $this->userRepository->update($id, $updateData);
 
-        // Update roles if specified
-        if (isset($data['role_ids'])) {
-            /** @var array<int> $roleIds */
-            $roleIds = $data['role_ids'];
-            $user->roles()->sync($roleIds);
-        }
+            // Update roles if specified
+            if ($dto->roleIds !== null) {
+                $user->roles()->sync($dto->roleIds);
+            }
 
-        return $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
+            /** @var User $freshUser */
+            $freshUser = $user->fresh(['roles:id,name,slug']);
+            $freshUser->loadCount(['articles', 'comments']);
+
+            return $freshUser;
+        });
     }
 
     /**
@@ -140,12 +123,7 @@ final class UserService
     {
         $this->preventSelfAction($id, 'cannot_delete_self');
 
-        $user = User::findOrFail($id);
-
-        /** @var bool $deleted */
-        $deleted = $user->delete();
-
-        return $deleted;
+        return $this->userRepository->delete($id);
     }
 
     /**
@@ -157,8 +135,8 @@ final class UserService
     {
         $this->preventSelfAction($id, 'cannot_ban_self');
 
-        $user = User::findOrFail($id);
-        $user->update(['banned_at' => now()]);
+        $this->userRepository->update($id, ['banned_at' => now()]);
+        $user = $this->userRepository->findOrFail($id);
 
         return $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
     }
@@ -172,8 +150,8 @@ final class UserService
     {
         $this->preventSelfAction($id, 'cannot_unban_self');
 
-        $user = User::findOrFail($id);
-        $user->update(['banned_at' => null]);
+        $this->userRepository->update($id, ['banned_at' => null]);
+        $user = $this->userRepository->findOrFail($id);
 
         return $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
     }
@@ -187,8 +165,8 @@ final class UserService
     {
         $this->preventSelfAction($id, 'cannot_block_self');
 
-        $user = User::findOrFail($id);
-        $user->update(['blocked_at' => now()]);
+        $this->userRepository->update($id, ['blocked_at' => now()]);
+        $user = $this->userRepository->findOrFail($id);
 
         return $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
     }
@@ -202,8 +180,8 @@ final class UserService
     {
         $this->preventSelfAction($id, 'cannot_unblock_self');
 
-        $user = User::findOrFail($id);
-        $user->update(['blocked_at' => null]);
+        $this->userRepository->update($id, ['blocked_at' => null]);
+        $user = $this->userRepository->findOrFail($id);
 
         return $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
     }
@@ -245,7 +223,7 @@ final class UserService
      */
     public function assignRoles(int $userId, array $roleIds): User
     {
-        $user = User::findOrFail($userId);
+        $user = $this->userRepository->findOrFail($userId);
         $user->roles()->sync($roleIds);
 
         // Clear user-specific caches
@@ -257,12 +235,11 @@ final class UserService
     /**
      * Get users with pre-warmed caches
      *
-     * @param  array<string, mixed>  $params
      * @return LengthAwarePaginator<int, User>
      */
-    public function getUsersWithWarmedCaches(array $params): LengthAwarePaginator
+    public function getUsersWithWarmedCaches(FilterUserDTO $dto): LengthAwarePaginator
     {
-        $paginator = $this->getUsers($params);
+        $paginator = $this->getUsers($dto);
 
         // Pre-warm cache for users in the current page
         foreach ($paginator->items() as $user) {
@@ -301,50 +278,41 @@ final class UserService
      * Apply filters to the query
      *
      * @param  Builder<User>  $query
-     * @param  array<string, mixed>  $params
      */
-    private function applyFilters(Builder $query, array $params): void
+    private function applyFilters(Builder $query, FilterUserDTO $dto): void
     {
         // Search in name and email
-        if (! empty($params['search'])) {
-            /** @var mixed $searchParam */
-            $searchParam = $params['search'];
-            $searchTerm = (string) $searchParam;
-            $query->where(function (Builder $q) use ($searchTerm) {
-                $q->where('name', 'like', "%{$searchTerm}%")
-                    ->orWhere('email', 'like', "%{$searchTerm}%");
+        if ($dto->search !== null) {
+            $query->where(function (Builder $q) use ($dto) {
+                $q->where('name', 'like', "%{$dto->search}%")
+                    ->orWhere('email', 'like', "%{$dto->search}%");
             });
         }
 
         // Filter by role
-        if (! empty($params['role_id'])) {
-            $query->whereHas('roles', function (Builder $q) use ($params) {
-                $q->where('roles.id', (int) $params['role_id']);
+        if ($dto->roleId !== null) {
+            $query->whereHas('roles', function (Builder $q) use ($dto) {
+                $q->where('roles.id', $dto->roleId);
             });
         }
 
         // Filter by status
-        if (! empty($params['status'])) {
-            switch ($params['status']) {
-                case 'banned':
-                    $query->whereNotNull('banned_at');
-                    break;
-                case 'blocked':
-                    $query->whereNotNull('blocked_at');
-                    break;
-                case 'active':
-                    $query->whereNull('banned_at')->whereNull('blocked_at');
-                    break;
-            }
+        if ($dto->status !== null) {
+            match ($dto->status) {
+                'banned' => $query->whereNotNull('banned_at'),
+                'blocked' => $query->whereNotNull('blocked_at'),
+                'active' => $query->whereNull('banned_at')->whereNull('blocked_at'),
+                default => null,
+            };
         }
 
         // Filter by date range
-        if (! empty($params['created_after'])) {
-            $query->where('created_at', '>=', $params['created_after']);
+        if ($dto->createdAfter !== null) {
+            $query->where('created_at', '>=', $dto->createdAfter);
         }
 
-        if (! empty($params['created_before'])) {
-            $query->where('created_at', '<=', $params['created_before']);
+        if ($dto->createdBefore !== null) {
+            $query->where('created_at', '<=', $dto->createdBefore);
         }
     }
 }

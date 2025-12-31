@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace App\Services\Auth;
 
 use App\Models\User;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Interfaces\AuthServiceInterface;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\UnauthorizedException;
 
 final class AuthService implements AuthServiceInterface
 {
+    public function __construct(
+        private readonly UserRepositoryInterface $userRepository
+    ) {}
+
     /**
      * Attempt to authenticate a user and return the user if successful.
      * The user object will have dynamically added 'access_token' and 'refresh_token' properties.
@@ -19,7 +24,8 @@ final class AuthService implements AuthServiceInterface
      */
     public function login(string $email, string $password): User
     {
-        $user = User::with(['roles.permissions'])
+        $user = $this->userRepository->query()
+            ->with(['roles.permissions'])
             ->where('email', $email)
             ->first();
 

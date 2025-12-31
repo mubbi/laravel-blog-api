@@ -23,7 +23,7 @@ final class GetCommentsRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user !== null && $user->can('comment_moderate');
+        return $user !== null && $user->hasPermission('comment_moderate');
     }
 
     /**
