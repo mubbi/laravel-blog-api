@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->timestamp('banned_at')->nullable()->after('website');
-            $table->timestamp('blocked_at')->nullable()->after('banned_at');
+            $table->timestamp('banned_at')->nullable()->after('website')->index();
+            $table->timestamp('blocked_at')->nullable()->after('banned_at')->index();
+
+            // Composite indexes for status filtering
+            $table->index(['banned_at', 'blocked_at']);
+            $table->index(['banned_at', 'created_at']);
+            $table->index(['blocked_at', 'created_at']);
         });
     }
 

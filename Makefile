@@ -222,6 +222,11 @@ shell:
 	@echo "SHELL: Accessing main container..."
 	docker-compose -f containers/docker-compose.yml exec laravel_blog_api bash
 
+# Access main container terminal (alias for shell)
+terminal:
+	@echo "TERMINAL: Accessing Laravel container terminal..."
+	docker-compose -f containers/docker-compose.yml exec laravel_blog_api bash
+
 # Access test container shell
 test-shell:
 	@echo "SHELL: Accessing test container..."
@@ -402,6 +407,7 @@ help:
 	@echo "  make health              - Check application health"
 	@echo "  make logs                - View container logs"
 	@echo "  make shell               - Access main container shell"
+	@echo "  make terminal            - Access Laravel container terminal"
 	@echo ""
 	@echo "🔍 SONARQUBE (OPTIONAL):"
 	@echo "  make sonarqube-start     - Start SonarQube server"

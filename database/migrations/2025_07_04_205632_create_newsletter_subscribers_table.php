@@ -14,10 +14,18 @@ return new class extends Migration
         Schema::create('newsletter_subscribers', function (Blueprint $table) {
             $table->id();
             $table->string('email')->unique();
-            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null')->index();
+            $table->foreignId('user_id')
+                ->nullable()
+                ->constrained('users')
+                ->onDelete('set null')
+                ->name('newsletter_subscribers_user_id_foreign');
             $table->boolean('is_verified')->default(false)->index();
             $table->timestamp('subscribed_at')->useCurrent()->index();
             $table->timestamps();
+
+            // Composite indexes for common query patterns
+            $table->index(['is_verified', 'created_at']);
+            $table->index(['created_at']);
         });
     }
 
