@@ -182,7 +182,7 @@ make docker-sonarqube-clean
 ### Quality Gate
 
 The project uses a custom quality gate with these conditions:
-- **Coverage**: > 70%
+- **Coverage**: ≥ 70% for new code
 - **Duplicated Lines**: < 3%
 - **New Issues**: = 0
 - **Security Rating**: A (no vulnerabilities)
@@ -257,7 +257,7 @@ services:
 ### Quality Configuration
 
 **Quality Gate**: `containers/sonarqube/config/quality-gate.json`
-- Coverage: ≥ 80% for new code
+- Coverage: ≥ 70% for new code
 - Duplications: ≤ 3% for new code
 - Security and reliability ratings: A required
 

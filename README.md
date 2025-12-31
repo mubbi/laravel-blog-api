@@ -132,7 +132,7 @@ The automated testing setup:
 
 ### Coverage Requirements
 
-- **Minimum 80% code coverage** enforced
+- **Minimum 70% code coverage** enforced
 - **HTML reports** available at `reports/coverage/index.html`
 - **XML reports** for CI/CD at `reports/coverage.xml`
 

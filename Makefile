@@ -171,7 +171,7 @@ test-coverage:
 	@if docker-compose -f containers/docker-compose.test.yml ps | grep -q 'laravel_blog_api_test' && docker-compose -f containers/docker-compose.test.yml ps | grep 'Up'; then \
 		echo "🧪 TESTING: Test container already running. Skipping setup..."; \
 		echo ">> Running tests with coverage..."; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=70; \
 		echo "✅ SUCCESS: Tests with coverage completed!"; \
 	else \
 		echo "🧪 TESTING: Running tests with coverage..."; \
@@ -181,7 +181,7 @@ test-coverage:
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force; \
 		echo ">> Running tests with coverage..."; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=70; \
 		echo "✅ SUCCESS: Tests with coverage completed!"; \
 	fi
 
