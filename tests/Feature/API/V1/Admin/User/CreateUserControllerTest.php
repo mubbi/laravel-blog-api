@@ -11,7 +11,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $authorRole = Role::where('name', UserRole::AUTHOR->value)->first();
 
@@ -58,7 +58,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userData = [
             'name' => 'Jane Smith',
@@ -83,7 +83,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -107,7 +107,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $existingUser = User::factory()->create(['email' => 'test@example.com']);
 
@@ -137,7 +137,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userData = [
             'name' => 'John Doe',
@@ -165,7 +165,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userData = [
             'name' => 'John Doe',
@@ -196,7 +196,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userData = [
             'name' => 'John Doe',
@@ -225,7 +225,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $userData = [
             'name' => 'John Doe',

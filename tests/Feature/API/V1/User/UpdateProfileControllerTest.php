@@ -11,7 +11,7 @@ describe('API/V1/User/UpdateProfileController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $updateData = [
             'name' => 'Updated Name',
@@ -52,7 +52,7 @@ describe('API/V1/User/UpdateProfileController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $originalName = $user->name;
         $updateData = [
@@ -77,7 +77,7 @@ describe('API/V1/User/UpdateProfileController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $updateData = [
             'avatar_url' => 'not-a-url',
@@ -105,7 +105,7 @@ describe('API/V1/User/UpdateProfileController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $updateData = [
             'name' => str_repeat('a', 300), // Too long
@@ -166,7 +166,7 @@ describe('API/V1/User/UpdateProfileController', function () {
             'twitter' => 'original_twitter',
         ]);
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $updateData = [
             'bio' => null,
@@ -191,7 +191,7 @@ describe('API/V1/User/UpdateProfileController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $updateData = [
             'twitter' => 'new_twitter',

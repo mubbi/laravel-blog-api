@@ -41,7 +41,13 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Attach a role to a user and clear their cache to ensure permissions are refreshed
+ */
+function attachRoleAndRefreshCache(\App\Models\User $user, \App\Models\Role $role): void
 {
-    // ..
+    $user->roles()->attach($role->id);
+    $user->refresh();
+    $user->load('roles.permissions');
+    $user->clearCache();
 }

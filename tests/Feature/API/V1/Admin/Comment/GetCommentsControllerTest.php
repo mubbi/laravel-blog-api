@@ -14,7 +14,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -63,7 +63,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -102,7 +102,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -140,7 +140,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -178,7 +178,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -214,7 +214,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -250,7 +250,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -286,7 +286,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -327,7 +327,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $token = $user->createToken('test-token', ['access-api']);
 
@@ -344,7 +344,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -386,7 +386,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 

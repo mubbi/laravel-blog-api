@@ -11,7 +11,7 @@ describe('API/V1/Admin/User/BanUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToBan = User::factory()->create();
 
@@ -47,7 +47,7 @@ describe('API/V1/Admin/User/BanUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToBan = User::factory()->create(['blocked_at' => now()]);
 
@@ -67,7 +67,7 @@ describe('API/V1/Admin/User/BanUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -85,7 +85,7 @@ describe('API/V1/Admin/User/BanUserController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $userToBan = User::factory()->create();
 
@@ -112,7 +112,7 @@ describe('API/V1/Admin/User/BanUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)

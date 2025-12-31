@@ -2,22 +2,26 @@
 applyTo: "**"
 ---
 
-# ✅ GitHub Copilot Custom Instructions for Laravel 12 & PHP 8.4
+# ✅ GitHub Copilot Custom Instructions for Laravel 12 Blog API
 
-These instructions guide Copilot to generate code that aligns with **Laravel 12**, modern **PHP 8.4** features, **SOLID principles**, and industry best practices to ensure high-quality, maintainable, secure, and scalable applications.
+> **Important:** These instructions work in conjunction with the comprehensive development guides in `.cursor/rules/`. Always refer to:
+> - `.cursor/rules/development-guide-ai.mdc` for general Laravel development standards
+> - `.cursor/rules/laravel-blog-api-rules.mdc` for project-specific patterns and requirements
+
+These instructions guide Copilot to generate code that aligns with **Laravel 12**, modern **PHP 8.2+** features (targeting 8.4+), **SOLID principles**, and industry best practices to ensure high-quality, maintainable, secure, and scalable applications.
 
 ## ✅ Project Overview
 
-This is a modern **Laravel 12 Blog API** built with **PHP 8.4**, featuring a clean architecture, comprehensive testing, Docker-based development environment, and advanced code quality tools. The API serves as a production-ready backend for a blog platform with authentication, role-based permissions, content management, and automated quality assurance.
+This is a modern **Laravel 12 Blog API** built with **PHP 8.2+** (targeting 8.4+ features), featuring a clean architecture, comprehensive testing, Docker-based development environment, and advanced code quality tools. The API serves as a production-ready backend for a blog platform with authentication, role-based permissions, content management, and automated quality assurance.
 
 ### Technology Stack
 - **Laravel Framework**: 12.0+ (latest features)
-- **PHP**: 8.4+ (with strict typing enabled)
+- **PHP**: 8.2+ (with strict typing enabled, targeting 8.4+ features)
 - **Database**: MySQL 8.0 (development) + MySQL 8.0 (testing - isolated environment)
 - **Cache/Session**: Redis (development) + Redis (testing - isolated environment)
 - **Authentication**: Laravel Sanctum (API tokens with abilities)
 - **Testing**: Pest PHP 3.8+ (BDD-style testing framework)
-- **Static Analysis**: Larastan 3.0+ (PHPStan level 10 for Laravel)
+- **Static Analysis**: Larastan 3.0+ (PHPStan level 10 for Laravel - **MANDATORY**)
 - **Code Formatting**: Laravel Pint (PHP-CS-Fixer preset)
 - **API Documentation**: Scramble (OpenAPI/Swagger automatic generation)
 - **Containerization**: Docker & Docker Compose (multi-service architecture)
@@ -47,28 +51,32 @@ This is a modern **Laravel 12 Blog API** built with **PHP 8.4**, featuring a cle
 
 ## ✅ General PHP Coding Standards
 
-- Always use `declare(strict_types=1);` at the top of all PHP files after the `<?php` starting tag.
-- Follow **PSR-12** coding standards.
-- Prioritize clear, readable, and expressive code.
+> **Note:** See `.cursor/rules/development-guide-ai.mdc` for comprehensive PHP and Laravel standards. Key requirements:
+
+- **ALWAYS** use `declare(strict_types=1);` at the top of all PHP files after the `<?php` starting tag.
+- Follow **PSR-12** coding standards strictly.
 - Use **descriptive, meaningful** names for variables, functions, classes, and files.
-- Include PHPDoc for classes, methods, and complex logic.
-- Prefer **typed properties**, **typed function parameters**, and **typed return types**.
+- Include **comprehensive PHPDoc** for classes, methods, and complex logic (required for PHPStan level 10).
+- Prefer **typed properties**, **typed function parameters**, and **typed return types** (all mandatory).
 - Break code into small, single-responsibility functions or classes.
 - Avoid magic numbers and hard-coded strings; use **constants**, **config files**, or **Enums**.
 - Use strict type declarations throughout.
+- **PHPStan level 10 compliance** is mandatory - all properties, parameters, and return types must be explicitly declared.
 
 ---
 
-## ✅ PHP 8.4 Best Practices
+## ✅ PHP 8.2+ Best Practices (Targeting 8.4+)
+
+> **Note:** See `.cursor/rules/laravel-blog-api-rules.mdc` for detailed PHP 8.4 examples and patterns.
 
 - Use **readonly properties** to enforce immutability where appropriate.
-- Leverage **Enums** for clear, type-safe constants.
+- Leverage **Enums** for clear, type-safe constants (all status/type fields use Enums).
 - Use **First-class callable syntax** for cleaner callbacks.
 - Utilize **Constructor Property Promotion**.
 - Use **Union Types**, **Intersection Types**, **true/false return types**, and **Static Return Types**.
 - Apply the **Nullsafe Operator (?->)** for safe method/property access.
 - Use **Named Arguments** for clarity when calling functions with multiple parameters.
-- Prefer **final classes** for utility or domain-specific classes that shouldn't be extended.
+- Prefer **final classes** for utility or domain-specific classes that shouldn't be extended (project standard).
 - Adopt **new `Override` attribute** (PHP 8.4) to explicitly mark overridden methods.
 - Use **dynamic class constants in Enums** where version-specific behavior is needed.
 
@@ -76,29 +84,31 @@ This is a modern **Laravel 12 Blog API** built with **PHP 8.4**, featuring a cle
 
 ## ✅ Laravel 12 Project Structure & Conventions
 
+> **Note:** See `.cursor/rules/laravel-blog-api-rules.mdc` for the complete project structure and domain model details.
+
 Maintain a clean, modular structure to enhance readability and testability:
 
 ```
 app/
-├── Actions/              # Single-responsibility action classes
-├── Console/              # Artisan commands
-├── Data/                 # Data Transfer Objects (DTOs)
-├── Enums/                # Enums for type-safe constants
-├── Events/               # Domain events
-├── Exceptions/           # Custom exceptions
+├── Actions/              # Single-responsibility action classes (create as needed)
+├── Console/              # Artisan commands (create as needed)
+├── Data/                 # Data Transfer Objects (DTOs) (create as needed)
+├── Enums/                # Enums for type-safe constants ✅
+├── Events/               # Domain events (create as needed)
+├── Exceptions/           # Custom exceptions (create as needed)
 ├── Http/
-│   ├── Controllers/      # Thin controllers
-│   ├── Middleware/       # HTTP middleware
-│   ├── Requests/         # Form Request validation
-│   ├── Resources/        # API Resource responses
-├── Jobs/                 # Queued jobs
-├── Listeners/            # Event listeners
-├── Models/               # Eloquent models
-├── Policies/             # Authorization policies
-├── Providers/            # Service providers
-├── Services/             # Business logic
-├── Support/              # Helpers & utility classes
-└── Rules/                # Custom validation rules
+│   ├── Controllers/      # Thin controllers ✅
+│   ├── Middleware/       # HTTP middleware ✅
+│   ├── Requests/         # Form Request validation ✅
+│   ├── Resources/        # API Resource responses ✅
+├── Jobs/                 # Queued jobs (create as needed)
+├── Listeners/            # Event listeners (create as needed)
+├── Models/               # Eloquent models ✅
+├── Policies/             # Authorization policies ✅
+├── Providers/            # Service providers ✅
+├── Services/             # Business logic ✅
+├── Support/              # Helpers & utility classes (create as needed)
+└── Rules/                # Custom validation rules (create as needed)
 ```
 
 ### Domain Models
@@ -147,11 +157,14 @@ Key relationships:
 
 **Controllers must:**
 
-- Remain thin; business logic belongs in Services or Actions.
-- Use **dependency injection**.
+- Remain **thin**; business logic belongs in Services or Actions.
+- Use **dependency injection** with readonly properties.
 - Use **Form Requests** for validation.
-- Return typed responses, e.g., `JsonResponse`.
-- Use Resource classes for API responses.
+- Return **typed responses**, e.g., `JsonResponse`.
+- Use **Resource classes** for API responses.
+- Be **final classes** for immutability.
+- **Use invokable pattern** with `__invoke()` method (project-specific requirement).
+- Follow the project-specific controller template in `.cursor/rules/laravel-blog-api-rules.mdc`.
 
 **Business logic belongs in:**
 
@@ -163,34 +176,59 @@ Key relationships:
 
 ## ✅ Eloquent ORM & Database
 
+> **Note:** See `.cursor/rules/development-guide-ai.mdc` for comprehensive database standards.
+
 - Use `$fillable` or `$guarded` to control mass assignment.
 - Utilize **casts** for dates, booleans, JSON, etc.
 - Apply **accessors & mutators** for data transformation.
 - Prefer Eloquent or Query Builder over raw SQL.
 - Always use migrations for schema changes with proper constraints.
-- Prefer **UUIDs** or **ULIDs** as primary keys for scalability.
+- **Eager load relationships** (`with()`, `load()`) - mandatory to prevent N+1 queries.
+- Use `select()` to limit columns.
+- Use `chunk()` or `cursor()` for large datasets.
+- **Transactions** are mandatory for multi-step writes.
 
 ---
 
 ## ✅ API Development
 
+> **Note:** See `.cursor/rules/laravel-blog-api-rules.mdc` for project-specific API patterns and response formats.
+
 - Use API Resource classes for structured JSON responses.
 - Use **route model binding**.
-- Use Form Requests for input validation.
+- Use Form Requests for input validation (must implement `withDefaults()` method - project requirement).
 - Follow correct HTTP status codes (200, 201, 204, 400, 422, 500, etc.).
-- Version APIs (e.g., `/api/v1/users`).
+- Version APIs (e.g., `/api/v1/users` - all routes must be prefixed with `/api/v1/`).
 
 ### Project-Specific API Guidelines
 - **Authentication**: Use Laravel Sanctum with Bearer tokens
 - **Authorization**: Implement ability-based token permissions
 - **Documentation**: Use Scramble attributes (`#[Group]`) for API organization
-- **Validation**: Use dedicated Form Request classes
-- **Response Format**: Use API Resource classes for consistent JSON responses
-- **Error Handling**: Return proper HTTP status codes with meaningful error messages
+- **Validation**: Use dedicated Form Request classes with `withDefaults()` method
+- **Response Format**: All responses must follow this structure:
+  ```json
+  {
+    "status": true,
+    "message": "Success message",
+    "data": { /* response data */ }
+  }
+  ```
+- **Error Format**: 
+  ```json
+  {
+    "status": false,
+    "message": "Error message",
+    "data": null,
+    "error": null
+  }
+  ```
+- **Error Handling**: Use try-catch in controllers with proper logging (see project-specific error handling pattern)
 
 ---
 
 ## ✅ Security Best Practices
+
+> **Note:** See `.cursor/rules/development-guide-ai.mdc` for comprehensive security guidelines.
 
 - Never trust user input; validate and sanitize all inputs.
 - Use Eloquent or Query Builder to prevent SQL injection.
@@ -198,6 +236,8 @@ Key relationships:
 - Store secrets in `.env`, never hard-coded.
 - Enforce authorization via Policies or Gates.
 - Apply least-privilege principles.
+- Always use `$fillable` or `$guarded` for mass assignment protection.
+- Never use `$request->all()` without filtering - use validated data only.
 
 ### Project-Specific Security Guidelines
 - **Authentication**: Use Laravel Sanctum with secure token management
@@ -211,11 +251,14 @@ Key relationships:
 
 ## ✅ Testing Standards
 
-- Prefer **Pest PHP** for concise, readable tests.
+> **Note:** See `.cursor/rules/laravel-blog-api-rules.mdc` for project-specific test templates and patterns.
+
+- Prefer **Pest PHP** for concise, readable tests (BDD-style with describe/it blocks).
 - Use **factories** for test data.
 - Include **feature tests** and **unit tests**.
 - Mock external services with `Http::fake()`.
-- Focus on meaningful tests, not 100% coverage obsession.
+- **Minimum 80% test coverage** is enforced (project requirement).
+- Use AAA pattern (Arrange, Act, Assert).
 
 ### Project-Specific Testing Guidelines
 - **Test Organization**: Feature tests in `/tests/Feature/`, Unit tests in `/tests/Unit/`
@@ -224,27 +267,38 @@ Key relationships:
 - **Factory Usage**: Leverage model factories for test data generation
 - **API Testing**: Test endpoints with proper authentication and authorization
 - **Test Naming**: Use descriptive test names that describe behavior
+- **Response Assertions**: Always assert the project-specific response format (`status`, `message`, `data` fields)
 
 ---
 
 ## ✅ Software Quality & Maintainability
 
+> **Note:** See `.cursor/rules/development-guide-ai.mdc` for comprehensive quality standards and pattern decision matrix.
+
 - Follow **SOLID**, **DRY**, **KISS**, and **YAGNI** principles.
-- Document complex logic with PHPDoc and inline comments.
+- Document complex logic with **comprehensive PHPDoc** and inline comments.
 - Default to **immutability**, **dependency injection**, and **encapsulation**.
+- Use the **pattern decision matrix** to determine when to use Actions, Services, Repositories, and DTOs.
+- **PHPStan level 10 compliance** is mandatory - no ignored errors.
+- **Laravel Pint** for code formatting (mandatory).
+- **Final classes** for immutability (project standard).
 
 ---
 
 ## ✅ Performance & Optimization
 
-- Eager load relationships to prevent N+1 queries.
+> **Note:** See `.cursor/rules/development-guide-ai.mdc` for comprehensive performance guidelines.
+
+- **Eager load relationships** to prevent N+1 queries (mandatory).
 - Use caching for frequently accessed data.
 - Paginate large datasets with `paginate()`.
 - Queue long-running tasks.
 - Optimize database indexes.
+- Use `select()` to limit columns.
+- Use `chunk()` or `cursor()` for large datasets.
 
 ### Project-Specific Performance Guidelines
-- **Caching Strategy**: Use Redis for sessions and application cache
+- **Caching Strategy**: Use Redis for sessions and application cache (project uses Redis)
 - **Database Optimization**: Implement proper indexing and foreign key constraints
 - **Query Optimization**: Use Eloquent relationships and eager loading
 - **Background Processing**: Use supervisor-managed queue workers
@@ -323,9 +377,12 @@ make shell               # Access container shell
 - **Always include** `declare(strict_types=1);` in all PHP files
 - **Use Scramble attributes** for API documentation (`#[Group]`, `#[ResponseField]`, etc.)
 - **Implement service layer pattern** with interfaces for testability
-- **Use specific exception types** with proper HTTP response codes
+- **Use specific exception types** with proper HTTP response codes (see project-specific error handling pattern)
 - **Write comprehensive tests** using Pest PHP with BDD-style describe/it blocks
-- **Ensure PHPStan level 10** compliance for maximum static analysis strictness
+- **Ensure PHPStan level 10** compliance for maximum static analysis strictness (MANDATORY)
+- **Follow project-specific templates** from `.cursor/rules/laravel-blog-api-rules.mdc` for Controllers, Requests, Services, Models, and Resources
+- **Use invokable controllers** with `__invoke()` method (project requirement)
+- **Implement `withDefaults()` method** in all Form Request classes (project requirement)
 
 #### Development Environment Integration
 - **Always use Docker commands** through Makefile for consistency

@@ -11,7 +11,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToUnblock = User::factory()->create(['blocked_at' => now()]);
 
@@ -46,7 +46,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToUnblock = User::factory()->create([
             'banned_at' => now(),
@@ -69,7 +69,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToUnblock = User::factory()->create(['blocked_at' => null]);
 
@@ -88,7 +88,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -106,7 +106,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $userToUnblock = User::factory()->create(['blocked_at' => now()]);
 
@@ -133,7 +133,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         // Arrange
         $admin = User::factory()->create(['blocked_at' => now()]);
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -154,7 +154,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $originalData = [
             'name' => 'John Doe',
@@ -186,7 +186,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $oldBlockTime = now()->subMonths(3);
         $userToUnblock = User::factory()->create(['blocked_at' => $oldBlockTime]);
@@ -206,7 +206,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $recentBlockTime = now()->subHours(2);
         $userToUnblock = User::factory()->create(['blocked_at' => $recentBlockTime]);

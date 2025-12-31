@@ -13,7 +13,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         NewsletterSubscriber::factory()->count(5)->create();
 
@@ -54,7 +54,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         NewsletterSubscriber::factory()->create(['email' => 'john@example.com']);
         NewsletterSubscriber::factory()->create(['email' => 'jane@example.com']);
@@ -74,7 +74,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         NewsletterSubscriber::factory()->create(['is_verified' => true]);
         NewsletterSubscriber::factory()->create(['is_verified' => false]);
@@ -97,7 +97,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $oldSubscriber = NewsletterSubscriber::factory()->create([
             'created_at' => now()->subDays(10),
@@ -127,7 +127,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         NewsletterSubscriber::factory()->create(['email' => 'alice@example.com']);
         NewsletterSubscriber::factory()->create(['email' => 'bob@example.com']);
@@ -151,7 +151,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         NewsletterSubscriber::factory()->count(25)->create();
 
@@ -174,7 +174,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         // Act
         $response = $this->actingAs($user)
@@ -196,7 +196,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -213,7 +213,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Mock NewsletterService to throw exception
         $this->mock(\App\Services\NewsletterService::class, function ($mock) {
@@ -245,7 +245,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $user = User::factory()->create();
         $subscriber = NewsletterSubscriber::factory()->create([
@@ -270,7 +270,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $subscriber = NewsletterSubscriber::factory()->create([
             'user_id' => null,
@@ -294,7 +294,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -320,7 +320,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         NewsletterSubscriber::factory()->count(100)->create();
 
@@ -343,7 +343,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Create subscribers with different characteristics
         NewsletterSubscriber::factory()->create([

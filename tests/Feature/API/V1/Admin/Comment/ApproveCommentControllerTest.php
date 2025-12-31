@@ -16,7 +16,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
@@ -66,7 +66,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
@@ -97,7 +97,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $comment = Comment::factory()->create([
             'status' => CommentStatus::APPROVED->value,
@@ -124,7 +124,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $comment = Comment::factory()->create([
             'status' => CommentStatus::REJECTED->value,
@@ -151,7 +151,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $nonExistentId = 99999;
 
@@ -175,7 +175,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
@@ -210,7 +210,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
@@ -238,7 +238,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
@@ -276,7 +276,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
@@ -308,7 +308,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
@@ -335,7 +335,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,

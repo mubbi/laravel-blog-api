@@ -11,7 +11,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -58,7 +58,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -87,7 +87,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -116,7 +116,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -145,7 +145,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -195,13 +195,13 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
         $user = User::factory()->create();
         $authorRole = Role::where('name', UserRole::AUTHOR->value)->first();
-        $user->roles()->attach($authorRole->id);
+        attachRoleAndRefreshCache($user, $authorRole);
 
         // Act
         $response = $this->withHeaders([
@@ -236,7 +236,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -274,7 +274,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -305,7 +305,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
@@ -332,7 +332,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $token = $admin->createToken('test-token', ['access-api']);
 
