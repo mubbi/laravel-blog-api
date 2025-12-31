@@ -6,6 +6,8 @@ namespace App\Services;
 
 use App\Data\CreateNotificationDTO;
 use App\Data\FilterNotificationDTO;
+use App\Events\Notification\NotificationCreatedEvent;
+use App\Events\Notification\NotificationSentEvent;
 use App\Models\Notification;
 use App\Models\NotificationAudience;
 use App\Models\Role;
@@ -14,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 
 final class NotificationService
 {
@@ -57,7 +60,11 @@ final class NotificationService
                 }
             }
 
-            return $notification->load('audiences');
+            $notification->load('audiences');
+
+            Event::dispatch(new NotificationCreatedEvent($notification));
+
+            return $notification;
         });
     }
 
@@ -73,6 +80,8 @@ final class NotificationService
         // - Sending SMS
         // - Creating in-app notifications
         // - etc.
+
+        Event::dispatch(new NotificationSentEvent($notification));
     }
 
     /**

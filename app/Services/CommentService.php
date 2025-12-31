@@ -8,10 +8,13 @@ use App\Data\ApproveCommentDTO;
 use App\Data\DeleteCommentDTO;
 use App\Data\FilterCommentDTO;
 use App\Enums\CommentStatus;
+use App\Events\Comment\CommentApprovedEvent;
+use App\Events\Comment\CommentDeletedEvent;
 use App\Models\Comment;
 use App\Repositories\Contracts\CommentRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Event;
 
 final class CommentService
 {
@@ -44,6 +47,8 @@ final class CommentService
         /** @var Comment $freshComment */
         $freshComment = $comment->fresh(['user', 'article']);
 
+        Event::dispatch(new CommentApprovedEvent($freshComment));
+
         return $freshComment;
     }
 
@@ -74,6 +79,9 @@ final class CommentService
             ->withTrashed()
             ->where('id', $commentId)
             ->firstOrFail();
+
+        Event::dispatch(new CommentDeletedEvent($commentToDelete));
+
         $commentToDelete->forceDelete();
     }
 

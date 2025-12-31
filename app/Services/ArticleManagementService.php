@@ -7,9 +7,23 @@ namespace App\Services;
 use App\Data\FilterArticleManagementDTO;
 use App\Data\ReportArticleDTO;
 use App\Enums\ArticleStatus;
+use App\Events\Article\ArticleApprovedEvent;
+use App\Events\Article\ArticleArchivedEvent;
+use App\Events\Article\ArticleDeletedEvent;
+use App\Events\Article\ArticleFeaturedEvent;
+use App\Events\Article\ArticlePinnedEvent;
+use App\Events\Article\ArticleRejectedEvent;
+use App\Events\Article\ArticleReportedEvent;
+use App\Events\Article\ArticleReportsClearedEvent;
+use App\Events\Article\ArticleRestoredEvent;
+use App\Events\Article\ArticleRestoredFromTrashEvent;
+use App\Events\Article\ArticleTrashedEvent;
+use App\Events\Article\ArticleUnfeaturedEvent;
+use App\Events\Article\ArticleUnpinnedEvent;
 use App\Models\Article;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Event;
 
 final class ArticleManagementService
 {
@@ -64,6 +78,8 @@ final class ArticleManagementService
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->findOrFail($id);
 
+        Event::dispatch(new ArticleApprovedEvent($article));
+
         return $article;
     }
 
@@ -80,6 +96,8 @@ final class ArticleManagementService
         $article = $this->articleRepository->query()
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->findOrFail($id);
+
+        Event::dispatch(new ArticleRejectedEvent($article));
 
         return $article;
     }
@@ -102,6 +120,12 @@ final class ArticleManagementService
             $freshArticle = $this->articleRepository->query()
                 ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
                 ->findOrFail($id);
+
+            if ($newFeaturedStatus) {
+                Event::dispatch(new ArticleFeaturedEvent($freshArticle));
+            } else {
+                Event::dispatch(new ArticleUnfeaturedEvent($freshArticle));
+            }
 
             return $freshArticle;
         } catch (\Throwable $e) {
@@ -128,6 +152,8 @@ final class ArticleManagementService
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->findOrFail($id);
 
+        Event::dispatch(new ArticleUnfeaturedEvent($article));
+
         return $article;
     }
 
@@ -144,6 +170,8 @@ final class ArticleManagementService
         $article = $this->articleRepository->query()
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->findOrFail($id);
+
+        Event::dispatch(new ArticlePinnedEvent($article));
 
         return $article;
     }
@@ -162,6 +190,8 @@ final class ArticleManagementService
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->findOrFail($id);
 
+        Event::dispatch(new ArticleUnpinnedEvent($article));
+
         return $article;
     }
 
@@ -177,6 +207,8 @@ final class ArticleManagementService
         $article = $this->articleRepository->query()
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->findOrFail($id);
+
+        Event::dispatch(new ArticleArchivedEvent($article));
 
         return $article;
     }
@@ -194,6 +226,8 @@ final class ArticleManagementService
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->findOrFail($id);
 
+        Event::dispatch(new ArticleRestoredEvent($article));
+
         return $article;
     }
 
@@ -209,6 +243,8 @@ final class ArticleManagementService
         $article = $this->articleRepository->query()
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->findOrFail($id);
+
+        Event::dispatch(new ArticleTrashedEvent($article));
 
         return $article;
     }
@@ -226,6 +262,8 @@ final class ArticleManagementService
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->findOrFail($id);
 
+        Event::dispatch(new ArticleRestoredFromTrashEvent($article));
+
         return $article;
     }
 
@@ -234,7 +272,14 @@ final class ArticleManagementService
      */
     public function deleteArticle(int $id): bool
     {
-        return $this->articleRepository->delete($id);
+        $article = $this->articleRepository->findOrFail($id);
+        $deleted = $this->articleRepository->delete($id);
+
+        if ($deleted) {
+            Event::dispatch(new ArticleDeletedEvent($article));
+        }
+
+        return $deleted;
     }
 
     /**
@@ -254,6 +299,8 @@ final class ArticleManagementService
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->findOrFail($id);
 
+        Event::dispatch(new ArticleReportedEvent($updatedArticle));
+
         return $updatedArticle;
     }
 
@@ -271,6 +318,8 @@ final class ArticleManagementService
         $article = $this->articleRepository->query()
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->findOrFail($id);
+
+        Event::dispatch(new ArticleReportsClearedEvent($article));
 
         return $article;
     }

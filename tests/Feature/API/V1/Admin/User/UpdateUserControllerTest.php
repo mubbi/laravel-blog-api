@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Enums\UserRole;
+use App\Events\User\UserUpdatedEvent;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/User/UpdateUserController', function () {
     it('can update a user successfully', function () {
@@ -411,5 +413,40 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
             'name' => 'New Admin Name',
             'email' => 'newadmin@example.com',
         ]);
+    });
+
+    it('dispatches UserUpdatedEvent when user is updated', function () {
+        // Arrange
+        Event::fake([UserUpdatedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $token = $admin->createToken('test-token', ['access-api']);
+
+        $userToUpdate = User::factory()->create([
+            'name' => 'Old Name',
+            'email' => 'old@example.com',
+        ]);
+
+        $updateData = [
+            'name' => 'New Name',
+            'email' => 'new@example.com',
+        ];
+
+        // Act
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token->plainTextToken,
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(UserUpdatedEvent::class, function ($event) use ($userToUpdate) {
+            return $event->user->id === $userToUpdate->id
+                && $event->user->name === 'New Name'
+                && $event->user->email === 'new@example.com';
+        });
     });
 });

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 use App\Enums\CommentStatus;
 use App\Enums\UserRole;
+use App\Events\Comment\CommentDeletedEvent;
 use App\Models\Comment;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\CommentService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 
 describe('API/V1/Admin/Comment/DeleteCommentController', function () {
@@ -393,5 +395,31 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         $this->assertDatabaseMissing('comments', [
             'id' => $comment->id,
         ]);
+    });
+
+    it('dispatches CommentDeletedEvent when comment is deleted', function () {
+        // Arrange
+        Event::fake([CommentDeletedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $comment = Comment::factory()->create([
+            'status' => CommentStatus::APPROVED->value,
+        ]);
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->deleteJson(route('api.v1.admin.comments.destroy', $comment->id), [
+                'reason' => 'Deleted for violation',
+            ]);
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(CommentDeletedEvent::class, function ($event) use ($comment) {
+            return $event->comment->id === $comment->id;
+        });
     });
 });

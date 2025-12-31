@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Data\FilterNewsletterSubscriberDTO;
+use App\Events\Newsletter\NewsletterSubscriberDeletedEvent;
 use App\Models\NewsletterSubscriber;
 use App\Repositories\Contracts\NewsletterSubscriberRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Event;
 
 final class NewsletterService
 {
@@ -23,7 +25,11 @@ final class NewsletterService
      */
     public function deleteSubscriber(int $subscriberId): void
     {
+        $subscriber = $this->newsletterSubscriberRepository->findOrFail($subscriberId);
+        $email = $subscriber->email;
         $this->newsletterSubscriberRepository->delete($subscriberId);
+
+        Event::dispatch(new NewsletterSubscriberDeletedEvent($subscriberId, $email));
     }
 
     /**

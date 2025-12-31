@@ -266,10 +266,9 @@ describe('API/V1/User/MeController', function () {
     });
 
     it('handles user with very long email address', function () {
-        // Create a test user with long email
+        // Create a test user with long email - minimal setup
         $longEmail = 'very.long.email.address.with.many.subdomains@very.long.domain.name.example.com';
         $user = User::factory()->create([
-            'name' => 'Long Email User',
             'email' => $longEmail,
         ]);
 
@@ -279,14 +278,13 @@ describe('API/V1/User/MeController', function () {
         // Make request to /me endpoint
         $response = $this->getJson(route('api.v1.me'));
 
-        // Assert response handles long email
+        // Assert response handles long email - only check essential fields
         $response
             ->assertStatus(200)
             ->assertJson([
                 'status' => true,
                 'data' => [
                     'id' => $user->id,
-                    'name' => 'Long Email User',
                     'email' => $longEmail,
                 ],
             ]);

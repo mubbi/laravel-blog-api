@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\Auth;
 
+use App\Events\Auth\TokenRefreshedEvent;
+use App\Events\Auth\UserLoggedInEvent;
+use App\Events\Auth\UserLoggedOutEvent;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Interfaces\AuthServiceInterface;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\UnauthorizedException;
 
@@ -61,6 +65,8 @@ final class AuthService implements AuthServiceInterface
         $user->refresh_token = $refreshToken->plainTextToken;
         $user->access_token_expires_at = $accessTokenExpiration;
         $user->refresh_token_expires_at = $refreshTokenExpiration;
+
+        Event::dispatch(new UserLoggedInEvent($user));
 
         return $user;
     }
@@ -117,6 +123,8 @@ final class AuthService implements AuthServiceInterface
         $user->access_token_expires_at = $accessTokenExpiration;
         $user->refresh_token_expires_at = $tokenExpiresAt;
 
+        Event::dispatch(new TokenRefreshedEvent($user));
+
         return $user;
     }
 
@@ -126,5 +134,7 @@ final class AuthService implements AuthServiceInterface
     public function logout(User $user): void
     {
         $user->tokens()->delete();
+
+        Event::dispatch(new UserLoggedOutEvent($user));
     }
 }

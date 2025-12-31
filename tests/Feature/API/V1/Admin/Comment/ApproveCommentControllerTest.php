@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 use App\Enums\CommentStatus;
 use App\Enums\UserRole;
+use App\Events\Comment\CommentApprovedEvent;
 use App\Models\Comment;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\CommentService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 
 describe('API/V1/Admin/Comment/ApproveCommentController', function () {
@@ -362,5 +364,32 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         expect($comment->content)->toBe('Original content');
         expect($comment->user_id)->toBe($comment->user_id);
         expect($comment->article_id)->toBe($comment->article_id);
+    });
+
+    it('dispatches CommentApprovedEvent when comment is approved', function () {
+        // Arrange
+        Event::fake([CommentApprovedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $comment = Comment::factory()->create([
+            'status' => CommentStatus::PENDING->value,
+        ]);
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+                'admin_note' => 'Approved',
+            ]);
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(CommentApprovedEvent::class, function ($event) use ($comment) {
+            return $event->comment->id === $comment->id
+                && $event->comment->status === CommentStatus::APPROVED;
+        });
     });
 });

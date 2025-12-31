@@ -8,6 +8,13 @@ use App\Constants\CacheKeys;
 use App\Data\CreateUserDTO;
 use App\Data\FilterUserDTO;
 use App\Data\UpdateUserDTO;
+use App\Events\User\UserBannedEvent;
+use App\Events\User\UserBlockedEvent;
+use App\Events\User\UserCreatedEvent;
+use App\Events\User\UserDeletedEvent;
+use App\Events\User\UserUnbannedEvent;
+use App\Events\User\UserUnblockedEvent;
+use App\Events\User\UserUpdatedEvent;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -16,6 +23,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 
 final class UserService
@@ -80,7 +88,11 @@ final class UserService
                 $user->roles()->attach($role->id);
             }
 
-            return $user->load(['roles:id,name,slug']);
+            $user->load(['roles:id,name,slug']);
+
+            Event::dispatch(new UserCreatedEvent($user));
+
+            return $user;
         });
     }
 
@@ -110,6 +122,8 @@ final class UserService
             $freshUser = $user->fresh(['roles:id,name,slug']);
             $freshUser->loadCount(['articles', 'comments']);
 
+            Event::dispatch(new UserUpdatedEvent($freshUser));
+
             return $freshUser;
         });
     }
@@ -123,7 +137,15 @@ final class UserService
     {
         $this->preventSelfAction($id, 'cannot_delete_self');
 
-        return $this->userRepository->delete($id);
+        $user = $this->userRepository->findOrFail($id);
+        $email = $user->email;
+        $deleted = $this->userRepository->delete($id);
+
+        if ($deleted) {
+            Event::dispatch(new UserDeletedEvent($id, $email));
+        }
+
+        return $deleted;
     }
 
     /**
@@ -137,8 +159,11 @@ final class UserService
 
         $this->userRepository->update($id, ['banned_at' => now()]);
         $user = $this->userRepository->findOrFail($id);
+        $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
 
-        return $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
+        Event::dispatch(new UserBannedEvent($user));
+
+        return $user;
     }
 
     /**
@@ -152,8 +177,11 @@ final class UserService
 
         $this->userRepository->update($id, ['banned_at' => null]);
         $user = $this->userRepository->findOrFail($id);
+        $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
 
-        return $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
+        Event::dispatch(new UserUnbannedEvent($user));
+
+        return $user;
     }
 
     /**
@@ -167,8 +195,11 @@ final class UserService
 
         $this->userRepository->update($id, ['blocked_at' => now()]);
         $user = $this->userRepository->findOrFail($id);
+        $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
 
-        return $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
+        Event::dispatch(new UserBlockedEvent($user));
+
+        return $user;
     }
 
     /**
@@ -182,8 +213,11 @@ final class UserService
 
         $this->userRepository->update($id, ['blocked_at' => null]);
         $user = $this->userRepository->findOrFail($id);
+        $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
 
-        return $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
+        Event::dispatch(new UserUnblockedEvent($user));
+
+        return $user;
     }
 
     /**

@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Enums\UserRole;
+use App\Events\User\UserBlockedEvent;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/User/BlockUserController', function () {
     it('can block a user successfully', function () {
@@ -153,5 +155,28 @@ describe('API/V1/Admin/User/BlockUserController', function () {
         $this->assertEquals($originalData['email'], $userToBlock->email);
         $this->assertEquals($originalData['email_verified_at']->toDateTimeString(), $userToBlock->email_verified_at->toDateTimeString());
         $this->assertEquals($originalData['banned_at'], $userToBlock->banned_at);
+    });
+
+    it('dispatches UserBlockedEvent when user is blocked', function () {
+        // Arrange
+        Event::fake([UserBlockedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $userToBlock = User::factory()->create();
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->postJson(route('api.v1.admin.users.block', $userToBlock->id));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(UserBlockedEvent::class, function ($event) use ($userToBlock) {
+            return $event->user->id === $userToBlock->id
+                && $event->user->blocked_at !== null;
+        });
     });
 });
