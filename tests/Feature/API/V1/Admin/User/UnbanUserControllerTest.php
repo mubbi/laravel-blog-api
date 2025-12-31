@@ -11,7 +11,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToUnban = User::factory()->create(['banned_at' => now()]);
 
@@ -46,7 +46,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToUnban = User::factory()->create([
             'banned_at' => now(),
@@ -69,7 +69,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToUnban = User::factory()->create(['banned_at' => null]);
 
@@ -88,7 +88,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -106,7 +106,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $userToUnban = User::factory()->create(['banned_at' => now()]);
 
@@ -133,7 +133,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         // Arrange
         $admin = User::factory()->create(['banned_at' => now()]);
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -154,7 +154,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $originalData = [
             'name' => 'John Doe',
@@ -186,7 +186,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $oldBanTime = now()->subMonths(6);
         $userToUnban = User::factory()->create(['banned_at' => $oldBanTime]);

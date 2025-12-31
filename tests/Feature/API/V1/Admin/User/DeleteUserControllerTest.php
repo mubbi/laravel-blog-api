@@ -11,7 +11,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToDelete = User::factory()->create();
 
@@ -39,7 +39,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToDelete = User::factory()->create(['banned_at' => now()]);
 
@@ -59,7 +59,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToDelete = User::factory()->create(['blocked_at' => now()]);
 
@@ -79,7 +79,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToDelete = User::factory()->create([
             'banned_at' => now()->subDays(5),
@@ -102,7 +102,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -120,7 +120,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         // Arrange
         $user = User::factory()->create();
         $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        $user->roles()->attach($subscriberRole->id);
+        attachRoleAndRefreshCache($user, $subscriberRole);
 
         $userToDelete = User::factory()->create();
 
@@ -147,7 +147,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -165,7 +165,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToDelete = User::factory()->create([
             'email_verified_at' => now(),
@@ -187,7 +187,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToDelete = User::factory()->create([
             'email_verified_at' => null,
@@ -209,11 +209,11 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToDelete = User::factory()->create();
         $authorRole = Role::where('name', UserRole::AUTHOR->value)->first();
-        $userToDelete->roles()->attach($authorRole->id);
+        attachRoleAndRefreshCache($userToDelete, $authorRole);
 
         // Act
         $response = $this->actingAs($admin)
@@ -231,7 +231,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToDelete = User::factory()->create();
         $authorRole = Role::where('name', UserRole::AUTHOR->value)->first();
@@ -254,7 +254,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $userToDelete = User::factory()->create();
 

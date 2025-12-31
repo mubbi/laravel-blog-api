@@ -15,7 +15,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $articles = Article::factory()->count(5)->create();
 
@@ -51,7 +51,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $publishedArticle = Article::factory()->create(['status' => ArticleStatus::PUBLISHED]);
         $draftArticle = Article::factory()->create(['status' => ArticleStatus::DRAFT]);
@@ -71,7 +71,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $author1 = User::factory()->create();
         $author2 = User::factory()->create();
@@ -94,7 +94,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $category1 = Category::factory()->create();
         $category2 = Category::factory()->create();
@@ -120,7 +120,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $tag1 = Tag::factory()->create();
         $tag2 = Tag::factory()->create();
@@ -146,7 +146,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $featuredArticle = Article::factory()->create(['is_featured' => true]);
         $regularArticle = Article::factory()->create(['is_featured' => false]);
@@ -166,7 +166,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $pinnedArticle = Article::factory()->create(['is_pinned' => true]);
         $regularArticle = Article::factory()->create(['is_pinned' => false]);
@@ -186,7 +186,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $reportedArticle = Article::factory()->create(['report_count' => 3]);
         $cleanArticle = Article::factory()->create(['report_count' => 0]);
@@ -206,7 +206,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $article1 = Article::factory()->create(['title' => 'PHP Best Practices']);
         $article2 = Article::factory()->create(['title' => 'Laravel Tutorial']);
@@ -226,7 +226,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         $article1 = Article::factory()->create(['title' => 'A Article']);
         $article2 = Article::factory()->create(['title' => 'B Article']);
@@ -250,7 +250,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         // Arrange
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        $admin->roles()->attach($adminRole->id);
+        attachRoleAndRefreshCache($admin, $adminRole);
 
         Article::factory()->count(25)->create();
 

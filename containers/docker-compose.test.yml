@@ -15,6 +15,17 @@ services:
     environment:
       - XDEBUG_MODE=${XDEBUG_MODE:-coverage}
       - APP_ENV=testing
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql_test
+      - DB_PORT=3306
+      - DB_DATABASE=laravel_blog_test
+      - DB_USERNAME=laravel_user
+      - DB_PASSWORD=laravel_password
+      - REDIS_HOST=redis_test
+      - REDIS_PORT=6379
+      - CACHE_STORE=array
+      - SESSION_DRIVER=array
+      - QUEUE_CONNECTION=sync
     depends_on:
       mysql_test:
         condition: service_healthy
