@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.1.0](https://github.com/mubbi/laravel-blog-api/compare/v2.0.0...v2.1.0) (2026-01-01)
+
+
+### Features
+
+* **events:** added events and listeners ([52d8fe1](https://github.com/mubbi/laravel-blog-api/commit/52d8fe1d26512b013915c09c67d1dc6aef886e27))
+
+
+### Bug Fixes
+
+* fixed N+1 query problem ([c62b357](https://github.com/mubbi/laravel-blog-api/commit/c62b3573b28c31f2898b8a99f5b60900d54fa9a3))
+
 ## [2.0.0](https://github.com/mubbi/laravel-blog-api/compare/v1.10.0...v2.0.0) (2025-12-31)
 
 
