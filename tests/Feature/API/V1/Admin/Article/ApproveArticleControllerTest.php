@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 use App\Enums\ArticleStatus;
 use App\Enums\UserRole;
+use App\Events\Article\ArticleApprovedEvent;
 use App\Models\Article;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/Article/ApproveArticleController', function () {
     it('can approve a draft article', function () {
@@ -169,5 +171,31 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
         $this->assertEquals($admin->id, $article->approved_by);
         $this->assertNotNull($article->published_at);
         $this->assertGreaterThanOrEqual($beforeApproval->timestamp, $article->published_at->timestamp);
+    });
+
+    it('dispatches ArticleApprovedEvent when article is approved', function () {
+        // Arrange
+        Event::fake([ArticleApprovedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $token = $admin->createToken('test-token', ['access-api']);
+
+        $article = Article::factory()->create(['status' => ArticleStatus::DRAFT]);
+
+        // Act
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token->plainTextToken,
+        ])->postJson(route('api.v1.admin.articles.approve', $article->id));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(ArticleApprovedEvent::class, function ($event) use ($article) {
+            return $event->article->id === $article->id
+                && $event->article->status === ArticleStatus::PUBLISHED;
+        });
     });
 });

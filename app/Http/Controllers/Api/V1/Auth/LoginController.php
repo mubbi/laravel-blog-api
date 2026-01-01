@@ -4,24 +4,36 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
+use App\Http\Controllers\Controller as BaseController;
 use App\Http\Requests\V1\Auth\LoginRequest;
 use App\Http\Resources\V1\Auth\UserResource;
 use App\Services\Interfaces\AuthServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Routing\Controller;
 use Illuminate\Validation\UnauthorizedException;
 use Symfony\Component\HttpFoundation\Response;
 
 #[Group('Authentication', weight: 0)]
-final class LoginController extends Controller
+final class LoginController extends BaseController
 {
     public function __construct(private readonly AuthServiceInterface $authService) {}
 
     /**
-     * Login API
+     * Authenticate User and Generate Access Token
      *
-     * Handle an authentication attempt and return a Sanctum token
+     * Authenticates a user with email and password credentials. Upon successful authentication,
+     * generates and returns a Laravel Sanctum bearer token along with the authenticated user's
+     * profile information. The token should be included in the Authorization header for subsequent
+     * authenticated requests using the format: `Bearer {token}`.
+     *
+     * **Request Body:**
+     * - `email` (required, string): User's email address
+     * - `password` (required, string): User's password
+     *
+     * **Response:**
+     * Returns the authenticated user object with an access token embedded in the response.
+     * The token is automatically included in the UserResource response and should be stored
+     * securely by the client for future API requests.
      *
      * @unauthenticated
      *
@@ -50,7 +62,7 @@ final class LoginController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(__('auth.failed'), Response::HTTP_UNAUTHORIZED);
+            return $this->handleException($e, $request, __('auth.failed'));
         } catch (\Throwable $e) {
             /**
              * Internal server error
@@ -59,7 +71,7 @@ final class LoginController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(__('common.something_went_wrong'), Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->handleException($e, $request);
         }
     }
 }

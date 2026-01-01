@@ -37,11 +37,17 @@ class UserResource extends JsonResource
                 return $this->resource->getCachedRoles();
             }),
             'permissions' => $this->whenLoaded('roles', function () {
-                $permissionSlugs = [];
-
                 /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Role> $roles */
                 $roles = $this->resource->roles;
 
+                // Check if permissions are already loaded on roles to avoid N+1 queries
+                $firstRole = $roles->first();
+                if ($firstRole !== null && ! $firstRole->relationLoaded('permissions')) {
+                    // Load permissions for all roles in one query to prevent N+1
+                    $roles->load('permissions:id,name,slug');
+                }
+
+                $permissionSlugs = [];
                 foreach ($roles as $role) {
                     foreach ($role->permissions as $permission) {
                         /** @var \App\Models\Permission $permission */

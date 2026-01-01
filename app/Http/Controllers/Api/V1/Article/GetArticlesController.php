@@ -14,16 +14,37 @@ use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 #[Group('Articles', weight: 1)]
-class GetArticlesController extends Controller
+final class GetArticlesController extends Controller
 {
     public function __construct(
         private readonly ArticleService $articleService
     ) {}
 
     /**
-     * Get Articles List
+     * Get Paginated List of Published Articles
      *
-     * Retrieve a paginated list of articles with optional filtering by category, tags, author, and search terms
+     * Retrieves a paginated list of published articles with comprehensive filtering, sorting,
+     * and search capabilities. This public endpoint returns only published articles by default
+     * and supports filtering by categories, tags, authors, publication dates, and search terms.
+     *
+     * **Query Parameters (all optional):**
+     * - `page` (integer, min:1, default: 1): Page number for pagination
+     * - `per_page` (integer, min:1, max:100, default: 15): Number of articles per page
+     * - `search` (string, max:255): Search term to filter articles by title or content
+     * - `status` (enum: draft|review|published|archived, default: published): Article status filter
+     * - `category_slug` (string|array): Filter by category slug(s). Can be a single slug or array of slugs
+     * - `tag_slug` (string|array): Filter by tag slug(s). Can be a single slug or array of slugs
+     * - `author_id` (integer): Filter articles by specific author user ID
+     * - `created_by` (integer): Filter articles by creator user ID (may differ from author in multi-author scenarios)
+     * - `published_after` (date, Y-m-d format): Filter articles published on or after this date
+     * - `published_before` (date, Y-m-d format): Filter articles published on or before this date
+     * - `sort_by` (enum: title|published_at|created_at|updated_at, default: published_at): Field to sort by
+     * - `sort_direction` (enum: asc|desc, default: desc): Sort direction
+     *
+     * **Response:**
+     * Returns a paginated collection of articles with metadata including total count, current page,
+     * per page limit, and pagination links. Each article includes full content, author information,
+     * categories, tags, and publication metadata.
      *
      * @unauthenticated
      *
@@ -32,9 +53,9 @@ class GetArticlesController extends Controller
     public function __invoke(GetArticlesRequest $request): JsonResponse
     {
         try {
-            $params = $request->withDefaults();
+            $dto = \App\Data\FilterArticleDTO::fromPublicRequest($request);
 
-            $articles = $this->articleService->getArticles($params);
+            $articles = $this->articleService->getArticles($dto);
 
             $articleCollection = ArticleResource::collection($articles);
 
@@ -63,10 +84,7 @@ class GetArticlesController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return $this->handleException($e, $request);
         }
     }
 }

@@ -20,34 +20,60 @@ final class ReportArticleController extends Controller
     ) {}
 
     /**
-     * Report Article
+     * Report Article (Admin)
      *
-     * Report an article with a reason
+     * Creates a report record for an article, typically used to flag content that violates
+     * community guidelines, contains inappropriate material, or requires administrative review.
+     * Reports help administrators identify and address problematic content. The report reason
+     * is stored for administrative review and audit purposes.
+     *
+     * **Authentication & Authorization:**
+     * Requires a valid Bearer token with `access-api` ability and `report_posts` permission.
+     *
+     * **Route Parameters:**
+     * - `id` (integer, required): The unique identifier of the article to report
+     *
+     * **Request Body:**
+     * - `reason` (optional, string, max:1000): Detailed reason or description for reporting the article
+     *
+     * **Response:**
+     * Returns the updated article object with the report count incremented. The article's
+     * report information is updated to reflect the new report, and administrators can review
+     * reported articles through the admin interface.
+     *
+     * **Note:** Articles can have multiple reports. The report count helps identify articles
+     * that may need administrative attention.
      *
      * @response array{status: true, message: string, data: ArticleManagementResource}
      */
     public function __invoke(int $id, ReportArticleRequest $request): JsonResponse
     {
         try {
-            $validated = $request->validated();
-            /** @var string $reason */
-            $reason = $validated['reason'] ?? 'No reason provided';
-            $article = $this->articleManagementService->reportArticle($id, $reason);
+            $dto = \App\Data\ReportArticleDTO::fromRequest($request);
+            $article = $this->articleManagementService->reportArticle($id, $dto);
 
             return response()->apiSuccess(
                 new ArticleManagementResource($article),
                 __('common.article_reported_successfully')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->apiError(
-                __('common.article_not_found'),
-                Response::HTTP_NOT_FOUND
-            );
+            /**
+             * Article not found
+             *
+             * @status 404
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return $this->handleException($e, $request);
         } catch (\Throwable $e) {
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            /**
+             * Internal server error
+             *
+             * @status 500
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return $this->handleException($e, $request);
         }
     }
 }

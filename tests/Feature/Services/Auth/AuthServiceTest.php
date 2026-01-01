@@ -12,7 +12,7 @@ use Laravel\Sanctum\PersonalAccessToken;
 
 describe('App\Services\Auth\AuthService tests', function () {
     beforeEach(function () {
-        $this->authService = new AuthService;
+        $this->authService = app(AuthService::class);
     });
 
     describe('login', function () {

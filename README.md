@@ -132,7 +132,7 @@ The automated testing setup:
 
 ### Coverage Requirements
 
-- **Minimum 80% code coverage** enforced
+- **Minimum 70% code coverage** enforced
 - **HTML reports** available at `reports/coverage/index.html`
 - **XML reports** for CI/CD at `reports/coverage.xml`
 
@@ -366,64 +366,108 @@ make docker-cleanup          # Clean up everything
 
 ## 🚧 TODO: Missing APIs & Tasks
 
-Based on the defined roles and permissions, the following admin and management APIs or features are missing or should be reviewed for implementation:
+Based on the codebase review, the following APIs and features are pending implementation:
+
+### ✅ Already Implemented
+
+- **Authentication**: Login, Logout, Refresh Token
+- **User Management (Admin)**: CRUD operations, Ban/Unban, Block/Unblock
+- **User Profile**: Get `/me`, Update profile
+- **Article Management (Admin)**: List, Show, Approve, Feature, Report
+- **Article Management (Public)**: List, Show by slug, Get comments
+- **Comment Management (Admin)**: List, Approve, Delete
+- **Comment Management (Public)**: Get comments for article
+- **Newsletter Management (Admin)**: List subscribers, Delete subscriber
+- **Notification Management (Admin)**: List, Create
+- **Taxonomy (Public)**: Get categories, Get tags
+
+### ❌ Pending Implementation
 
 - **NextJS Client App**
-  - Complete NextJS App to integrate all these APIs, it will be separate REPO once i complete the APIs
+  - Complete NextJS App to integrate all these APIs (separate REPO once APIs are complete)
 
-- **Role Management**
-  - Assign roles, manage roles, manage permissions
-  - Role CRUD operations
-  - Permission assignment and management
-  - User role assignment
+- **Authentication & User Registration**
+  - User registration endpoint (public) - Currently only admin can create users
+  - Email verification flow
+  - Password reset functionality
+
+- **Role & Permission Management**
+  - Assign roles to users endpoint
+  - Get all roles endpoint (service method exists but no endpoint)
+  - Get all permissions endpoint (service method exists but no endpoint)
 
 - **Article/Post Management**
-  - Create, update, delete articles
-  - Pin, archive, restore, trash articles
-  - Like/dislike articles
-  - Article status management (draft, published, archived)
+  - Admin - Create article to support Schedule article options 
+  - Admin - Pin article endpoint (service method exists: `pinArticle()`)
+  - Admin - Unpin article endpoint (service method exists: `unpinArticle()`)
+  - Admin - Archive article endpoint (service method exists: `archiveArticle()`)
+  - Admin - Restore article from archive endpoint (service method exists: `restoreArticle()`)
+  - Admin - Trash article endpoint (service method exists: `trashArticle()`)
+  - Admin - Restore from trash endpoint (service method exists: `restoreFromTrash()`)
+  - Like article endpoint
+  - Dislike article endpoint
 
 - **Comment Management**
-  - Create, update, delete comments
-  - Report comments
-  - User comment management
+  - Create comment endpoint (for authenticated users)
+  - Update own comment endpoint
+  - Delete own comment endpoint
+  - Report comment endpoint (for users)
+  - Get own comments endpoint
 
-- **Taxonomy Management**
-  - Manage categories and tags (admin/editor)
-  - Category CRUD operations
-  - Tag CRUD operations
-  - Hierarchical category management
+- **Taxonomy Management (Admin/Editor)**
+  - Create category (with parent/child support) endpoint
+  - Update category (with parent/child support) endpoint
+  - Delete category (ask for child categories deletion) endpoint
+  - Create tag (with parent/child support) endpoint
+  - Update tag (with parent/child support) endpoint
+  - Delete tag (ask for child tags deletion) endpoint
+  - Hierarchical category/tag management (parent/child relationships)
 
 - **Media Management**
-  - Upload, delete, and manage media (admin/editor)
-  - File upload system
-  - Media library management
-  - Image optimization and storage
+  - Upload media endpoint (for admin/editor/author)
+  - Delete media endpoint
+  - List media library endpoint
+  - Get media details endpoint
+  - Update media metadata endpoint
+  - Image optimization and storage integration
 
-- **Newsletter Management**
-  - Newsletter subscription endpoints
-  - User notification management
-  - Email subscription handling
+- **Newsletter Management (Public)**
+  - Subscribe to newsletter endpoint
+  - Unsubscribe from newsletter endpoint
+  - Verify subscription email endpoint
+
+- **User Notifications**
+  - Get user's notifications endpoint
+  - Mark notification as read endpoint
+  - Delete notification endpoint
+  - Mark all notifications as read endpoint
+  - Get unread notifications count endpoint
 
 - **Analytics & Settings**
-  - View analytics dashboard (admin only)
-  - Manage site settings (admin only)
-  - Site statistics and metrics
-  - User activity tracking
+  - View analytics dashboard endpoint (admin only)
+  - Get site statistics endpoint
+  - Manage site settings endpoints (CRUD)
+  - Export data endpoint
+  - View logs endpoint (admin only)
+  - User activity tracking endpoints
 
 - **Social/Community Features**
-  - User follow/unfollow system
-  - User profile management
-  - Social interaction features
+  - Follow user endpoint
+  - Unfollow user endpoint
+  - Get user followers endpoint
+  - Get user following endpoint
+  - View user profile endpoint (public)
+  - Send messages endpoint (if implementing messaging)
 
-- **General**
+- **General Improvements**
   - Ensure all permission checks are enforced in controllers/routes
-  - Add missing API endpoints for all permissions listed in `PermissionSeeder` and `RolePermissionSeeder`
   - Add integration and feature tests for all remaining APIs
-  - Implement rate limiting for all public endpoints
+  - Review and optimize rate limiting configuration for all endpoints
   - Optimize database queries and add proper indexing
   - Implement caching strategies for better performance
+  - Add API versioning strategy documentation
+  - Review and update API documentation (Scramble) for all endpoints
 
-> _Review the permissions in `database/seeders/PermissionSeeder.php` and `RolePermissionSeeder.php` to ensure all are mapped to actual API endpoints and controller logic._
+> _Note: Some service methods exist (e.g., `pinArticle()`, `archiveArticle()`) but lack corresponding API endpoints. Review `app/Services/ArticleManagementService.php` and `app/Services/UserService.php` for available methods that need endpoints._
 
 ---

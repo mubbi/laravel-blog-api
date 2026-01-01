@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Events\Auth\UserLoggedInEvent;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Interfaces\AuthServiceInterface;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\UnauthorizedException;
 use Mockery\MockInterface;
@@ -39,7 +41,7 @@ describe('API/V1/Auth/LoginController', function () {
     });
 
     it('returns 401 when AuthService throws UnauthorizedException', function () {
-        // Mock the AuthServiceInterface
+        // Mock the AuthServiceInterface - no user creation needed since service is mocked
         $this->mock(AuthServiceInterface::class, function (MockInterface $mock) {
             $mock->shouldReceive('login')
                 ->with('test@example.com', 'ValidPass123!')
@@ -63,7 +65,7 @@ describe('API/V1/Auth/LoginController', function () {
     });
 
     it('returns 500 when AuthService throws unexpected exception', function () {
-        // Mock the AuthServiceInterface
+        // Mock the AuthServiceInterface - no user creation needed since service is mocked
         $this->mock(AuthServiceInterface::class, function (MockInterface $mock) {
             $mock->shouldReceive('login')
                 ->with('test@example.com', 'AnotherValid123!')
@@ -118,5 +120,29 @@ describe('API/V1/Auth/LoginController', function () {
         expect($responseData['roles'])->toContain($role->slug);
         expect($responseData['permissions'])->toContain($permission1->slug);
         expect($responseData['permissions'])->toContain($permission2->slug);
+    });
+
+    it('dispatches UserLoggedInEvent when user logs in successfully', function () {
+        // Arrange
+        Event::fake([UserLoggedInEvent::class]);
+
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'password' => Hash::make('TestP@ss123'),
+        ]);
+
+        // Act
+        $response = $this->postJson(route('api.v1.auth.login'), [
+            'email' => 'test@example.com',
+            'password' => 'TestP@ss123',
+        ]);
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(UserLoggedInEvent::class, function ($event) use ($user) {
+            return $event->user->id === $user->id
+                && $event->user->email === 'test@example.com';
+        });
     });
 });

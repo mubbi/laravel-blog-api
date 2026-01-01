@@ -20,9 +20,25 @@ final class BlockUserController extends Controller
     ) {}
 
     /**
-     * Block User
+     * Block User Account (Admin)
      *
-     * Block a user from accessing certain features
+     * Blocks a user account, restricting their access to certain features while maintaining
+     * their account data. Blocked users have limited functionality compared to banned users,
+     * but the specific restrictions depend on the system implementation. Users cannot block
+     * their own account through this endpoint.
+     *
+     * **Authentication & Authorization:**
+     * Requires a valid Bearer token with `access-api` ability and `block_users` permission.
+     *
+     * **Route Parameters:**
+     * - `id` (integer, required): The unique identifier of the user to block
+     *
+     * **Response:**
+     * Returns the updated user object with the blocked status reflected. The user's account
+     * status will be set to "blocked" and feature access will be restricted accordingly.
+     *
+     * **Note:** Blocked users can be unblocked using the Unblock User endpoint. Blocking is
+     * typically used for temporary restrictions, while banning is more permanent.
      *
      * @response array{status: true, message: string, data: UserDetailResource}
      */
@@ -43,10 +59,7 @@ final class BlockUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                $e->getMessage(),
-                Response::HTTP_FORBIDDEN
-            );
+            return $this->handleException($e, $request);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             /**
              * User not found
@@ -55,10 +68,7 @@ final class BlockUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.user_not_found'),
-                Response::HTTP_NOT_FOUND
-            );
+            return $this->handleException($e, $request);
         } catch (\Throwable $e) {
             /**
              * Internal server error
@@ -67,10 +77,7 @@ final class BlockUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return $this->handleException($e, $request);
         }
     }
 }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Constants\CacheKeys;
+use App\Data\FilterUserDTO;
 use App\Enums\UserRole;
 use App\Models\Permission;
 use App\Models\Role;
@@ -18,7 +19,7 @@ describe('UserService Caching', function () {
 
     it('caches roles and permissions when getting user by ID', function () {
         // Arrange
-        $userService = new UserService;
+        $userService = app(UserService::class);
         $user = User::factory()->create();
         $role = Role::where('name', UserRole::AUTHOR->value)->first();
         $permission = Permission::where('name', 'publish_posts')->first();
@@ -40,7 +41,7 @@ describe('UserService Caching', function () {
 
     it('caches all roles with permissions', function () {
         // Arrange
-        $userService = new UserService;
+        $userService = app(UserService::class);
 
         // Act
         $roles = $userService->getAllRoles();
@@ -52,7 +53,7 @@ describe('UserService Caching', function () {
 
     it('caches all permissions', function () {
         // Arrange
-        $userService = new UserService;
+        $userService = app(UserService::class);
 
         // Act
         $permissions = $userService->getAllPermissions();
@@ -64,7 +65,7 @@ describe('UserService Caching', function () {
 
     it('clears user cache when assigning roles', function () {
         // Arrange
-        $userService = new UserService;
+        $userService = app(UserService::class);
         $user = User::factory()->create();
         $role = Role::where('name', UserRole::AUTHOR->value)->first();
 
@@ -82,7 +83,7 @@ describe('UserService Caching', function () {
 
     it('pre-warms caches for users in pagination', function () {
         // Arrange
-        $userService = new UserService;
+        $userService = app(UserService::class);
         $users = User::factory()->count(3)->create();
         $role = Role::where('name', UserRole::AUTHOR->value)->first();
 
@@ -91,7 +92,13 @@ describe('UserService Caching', function () {
         }
 
         // Act
-        $paginator = $userService->getUsersWithWarmedCaches(['per_page' => 2]);
+        $dto = new FilterUserDTO(
+            page: 1,
+            perPage: 2,
+            sortBy: 'created_at',
+            sortDirection: 'desc'
+        );
+        $paginator = $userService->getUsersWithWarmedCaches($dto);
 
         // Assert
         expect($paginator->total())->toBeGreaterThanOrEqual(3); // At least 3 users (including seeded ones)
@@ -106,7 +113,7 @@ describe('UserService Caching', function () {
 
     it('increments cache version correctly', function () {
         // Arrange
-        $userService = new UserService;
+        $userService = app(UserService::class);
         $initialVersion = Cache::get('user_cache_version', 1);
         expect($initialVersion)->toBe(1);
 

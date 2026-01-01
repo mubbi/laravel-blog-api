@@ -11,7 +11,6 @@ use App\Http\Resources\V1\Newsletter\NewsletterSubscriberResource;
 use App\Services\NewsletterService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 #[Group('Admin - Newsletter', weight: 3)]
@@ -22,16 +21,37 @@ final class GetSubscribersController extends Controller
     ) {}
 
     /**
-     * Get all newsletter subscribers for admin management
+     * Get Paginated List of Newsletter Subscribers (Admin)
      *
-     * Retrieve a paginated list of all newsletter subscribers with filtering and sorting options
+     * Retrieves a paginated list of all newsletter subscribers with filtering and sorting
+     * capabilities. This endpoint is used for managing the newsletter subscriber database,
+     * viewing subscription statistics, and exporting subscriber lists for email campaigns.
+     *
+     * **Authentication & Authorization:**
+     * Requires a valid Bearer token with `access-api` ability and `view_newsletter_subscribers` permission.
+     *
+     * **Query Parameters (all optional):**
+     * - `page` (integer, min:1, default: 1): Page number for pagination
+     * - `per_page` (integer, min:1, max:100, default: 15): Number of subscribers per page
+     * - `search` (string, max:255): Search term to filter subscribers by email
+     * - `status` (enum: verified|unverified): Filter subscribers by verification status
+     * - `subscribed_at_from` (date, Y-m-d format): Filter subscribers who subscribed on or after this date
+     * - `subscribed_at_to` (date, Y-m-d format): Filter subscribers who subscribed on or before this date (must be after or equal to subscribed_at_from)
+     * - `sort_by` (enum: created_at|updated_at|email|is_verified, default: created_at): Field to sort by
+     * - `sort_order` (enum: asc|desc, default: desc): Sort order
+     *
+     * **Response:**
+     * Returns a paginated collection of newsletter subscribers with their email addresses,
+     * verification status, subscription dates, and metadata. Includes pagination metadata
+     * with total count, current page, per page limit, and pagination links.
      *
      * @response array{status: true, message: string, data: array{subscribers: NewsletterSubscriberResource[], meta: MetaResource}}
      */
     public function __invoke(GetSubscribersRequest $request): JsonResponse
     {
         try {
-            $subscribers = $this->newsletterService->getSubscribers($request->validated());
+            $dto = \App\Data\FilterNewsletterSubscriberDTO::fromRequest($request);
+            $subscribers = $this->newsletterService->getSubscribers($dto);
 
             $subscriberCollection = NewsletterSubscriberResource::collection($subscribers);
             $subscriberCollectionData = $subscriberCollection->response()->getData(true);
@@ -49,13 +69,6 @@ final class GetSubscribersController extends Controller
                 __('common.success')
             );
         } catch (\Throwable $e) {
-            Log::error('Newsletter subscribers retrieval failed', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
             /**
              * Internal server error
              *
@@ -63,10 +76,7 @@ final class GetSubscribersController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return $this->handleException($e, $request);
         }
     }
 }

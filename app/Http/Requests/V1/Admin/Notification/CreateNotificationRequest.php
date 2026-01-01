@@ -20,7 +20,7 @@ final class CreateNotificationRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user !== null && $user->can('send_notifications');
+        return $user !== null && $user->hasPermission('send_notifications');
     }
 
     /**

@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Events\Auth\TokenRefreshedEvent;
 use App\Models\User;
 use App\Services\Interfaces\AuthServiceInterface;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\UnauthorizedException;
 use Mockery\MockInterface;
 
@@ -95,5 +97,34 @@ describe('API/V1/Auth/RefreshTokenController', function () {
                 'data' => null,
                 'error' => null,
             ]);
+    });
+
+    it('dispatches TokenRefreshedEvent when token is refreshed successfully', function () {
+        // Arrange
+        Event::fake([TokenRefreshedEvent::class]);
+
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+        ]);
+
+        // Create a real refresh token (don't mock the service to allow event dispatch)
+        $refreshTokenExpiration = now()->addDays(30);
+        $refreshToken = $user->createToken(
+            'refresh_token',
+            ['refresh-token'],
+            $refreshTokenExpiration
+        );
+
+        // Act
+        $response = $this->postJson(route('api.v1.auth.refresh'), [
+            'refresh_token' => $refreshToken->plainTextToken,
+        ]);
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(TokenRefreshedEvent::class, function ($event) use ($user) {
+            return $event->user->id === $user->id;
+        });
     });
 });

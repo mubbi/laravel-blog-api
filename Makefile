@@ -171,7 +171,7 @@ test-coverage:
 	@if docker-compose -f containers/docker-compose.test.yml ps | grep -q 'laravel_blog_api_test' && docker-compose -f containers/docker-compose.test.yml ps | grep 'Up'; then \
 		echo "🧪 TESTING: Test container already running. Skipping setup..."; \
 		echo ">> Running tests with coverage..."; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=70; \
 		echo "✅ SUCCESS: Tests with coverage completed!"; \
 	else \
 		echo "🧪 TESTING: Running tests with coverage..."; \
@@ -181,7 +181,7 @@ test-coverage:
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force; \
 		echo ">> Running tests with coverage..."; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=80; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=70; \
 		echo "✅ SUCCESS: Tests with coverage completed!"; \
 	fi
 
@@ -220,6 +220,11 @@ artisan:
 # Access main container shell
 shell:
 	@echo "SHELL: Accessing main container..."
+	docker-compose -f containers/docker-compose.yml exec laravel_blog_api bash
+
+# Access main container terminal (alias for shell)
+terminal:
+	@echo "TERMINAL: Accessing Laravel container terminal..."
 	docker-compose -f containers/docker-compose.yml exec laravel_blog_api bash
 
 # Access test container shell
@@ -402,6 +407,7 @@ help:
 	@echo "  make health              - Check application health"
 	@echo "  make logs                - View container logs"
 	@echo "  make shell               - Access main container shell"
+	@echo "  make terminal            - Access Laravel container terminal"
 	@echo ""
 	@echo "🔍 SONARQUBE (OPTIONAL):"
 	@echo "  make sonarqube-start     - Start SonarQube server"

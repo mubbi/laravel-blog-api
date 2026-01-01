@@ -41,7 +41,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *
  * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
-class Comment extends Model
+final class Comment extends Model
 {
     use HasFactory, SoftDeletes;
 

@@ -15,7 +15,7 @@ final class DeleteCommentRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user !== null && $user->can('delete_comments');
+        return $user !== null && $user->hasPermission('delete_comments');
     }
 
     /**

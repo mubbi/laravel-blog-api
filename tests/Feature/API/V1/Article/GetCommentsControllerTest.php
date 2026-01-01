@@ -97,12 +97,11 @@ describe('API/V1/Article/GetCommentsController', function () {
     });
 
     it('returns 500 on service exception', function () {
-        $user = User::factory()->create();
-        $article = Article::factory()
-            ->for($user, 'author')
-            ->for($user, 'approver')
-            ->published()
-            ->create();
+        // Create minimal article for route model binding (only needs slug)
+        $article = Article::factory()->create([
+            'slug' => 'test-article',
+            'status' => \App\Enums\ArticleStatus::PUBLISHED->value,
+        ]);
 
         $this->mock(\App\Services\ArticleService::class, function ($mock) {
             $mock->shouldReceive('getArticleComments')

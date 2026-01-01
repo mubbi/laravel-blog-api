@@ -159,7 +159,8 @@ describe('API/V1/Admin/User/GetUsersController', function () {
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
         attachRoleAndRefreshCache($admin, $adminRole);
 
-        User::factory()->count(25)->create();
+        // Create minimum users needed for pagination test (page 2 with per_page=10 needs at least 11 users)
+        User::factory()->count(15)->create();
 
         // Act
         $response = $this->actingAs($admin)
@@ -170,7 +171,7 @@ describe('API/V1/Admin/User/GetUsersController', function () {
         $meta = $response->json('data.meta');
         expect($meta['current_page'])->toBe(2);
         expect($meta['per_page'])->toBe(10);
-        expect($meta['total'])->toBeGreaterThan(25);
+        expect($meta['total'])->toBeGreaterThanOrEqual(15); // At least 15 created users + admin + seeded user
     });
 
     it('returns 403 when user lacks view_users permission', function () {

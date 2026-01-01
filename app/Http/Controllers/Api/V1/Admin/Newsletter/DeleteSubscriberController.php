@@ -20,16 +20,31 @@ final class DeleteSubscriberController extends Controller
     ) {}
 
     /**
-     * Delete a newsletter subscriber
+     * Delete Newsletter Subscriber (Admin)
      *
-     * Remove a subscriber from the newsletter list
+     * Removes a subscriber from the newsletter subscription list. This permanently deletes
+     * the subscriber record and they will no longer receive newsletter emails. Typically
+     * used when a subscriber requests removal or when cleaning up the subscriber database.
+     *
+     * **Authentication & Authorization:**
+     * Requires a valid Bearer token with `access-api` ability and `manage_newsletter_subscribers` permission.
+     *
+     * **Route Parameters:**
+     * - `id` (integer, required): The unique identifier of the subscriber to remove
+     *
+     * **Response:**
+     * Returns a success message confirming the subscriber has been removed. The response
+     * body contains no data (null) as the subscriber record no longer exists.
+     *
+     * **Note:** This operation cannot be reversed. The subscriber will need to resubscribe
+     * if they wish to receive newsletters again in the future.
      *
      * @response array{status: true, message: string, data: null}
      */
     public function __invoke(DeleteSubscriberRequest $request, int $id): JsonResponse
     {
         try {
-            $this->newsletterService->deleteSubscriber($id, $request->validated());
+            $this->newsletterService->deleteSubscriber($id);
 
             return response()->apiSuccess(
                 null,
@@ -43,10 +58,7 @@ final class DeleteSubscriberController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.subscriber_not_found'),
-                Response::HTTP_NOT_FOUND
-            );
+            return $this->handleException($e, $request);
         } catch (\Throwable $e) {
             /**
              * Internal server error
@@ -55,10 +67,7 @@ final class DeleteSubscriberController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return $this->handleException($e, $request);
         }
     }
 }

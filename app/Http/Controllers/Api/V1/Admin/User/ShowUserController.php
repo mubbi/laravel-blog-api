@@ -20,9 +20,22 @@ final class ShowUserController extends Controller
     ) {}
 
     /**
-     * Show User
+     * Get Single User by ID (Admin)
      *
-     * Retrieve a single user by ID with all details
+     * Retrieves detailed information about a specific user by their ID. This admin endpoint
+     * provides complete user data including profile information, roles, permissions, account
+     * status, and all associated metadata. Used for viewing user details in admin panels
+     * and user management interfaces.
+     *
+     * **Authentication & Authorization:**
+     * Requires a valid Bearer token with `access-api` ability and `view_users` permission.
+     *
+     * **Route Parameters:**
+     * - `id` (integer, required): The unique identifier of the user to retrieve
+     *
+     * **Response:**
+     * Returns the complete user object with all associated data including roles, permissions,
+     * account status, profile information, and metadata.
      *
      * @response array{status: true, message: string, data: UserDetailResource}
      */
@@ -43,10 +56,7 @@ final class ShowUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.user_not_found'),
-                Response::HTTP_NOT_FOUND
-            );
+            return $this->handleException($e, $request);
         } catch (\Throwable $e) {
             /**
              * Internal server error
@@ -55,10 +65,7 @@ final class ShowUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return $this->handleException($e, $request);
         }
     }
 }

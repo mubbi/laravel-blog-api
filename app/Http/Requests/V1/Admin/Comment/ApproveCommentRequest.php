@@ -15,7 +15,7 @@ final class ApproveCommentRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user !== null && $user->can('approve_comments');
+        return $user !== null && $user->hasPermission('approve_comments');
     }
 
     /**

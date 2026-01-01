@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Enums\UserRole;
+use App\Events\User\UserUnblockedEvent;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/User/UnblockUserController', function () {
     it('can unblock a user successfully', function () {
@@ -220,5 +222,28 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
 
         $userToUnblock->refresh();
         expect($userToUnblock->blocked_at)->toBeNull();
+    });
+
+    it('dispatches UserUnblockedEvent when user is unblocked', function () {
+        // Arrange
+        Event::fake([UserUnblockedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $userToUnblock = User::factory()->create(['blocked_at' => now()]);
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock->id));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(UserUnblockedEvent::class, function ($event) use ($userToUnblock) {
+            return $event->user->id === $userToUnblock->id
+                && $event->user->blocked_at === null;
+        });
     });
 });
