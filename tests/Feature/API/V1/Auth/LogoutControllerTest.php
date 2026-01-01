@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Events\Auth\UserLoggedOutEvent;
 use App\Models\User;
 use App\Services\Interfaces\AuthServiceInterface;
+use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
 use Mockery\MockInterface;
 
@@ -65,5 +67,26 @@ describe('API/V1/Auth/LogoutController', function () {
                 'data' => null,
                 'error' => null,
             ]);
+    });
+
+    it('dispatches UserLoggedOutEvent when user logs out successfully', function () {
+        // Arrange
+        Event::fake([UserLoggedOutEvent::class]);
+
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+        ]);
+
+        Sanctum::actingAs($user, ['access-api']);
+
+        // Act
+        $response = $this->postJson(route('api.v1.auth.logout'));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(UserLoggedOutEvent::class, function ($event) use ($user) {
+            return $event->user->id === $user->id;
+        });
     });
 });

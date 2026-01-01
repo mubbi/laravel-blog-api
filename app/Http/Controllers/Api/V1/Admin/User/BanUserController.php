@@ -20,9 +20,24 @@ final class BanUserController extends Controller
     ) {}
 
     /**
-     * Ban User
+     * Ban User Account (Admin)
      *
-     * Ban a user from accessing the system
+     * Bans a user account, preventing them from accessing the system. Banned users cannot
+     * authenticate or perform any actions. All existing sessions and tokens are invalidated.
+     * Users cannot ban their own account through this endpoint.
+     *
+     * **Authentication & Authorization:**
+     * Requires a valid Bearer token with `access-api` ability and `ban_users` permission.
+     *
+     * **Route Parameters:**
+     * - `id` (integer, required): The unique identifier of the user to ban
+     *
+     * **Response:**
+     * Returns the updated user object with the banned status reflected. The user's account
+     * status will be set to "banned" and all active sessions will be terminated.
+     *
+     * **Note:** Banned users can be unbanned using the Unban User endpoint. This is a
+     * reversible action unlike deletion.
      *
      * @response array{status: true, message: string, data: UserDetailResource}
      */
@@ -43,10 +58,7 @@ final class BanUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                $e->getMessage(),
-                Response::HTTP_FORBIDDEN
-            );
+            return $this->handleException($e, $request);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             /**
              * User not found
@@ -55,10 +67,7 @@ final class BanUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.user_not_found'),
-                Response::HTTP_NOT_FOUND
-            );
+            return $this->handleException($e, $request);
         } catch (\Throwable $e) {
             /**
              * Internal server error
@@ -67,10 +76,7 @@ final class BanUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return $this->handleException($e, $request);
         }
     }
 }

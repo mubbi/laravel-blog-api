@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Support\Helper;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,7 +37,7 @@ class ApiLogger
 
         $user = Auth::user();
         $userId = $user ? $user->id : null;
-        $ip = $request->ip();
+        $ip = Helper::getRealIpAddress($request);
         $method = $request->method();
         $uri = $request->getRequestUri();
         /** @var array<string, array<int, string>|string> $rawHeaders */

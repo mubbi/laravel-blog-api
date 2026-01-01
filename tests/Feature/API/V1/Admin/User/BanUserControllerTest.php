@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Enums\UserRole;
+use App\Events\User\UserBannedEvent;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/User/BanUserController', function () {
     it('can ban a user successfully', function () {
@@ -124,5 +126,28 @@ describe('API/V1/Admin/User/BanUserController', function () {
                 'status' => false,
                 'message' => __('common.cannot_ban_self'),
             ]);
+    });
+
+    it('dispatches UserBannedEvent when user is banned', function () {
+        // Arrange
+        Event::fake([UserBannedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $userToBan = User::factory()->create();
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->postJson(route('api.v1.admin.users.ban', $userToBan->id));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(UserBannedEvent::class, function ($event) use ($userToBan) {
+            return $event->user->id === $userToBan->id
+                && $event->user->banned_at !== null;
+        });
     });
 });

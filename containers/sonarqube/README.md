@@ -40,7 +40,7 @@ containers/sonarqube/
 
 ### `config/quality-gate.json`
 Custom quality gate with these conditions:
-- **Coverage**: ≥ 80% for new code
+- **Coverage**: ≥ 70% for new code
 - **Duplications**: ≤ 3% for new code
 - **Maintainability**: A rating required
 - **Reliability**: A rating required

@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Enums\UserRole;
+use App\Events\User\UserCreatedEvent;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/User/CreateUserController', function () {
     it('can create a new user with valid data', function () {
@@ -254,5 +256,35 @@ describe('API/V1/Admin/User/CreateUserController', function () {
 
         // Assert
         $response->assertStatus(401);
+    });
+
+    it('dispatches UserCreatedEvent when user is created', function () {
+        // Arrange
+        Event::fake([UserCreatedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $authorRole = Role::where('name', UserRole::AUTHOR->value)->first();
+
+        $userData = [
+            'name' => 'New User',
+            'email' => 'newuser@example.com',
+            'password' => 'password123',
+            'role_id' => $authorRole->id,
+        ];
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->postJson(route('api.v1.admin.users.store'), $userData);
+
+        // Assert
+        $response->assertStatus(201);
+
+        Event::assertDispatched(UserCreatedEvent::class, function ($event) {
+            return $event->user->email === 'newuser@example.com'
+                && $event->user->name === 'New User';
+        });
     });
 });

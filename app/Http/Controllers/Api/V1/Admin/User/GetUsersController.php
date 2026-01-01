@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Admin\User;
 
+use App\Data\FilterUserDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\User\GetUsersRequest;
 use App\Http\Resources\MetaResource;
@@ -21,18 +22,38 @@ final class GetUsersController extends Controller
     ) {}
 
     /**
-     * Get Users List
+     * Get Paginated List of Users (Admin)
      *
-     * Retrieve a paginated list of users with optional filtering by role, status, and search terms
+     * Retrieves a paginated list of all users in the system with comprehensive filtering, sorting,
+     * and search capabilities. This admin endpoint provides full user management capabilities including
+     * filtering by role, account status (active, banned, blocked), and search functionality.
+     *
+     * **Authentication & Authorization:**
+     * Requires a valid Bearer token with `access-api` ability and `view_users` permission.
+     *
+     * **Query Parameters (all optional):**
+     * - `page` (integer, min:1, default: 1): Page number for pagination
+     * - `per_page` (integer, min:1, max:100, default: 15): Number of users per page
+     * - `search` (string, max:255): Search term to filter users by name or email
+     * - `role_id` (integer): Filter users by specific role ID
+     * - `status` (enum: active|banned|blocked): Filter users by account status
+     * - `created_after` (date, Y-m-d format): Filter users created on or after this date
+     * - `created_before` (date, Y-m-d format): Filter users created on or before this date
+     * - `sort_by` (enum: name|email|created_at|updated_at, default: created_at): Field to sort by
+     * - `sort_direction` (enum: asc|desc, default: desc): Sort direction
+     *
+     * **Response:**
+     * Returns a paginated collection of users with detailed information including roles, permissions,
+     * account status, and metadata. Includes pagination metadata with total count, current page,
+     * per page limit, and pagination links.
      *
      * @response array{status: true, message: string, data: array{users: UserDetailResource[], meta: MetaResource}}
      */
     public function __invoke(GetUsersRequest $request): JsonResponse
     {
         try {
-            $params = $request->withDefaults();
-
-            $users = $this->userService->getUsers($params);
+            $dto = FilterUserDTO::fromRequest($request);
+            $users = $this->userService->getUsers($dto);
 
             $userCollection = UserDetailResource::collection($users);
 
@@ -61,10 +82,7 @@ final class GetUsersController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return $this->handleException($e, $request);
         }
     }
 }

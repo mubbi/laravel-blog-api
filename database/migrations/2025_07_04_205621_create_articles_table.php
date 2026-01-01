@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('slug')->unique();
             $table->string('title')->index();
-            $table->string('subtitle')->nullable();
-            $table->string('excerpt', 500)->nullable();
+            $table->string('subtitle')->nullable()->index();
+            $table->string('excerpt', 500)->nullable()->index();
 
             $table->text('content_markdown');
             $table->longText('content_html')->nullable();
@@ -32,20 +32,30 @@ return new class extends Migration
             $table->foreignId('created_by')
                 ->constrained('users')
                 ->onDelete('cascade')
-                ->index()
                 ->comment('FK to users (creator)')
                 ->name('articles_created_by_foreign');
             $table->foreignId('approved_by')
                 ->constrained('users')
                 ->onDelete('cascade')
-                ->index()
                 ->comment('FK to users (approver)')
                 ->name('articles_approved_by_foreign');
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete()
+                ->name('articles_updated_by_foreign');
 
             $table->timestamps();
 
+            // Composite indexes for common query patterns
             $table->index(['status', 'published_at']);
+            $table->index(['status', 'created_at']);
+            $table->index(['created_by', 'status']);
+            $table->index(['created_at']);
+
+            // Full-text indexes for search queries (MySQL 5.7.6+)
+            $table->fullText(['title', 'subtitle', 'excerpt']);
+            $table->fullText(['content_markdown']);
         });
     }
 

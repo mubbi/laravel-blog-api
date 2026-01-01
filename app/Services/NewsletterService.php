@@ -4,22 +4,32 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Data\FilterNewsletterSubscriberDTO;
+use App\Events\Newsletter\NewsletterSubscriberDeletedEvent;
 use App\Models\NewsletterSubscriber;
+use App\Repositories\Contracts\NewsletterSubscriberRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Event;
 
-class NewsletterService
+final class NewsletterService
 {
+    public function __construct(
+        private readonly NewsletterSubscriberRepositoryInterface $newsletterSubscriberRepository
+    ) {}
+
     /**
      * Delete a newsletter subscriber
      *
-     * @param  array<string, mixed>  $data
-     *
      * @throws ModelNotFoundException
      */
-    public function deleteSubscriber(int $subscriberId, array $data): void
+    public function deleteSubscriber(int $subscriberId): void
     {
-        $subscriber = NewsletterSubscriber::findOrFail($subscriberId);
-        $subscriber->delete();
+        $subscriber = $this->newsletterSubscriberRepository->findOrFail($subscriberId);
+        $email = $subscriber->email;
+        $this->newsletterSubscriberRepository->delete($subscriberId);
+
+        Event::dispatch(new NewsletterSubscriberDeletedEvent($subscriberId, $email));
     }
 
     /**
@@ -29,49 +39,39 @@ class NewsletterService
      */
     public function getSubscriberById(int $subscriberId): NewsletterSubscriber
     {
-        return NewsletterSubscriber::findOrFail($subscriberId);
+        return $this->newsletterSubscriberRepository->findOrFail($subscriberId);
     }
 
     /**
      * Get subscribers with filters
      *
-     * @param  array<string, mixed>  $filters
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<int, NewsletterSubscriber>
+     * @return LengthAwarePaginator<int, NewsletterSubscriber>
      */
-    public function getSubscribers(array $filters): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function getSubscribers(FilterNewsletterSubscriberDTO $dto): LengthAwarePaginator
     {
-        $query = NewsletterSubscriber::query();
+        $query = $this->newsletterSubscriberRepository->query();
 
-        if (isset($filters['search'])) {
-            /** @var string $searchTerm */
-            $searchTerm = $filters['search'];
-            $query->where('email', 'like', "%{$searchTerm}%");
+        if ($dto->search !== null) {
+            $query->where('email', 'like', "%{$dto->search}%");
         }
 
-        if (isset($filters['status'])) {
-            if ($filters['status'] === 'verified') {
+        if ($dto->status !== null) {
+            if ($dto->status === 'verified') {
                 $query->where('is_verified', true);
-            } elseif ($filters['status'] === 'unverified') {
+            } elseif ($dto->status === 'unverified') {
                 $query->where('is_verified', false);
             }
         }
 
-        if (isset($filters['subscribed_at_from'])) {
-            $query->where('created_at', '>=', $filters['subscribed_at_from']);
+        if ($dto->subscribedAtFrom !== null) {
+            $query->where('created_at', '>=', $dto->subscribedAtFrom);
         }
 
-        if (isset($filters['subscribed_at_to'])) {
-            $query->where('created_at', '<=', $filters['subscribed_at_to']);
+        if ($dto->subscribedAtTo !== null) {
+            $query->where('created_at', '<=', $dto->subscribedAtTo);
         }
 
-        /** @var string $sortBy */
-        $sortBy = $filters['sort_by'] ?? 'created_at';
-        /** @var string $sortOrder */
-        $sortOrder = $filters['sort_order'] ?? 'desc';
-        /** @var int $perPage */
-        $perPage = $filters['per_page'] ?? 15;
-
-        return $query->orderBy($sortBy, $sortOrder)->paginate($perPage);
+        return $query->orderBy($dto->sortBy, $dto->sortOrder)->paginate($dto->perPage, ['*'], 'page', $dto->page);
     }
 
     /**
@@ -79,6 +79,6 @@ class NewsletterService
      */
     public function getTotalSubscribers(): int
     {
-        return NewsletterSubscriber::count();
+        return $this->newsletterSubscriberRepository->count();
     }
 }

@@ -43,7 +43,7 @@ use Laravel\Sanctum\HasApiTokens;
  *
  * @phpstan-use \Illuminate\Database\Eloquent\Factories\HasFactory<self>
  */
-class User extends Authenticatable
+final class User extends Authenticatable
 {
     use HasApiTokens, HasCachedRolesAndPermissions, HasFactory, Notifiable;
 
@@ -85,12 +85,12 @@ class User extends Authenticatable
         parent::boot();
 
         // Clear cache when user is updated
-        static::updated(function (User $user) {
+        self::updated(function (User $user) {
             $user->clearCache();
         });
 
         // Clear cache when user is deleted
-        static::deleted(function (User $user) {
+        self::deleted(function (User $user) {
             $user->clearCache();
         });
     }

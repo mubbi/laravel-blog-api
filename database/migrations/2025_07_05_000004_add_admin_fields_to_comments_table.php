@@ -12,13 +12,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('comments', function (Blueprint $table) {
-            $table->enum('status', ['pending', 'approved', 'rejected', 'spam'])->default('pending')->after('content');
+            $table->enum('status', ['pending', 'approved', 'rejected', 'spam'])->default('pending')->after('content')->index();
             $table->timestamp('approved_at')->nullable()->after('status');
-            $table->foreignId('approved_by')->nullable()->constrained('users')->after('approved_at');
-            $table->integer('report_count')->default(0)->after('approved_by');
+            $table->foreignId('approved_by')
+                ->nullable()
+                ->constrained('users')
+                ->after('approved_at')
+                ->name('comments_approved_by_foreign');
+            $table->integer('report_count')->default(0)->after('approved_by')->index();
             $table->timestamp('last_reported_at')->nullable()->after('report_count');
             $table->text('report_reason')->nullable()->after('last_reported_at');
             $table->text('moderator_notes')->nullable()->after('report_reason');
+
+            // Composite indexes for filtering
+            $table->index(['article_id', 'status']);
+            $table->index(['status', 'created_at']);
+            $table->index(['user_id', 'status']);
+            $table->index(['report_count', 'status']);
         });
     }
 

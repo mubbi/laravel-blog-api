@@ -12,7 +12,7 @@ final class UnblockUserRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user !== null && $user->hasPermission('block_users');
+        return $user !== null && $user->hasPermission('restore_users');
     }
 
     /**

@@ -16,6 +16,10 @@ return new class extends Migration
             $table->enum('type', ['article_published', 'new_comment', 'newsletter', 'system_alert'])->index();
             $table->json('message');
             $table->timestamps();
+
+            // Composite indexes for common query patterns
+            $table->index(['type', 'created_at']);
+            $table->index(['created_at']);
         });
     }
 

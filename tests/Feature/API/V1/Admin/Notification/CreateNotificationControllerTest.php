@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 use App\Enums\NotificationType;
 use App\Enums\UserRole;
+use App\Events\Notification\NotificationCreatedEvent;
 use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/Notification/CreateNotificationController', function () {
     it('can create a system notification successfully', function () {
@@ -95,5 +97,36 @@ describe('API/V1/Admin/Notification/CreateNotificationController', function () {
 
         // Assert
         $response->assertStatus(401);
+    });
+
+    it('dispatches NotificationCreatedEvent when notification is created', function () {
+        // Arrange
+        Event::fake([NotificationCreatedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $notificationData = [
+            'type' => NotificationType::SYSTEM_ALERT->value,
+            'message' => [
+                'title' => 'System Maintenance',
+                'body' => 'Scheduled maintenance will occur tonight',
+                'priority' => 'high',
+            ],
+            'audiences' => ['all_users'],
+        ];
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->postJson(route('api.v1.admin.notifications.store'), $notificationData);
+
+        // Assert
+        $response->assertStatus(201);
+
+        Event::assertDispatched(NotificationCreatedEvent::class, function ($event) {
+            return $event->notification->type === NotificationType::SYSTEM_ALERT
+                && $event->notification->message['title'] === 'System Maintenance';
+        });
     });
 });

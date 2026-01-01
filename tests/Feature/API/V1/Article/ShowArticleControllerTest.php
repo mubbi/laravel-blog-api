@@ -77,7 +77,7 @@ describe('API/V1/Article/ShowArticleController', function () {
         $response->assertStatus(404)
             ->assertJson([
                 'status' => false,
-                'message' => __('common.not_found'),
+                'message' => __('common.article_not_found'),
                 'data' => null,
                 'error' => null,
             ]);

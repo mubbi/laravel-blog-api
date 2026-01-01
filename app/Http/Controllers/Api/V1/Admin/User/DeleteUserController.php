@@ -19,9 +19,24 @@ final class DeleteUserController extends Controller
     ) {}
 
     /**
-     * Delete User
+     * Permanently Delete User (Admin)
      *
-     * Permanently delete a user from the system
+     * Permanently deletes a user account from the system. This action cannot be undone and
+     * will remove all user data including profile information, associated records, and
+     * authentication tokens. Users cannot delete their own account through this endpoint.
+     *
+     * **Authentication & Authorization:**
+     * Requires a valid Bearer token with `access-api` ability and `delete_users` permission.
+     *
+     * **Route Parameters:**
+     * - `id` (integer, required): The unique identifier of the user to delete
+     *
+     * **Response:**
+     * Returns a success message confirming the user has been deleted. The response body
+     * contains no data (null) as the user no longer exists.
+     *
+     * **Note:** This operation cannot be reversed. Consider using user blocking/banning
+     * instead if temporary account suspension is desired.
      *
      * @response array{status: true, message: string, data: null}
      */
@@ -42,10 +57,7 @@ final class DeleteUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                $e->getMessage(),
-                Response::HTTP_FORBIDDEN
-            );
+            return $this->handleException($e, $request);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             /**
              * User not found
@@ -54,10 +66,7 @@ final class DeleteUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.user_not_found'),
-                Response::HTTP_NOT_FOUND
-            );
+            return $this->handleException($e, $request);
         } catch (\Throwable $e) {
             /**
              * Internal server error
@@ -66,10 +75,7 @@ final class DeleteUserController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return $this->handleException($e, $request);
         }
     }
 }

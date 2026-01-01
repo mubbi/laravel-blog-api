@@ -12,13 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('articles', function (Blueprint $table) {
-            $table->boolean('is_featured')->default(false)->after('status');
-            $table->boolean('is_pinned')->default(false)->after('is_featured');
+            $table->boolean('is_featured')->default(false)->after('status')->index();
+            $table->boolean('is_pinned')->default(false)->after('is_featured')->index();
             $table->timestamp('featured_at')->nullable()->after('is_pinned');
             $table->timestamp('pinned_at')->nullable()->after('featured_at');
-            $table->integer('report_count')->default(0)->after('pinned_at');
+            $table->integer('report_count')->default(0)->after('pinned_at')->index();
             $table->timestamp('last_reported_at')->nullable()->after('report_count');
             $table->text('report_reason')->nullable()->after('last_reported_at');
+
+            // Composite indexes for filtering
+            $table->index(['is_featured', 'status', 'published_at']);
+            $table->index(['is_pinned', 'status', 'published_at']);
+            $table->index(['report_count', 'status']);
         });
     }
 

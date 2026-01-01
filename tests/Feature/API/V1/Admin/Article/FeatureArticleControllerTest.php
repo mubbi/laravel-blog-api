@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 use App\Enums\ArticleStatus;
 use App\Enums\UserRole;
+use App\Events\Article\ArticleFeaturedEvent;
+use App\Events\Article\ArticleUnfeaturedEvent;
 use App\Models\Article;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/Article/FeatureArticleController', function () {
     it('can feature a published article', function () {
@@ -280,5 +283,63 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         $this->assertEquals($originalData['is_pinned'], $article->is_pinned);
         $this->assertEquals($originalData['report_count'], $article->report_count);
 
+    });
+
+    it('dispatches ArticleFeaturedEvent when article is featured', function () {
+        // Arrange
+        Event::fake([ArticleFeaturedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $token = $admin->createToken('test-token', ['access-api']);
+
+        $article = Article::factory()->create([
+            'status' => ArticleStatus::PUBLISHED,
+            'is_featured' => false,
+        ]);
+
+        // Act
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token->plainTextToken,
+        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(ArticleFeaturedEvent::class, function ($event) use ($article) {
+            return $event->article->id === $article->id
+                && $event->article->is_featured === true;
+        });
+    });
+
+    it('dispatches ArticleUnfeaturedEvent when article is unfeatured', function () {
+        // Arrange
+        Event::fake([ArticleUnfeaturedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $token = $admin->createToken('test-token', ['access-api']);
+
+        $article = Article::factory()->create([
+            'status' => ArticleStatus::PUBLISHED,
+            'is_featured' => true,
+        ]);
+
+        // Act
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token->plainTextToken,
+        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(ArticleUnfeaturedEvent::class, function ($event) use ($article) {
+            return $event->article->id === $article->id
+                && $event->article->is_featured === false;
+        });
     });
 });

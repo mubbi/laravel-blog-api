@@ -15,14 +15,30 @@ use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 #[Group('Comments', weight: 2)]
-class GetCommentsController extends Controller
+final class GetCommentsController extends Controller
 {
     public function __construct(private readonly ArticleService $articleService) {}
 
     /**
-     * Get Comments List
+     * Get Paginated Comments for an Article
      *
-     * Retrieve a paginated list of comments for an article (with 1 child level)
+     * Retrieves a paginated list of approved comments for a specific article. Supports nested
+     * comment threading with one level of child comments. Comments are returned in a hierarchical
+     * structure where parent comments contain their direct replies. Only approved comments are
+     * returned through this public endpoint.
+     *
+     * **Route Parameters:**
+     * - `article` (string, required): Article slug identifier (route model binding)
+     *
+     * **Query Parameters (all optional):**
+     * - `page` (integer, min:1, default: 1): Page number for pagination
+     * - `per_page` (integer, min:1, max:100, default: 10): Number of comments per page
+     * - `parent_id` (integer, nullable): Filter to show only child comments of a specific parent comment ID
+     *
+     * **Response:**
+     * Returns a paginated collection of comments with metadata. Each comment includes user
+     * information, comment content, creation date, and nested child comments (if any).
+     * The response structure supports threaded comment displays in the UI.
      *
      * @unauthenticated
      *
@@ -66,10 +82,14 @@ class GetCommentsController extends Controller
                 __('common.success')
             );
         } catch (\Throwable $e) {
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            /**
+             * Internal server error
+             *
+             * @status 500
+             *
+             * @body array{status: false, message: string, data: null, error: null}
+             */
+            return $this->handleException($e, $request);
         }
     }
 }

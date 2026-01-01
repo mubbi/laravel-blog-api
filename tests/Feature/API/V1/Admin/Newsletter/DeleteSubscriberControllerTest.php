@@ -3,11 +3,13 @@
 declare(strict_types=1);
 
 use App\Enums\UserRole;
+use App\Events\Newsletter\NewsletterSubscriberDeletedEvent;
 use App\Models\NewsletterSubscriber;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\NewsletterService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 
 describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
@@ -270,8 +272,10 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Mock NewsletterService to throw ModelNotFoundException
         $this->mock(NewsletterService::class, function ($mock) {
+            $exception = new ModelNotFoundException;
+            $exception->setModel(\App\Models\NewsletterSubscriber::class);
             $mock->shouldReceive('deleteSubscriber')
-                ->andThrow(new ModelNotFoundException);
+                ->andThrow($exception);
         });
 
         // Act
@@ -320,6 +324,87 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         // Verify no record exists
         $deletedSubscriber = NewsletterSubscriber::find($subscriberId);
         expect($deletedSubscriber)->toBeNull();
+    });
+
+    it('dispatches NewsletterSubscriberDeletedEvent when subscriber is deleted', function () {
+        // Arrange
+        Event::fake([NewsletterSubscriberDeletedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $subscriber = NewsletterSubscriber::factory()->create([
+            'email' => 'test@example.com',
+        ]);
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+                'reason' => 'Test deletion',
+            ]);
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(NewsletterSubscriberDeletedEvent::class, function ($event) use ($subscriber) {
+            return $event->subscriberId === $subscriber->id
+                && $event->email === $subscriber->email;
+        });
+    });
+
+    it('dispatches NewsletterSubscriberDeletedEvent with correct data for verified subscriber', function () {
+        // Arrange
+        Event::fake([NewsletterSubscriberDeletedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $subscriber = NewsletterSubscriber::factory()->create([
+            'email' => 'verified@example.com',
+            'is_verified' => true,
+        ]);
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(NewsletterSubscriberDeletedEvent::class, function ($event) use ($subscriber) {
+            return $event->subscriberId === $subscriber->id
+                && $event->email === 'verified@example.com';
+        });
+    });
+
+    it('does not dispatch NewsletterSubscriberDeletedEvent when deletion fails', function () {
+        // Arrange
+        Event::fake([NewsletterSubscriberDeletedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        // Mock NewsletterService to throw exception before deletion
+        $this->mock(NewsletterService::class, function ($mock) {
+            $exception = new ModelNotFoundException;
+            $exception->setModel(\App\Models\NewsletterSubscriber::class);
+            $mock->shouldReceive('deleteSubscriber')
+                ->andThrow($exception);
+        });
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', 99999), [
+                'reason' => 'Test note',
+            ]);
+
+        // Assert
+        $response->assertStatus(404);
+
+        Event::assertNotDispatched(NewsletterSubscriberDeletedEvent::class);
     });
 
     it('deletes subscriber with user relationship', function () {

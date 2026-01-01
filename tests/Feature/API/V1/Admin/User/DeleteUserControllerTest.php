@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Enums\UserRole;
+use App\Events\User\UserDeletedEvent;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/User/DeleteUserController', function () {
     it('can delete a user successfully', function () {
@@ -268,5 +270,119 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         $this->assertDatabaseMissing('users', [
             'id' => $userToDelete->id,
         ]);
+    });
+
+    it('dispatches UserDeletedEvent when user is deleted', function () {
+        // Arrange
+        Event::fake([UserDeletedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $userToDelete = User::factory()->create([
+            'email' => 'test@example.com',
+        ]);
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete->id));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(UserDeletedEvent::class, function ($event) use ($userToDelete) {
+            return $event->userId === $userToDelete->id
+                && $event->email === $userToDelete->email;
+        });
+    });
+
+    it('dispatches UserDeletedEvent with correct data for verified user', function () {
+        // Arrange
+        Event::fake([UserDeletedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $userToDelete = User::factory()->create([
+            'email' => 'verified@example.com',
+            'email_verified_at' => now(),
+        ]);
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete->id));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(UserDeletedEvent::class, function ($event) use ($userToDelete) {
+            return $event->userId === $userToDelete->id
+                && $event->email === 'verified@example.com';
+        });
+    });
+
+    it('dispatches UserDeletedEvent with correct data for user with roles', function () {
+        // Arrange
+        Event::fake([UserDeletedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $userToDelete = User::factory()->create([
+            'email' => 'author@example.com',
+        ]);
+        $authorRole = Role::where('name', UserRole::AUTHOR->value)->first();
+        attachRoleAndRefreshCache($userToDelete, $authorRole);
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete->id));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(UserDeletedEvent::class, function ($event) use ($userToDelete) {
+            return $event->userId === $userToDelete->id
+                && $event->email === 'author@example.com';
+        });
+    });
+
+    it('does not dispatch UserDeletedEvent when user deletion is prevented', function () {
+        // Arrange
+        Event::fake([UserDeletedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        // Act - Try to delete self (should be prevented)
+        $response = $this->actingAs($admin)
+            ->deleteJson(route('api.v1.admin.users.destroy', $admin->id));
+
+        // Assert
+        $response->assertStatus(403);
+
+        Event::assertNotDispatched(UserDeletedEvent::class);
+    });
+
+    it('does not dispatch UserDeletedEvent when user does not exist', function () {
+        // Arrange
+        Event::fake([UserDeletedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->deleteJson(route('api.v1.admin.users.destroy', 99999));
+
+        // Assert
+        $response->assertStatus(404);
+
+        Event::assertNotDispatched(UserDeletedEvent::class);
     });
 });

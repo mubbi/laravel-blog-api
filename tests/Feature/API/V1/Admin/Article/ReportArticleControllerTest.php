@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 use App\Enums\ArticleStatus;
 use App\Enums\UserRole;
+use App\Events\Article\ArticleReportedEvent;
 use App\Models\Article;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/Article/ReportArticleController', function () {
     it('can report an article successfully', function () {
@@ -291,5 +293,34 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
             'id' => $article->id,
             'report_count' => 3,
         ]);
+    });
+
+    it('dispatches ArticleReportedEvent when article is reported', function () {
+        // Arrange
+        Event::fake([ArticleReportedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $token = $admin->createToken('test-token', ['access-api']);
+
+        $article = Article::factory()->create([
+            'status' => ArticleStatus::PUBLISHED,
+            'report_count' => 0,
+        ]);
+
+        // Act
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token->plainTextToken,
+        ])->postJson(route('api.v1.admin.articles.report', $article->id));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(ArticleReportedEvent::class, function ($event) use ($article) {
+            return $event->article->id === $article->id
+                && $event->article->report_count === 1;
+        });
     });
 });

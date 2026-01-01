@@ -1,5 +1,8 @@
 <?php
 
+// Enable bypass-finals to allow mocking final classes in tests
+DG\BypassFinals::enable();
+
 /*
 |--------------------------------------------------------------------------
 | Test Case

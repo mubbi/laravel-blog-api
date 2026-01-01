@@ -4,32 +4,38 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Enums\NotificationType;
+use App\Data\CreateNotificationDTO;
+use App\Data\FilterNotificationDTO;
+use App\Events\Notification\NotificationCreatedEvent;
+use App\Events\Notification\NotificationSentEvent;
 use App\Models\Notification;
 use App\Models\NotificationAudience;
 use App\Models\Role;
+use App\Repositories\Contracts\NotificationRepositoryInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 
-class NotificationService
+final class NotificationService
 {
+    public function __construct(
+        private readonly NotificationRepositoryInterface $notificationRepository
+    ) {}
+
     /**
      * Create a new notification
-     *
-     * @param  array<string, mixed>  $data
      */
-    public function createNotification(array $data): Notification
+    public function createNotification(CreateNotificationDTO $dto): Notification
     {
-        // Ensure we store the complete message structure
-        $notification = Notification::create([
-            'type' => $data['type'],
-            'message' => $data['message'], // This should contain the complete message structure
-        ]);
+        return DB::transaction(function () use ($dto) {
+            $notification = $this->notificationRepository->create($dto->toArray());
 
-        // Create audience records
-        if (isset($data['audiences']) && is_array($data['audiences'])) {
-            foreach ($data['audiences'] as $audience) {
-                if ($audience === 'specific_users' && isset($data['user_ids']) && is_array($data['user_ids'])) {
-                    foreach ($data['user_ids'] as $userId) {
+            // Create audience records
+            foreach ($dto->audiences as $audience) {
+                if ($audience === 'specific_users' && $dto->userIds !== null) {
+                    foreach ($dto->userIds as $userId) {
                         NotificationAudience::create([
                             'notification_id' => $notification->id,
                             'audience_type' => 'user',
@@ -53,9 +59,13 @@ class NotificationService
                     ]);
                 }
             }
-        }
 
-        return $notification->load('audiences');
+            $notification->load('audiences');
+
+            Event::dispatch(new NotificationCreatedEvent($notification));
+
+            return $notification;
+        });
     }
 
     /**
@@ -70,6 +80,8 @@ class NotificationService
         // - Sending SMS
         // - Creating in-app notifications
         // - etc.
+
+        Event::dispatch(new NotificationSentEvent($notification));
     }
 
     /**
@@ -79,48 +91,41 @@ class NotificationService
      */
     public function getNotificationById(int $notificationId): Notification
     {
-        return Notification::with(['audiences'])->findOrFail($notificationId);
+        return $this->notificationRepository->query()
+            ->with(['audiences'])
+            ->findOrFail($notificationId);
     }
 
     /**
      * Get notifications with filters
      *
-     * @param  array<string, mixed>  $filters
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<int, Notification>
+     * @return LengthAwarePaginator<int, Notification>
      */
-    public function getNotifications(array $filters): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function getNotifications(FilterNotificationDTO $dto): LengthAwarePaginator
     {
-        $query = Notification::query();
+        $query = $this->notificationRepository->query()
+            ->with(['audiences']);
 
-        if (isset($filters['search'])) {
-            /** @var string $searchTerm */
-            $searchTerm = $filters['search'];
-            $query->where(function ($q) use ($searchTerm) {
-                $q->whereRaw("JSON_EXTRACT(message, '$.title') LIKE ?", ["%{$searchTerm}%"])
-                    ->orWhereRaw("JSON_EXTRACT(message, '$.body') LIKE ?", ["%{$searchTerm}%"]);
+        if ($dto->search !== null) {
+            $query->where(function (Builder $q) use ($dto) {
+                $q->whereRaw("JSON_EXTRACT(message, '$.title') LIKE ?", ["%{$dto->search}%"])
+                    ->orWhereRaw("JSON_EXTRACT(message, '$.body') LIKE ?", ["%{$dto->search}%"]);
             });
         }
 
-        if (isset($filters['type'])) {
-            $query->where('type', $filters['type']);
+        if ($dto->type !== null) {
+            $query->where('type', $dto->type->value);
         }
 
-        if (isset($filters['created_at_from'])) {
-            $query->where('created_at', '>=', $filters['created_at_from']);
+        if ($dto->createdAtFrom !== null) {
+            $query->where('created_at', '>=', $dto->createdAtFrom);
         }
 
-        if (isset($filters['created_at_to'])) {
-            $query->where('created_at', '<=', $filters['created_at_to']);
+        if ($dto->createdAtTo !== null) {
+            $query->where('created_at', '<=', $dto->createdAtTo);
         }
 
-        /** @var string $sortBy */
-        $sortBy = $filters['sort_by'] ?? 'created_at';
-        /** @var string $sortOrder */
-        $sortOrder = $filters['sort_order'] ?? 'desc';
-        /** @var int $perPage */
-        $perPage = $filters['per_page'] ?? 15;
-
-        return $query->orderBy($sortBy, $sortOrder)->paginate($perPage);
+        return $query->orderBy($dto->sortBy, $dto->sortOrder)->paginate($dto->perPage);
     }
 
     /**
@@ -128,7 +133,7 @@ class NotificationService
      */
     public function getTotalNotifications(): int
     {
-        return Notification::count();
+        return $this->notificationRepository->count();
     }
 
     /**
@@ -139,12 +144,12 @@ class NotificationService
     public function getNotificationStats(): array
     {
         return [
-            'total' => Notification::count(),
+            'total' => $this->notificationRepository->count(),
             'by_type' => [
-                'article_published' => Notification::where('type', NotificationType::ARTICLE_PUBLISHED)->count(),
-                'new_comment' => Notification::where('type', NotificationType::NEW_COMMENT)->count(),
-                'newsletter' => Notification::where('type', NotificationType::NEWSLETTER)->count(),
-                'system_alert' => Notification::where('type', NotificationType::SYSTEM_ALERT)->count(),
+                'article_published' => $this->notificationRepository->countByType(\App\Enums\NotificationType::ARTICLE_PUBLISHED->value),
+                'new_comment' => $this->notificationRepository->countByType(\App\Enums\NotificationType::NEW_COMMENT->value),
+                'newsletter' => $this->notificationRepository->countByType(\App\Enums\NotificationType::NEWSLETTER->value),
+                'system_alert' => $this->notificationRepository->countByType(\App\Enums\NotificationType::SYSTEM_ALERT->value),
             ],
         ];
     }

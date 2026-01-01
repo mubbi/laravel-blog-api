@@ -24,7 +24,7 @@ final class GetNotificationsRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user !== null && $user->can('view_notifications');
+        return $user !== null && $user->hasPermission('view_notifications');
     }
 
     /**

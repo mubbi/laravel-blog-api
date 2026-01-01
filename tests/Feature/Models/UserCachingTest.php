@@ -7,10 +7,19 @@ use App\Enums\UserRole;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Facades\Cache;
 
 describe('User Caching', function () {
     beforeEach(function () {
+        // Restore event dispatcher for Eloquent models to allow model events to run
+        // This test suite depends on model event callbacks (Role::boot(), User::boot())
+        // to properly increment cache versions when roles/users are updated
+        // Event::fake() in TestCase prevents all events, including model events
+        // So we need to set a real dispatcher for models specifically
+        Model::setEventDispatcher(new Dispatcher);
+
         // Clear all caches before each test
         Cache::flush();
     });

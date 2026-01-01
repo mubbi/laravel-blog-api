@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Support\Helper;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +21,41 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Repository bindings
+        $this->app->bind(
+            \App\Repositories\Contracts\UserRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentUserRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\ArticleRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentArticleRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\CommentRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentCommentRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\CategoryRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentCategoryRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\TagRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentTagRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\NotificationRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentNotificationRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\NewsletterSubscriberRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentNewsletterSubscriberRepository::class
+        );
     }
 
     /**
@@ -42,7 +77,7 @@ class AppServiceProvider extends ServiceProvider
                 $rateLimitInt = is_numeric($rateLimit) ? (int) $rateLimit : 60;
 
                 return Limit::perMinute($rateLimitInt)
-                    ->by($request->user()?->id ?: $request->ip());
+                    ->by($request->user()?->id ?: Helper::getRealIpAddress($request));
             });
         }
     }

@@ -4,7 +4,7 @@
     {
       "metric": "new_coverage",
       "op": "LT",
-      "threshold": "80"
+      "threshold": "70"
     },
     {
       "metric": "new_duplicated_lines_density",

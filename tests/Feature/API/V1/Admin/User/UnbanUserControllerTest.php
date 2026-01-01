@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Enums\UserRole;
+use App\Events\User\UserUnbannedEvent;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/User/UnbanUserController', function () {
     it('can unban a user successfully', function () {
@@ -200,5 +202,28 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
 
         $userToUnban->refresh();
         expect($userToUnban->banned_at)->toBeNull();
+    });
+
+    it('dispatches UserUnbannedEvent when user is unbanned', function () {
+        // Arrange
+        Event::fake([UserUnbannedEvent::class]);
+
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $userToUnban = User::factory()->create(['banned_at' => now()]);
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->postJson(route('api.v1.admin.users.unban', $userToUnban->id));
+
+        // Assert
+        $response->assertStatus(200);
+
+        Event::assertDispatched(UserUnbannedEvent::class, function ($event) use ($userToUnban) {
+            return $event->user->id === $userToUnban->id
+                && $event->user->banned_at === null;
+        });
     });
 });
