@@ -22,7 +22,9 @@ use App\Events\Auth\UserLoggedInEvent;
 use App\Events\Auth\UserLoggedOutEvent;
 use App\Events\Comment\CommentApprovedEvent;
 use App\Events\Comment\CommentDeletedEvent;
+use App\Events\Newsletter\NewsletterSubscriberCreatedEvent;
 use App\Events\Newsletter\NewsletterSubscriberDeletedEvent;
+use App\Events\Newsletter\NewsletterSubscriberUnsubscriptionRequestedEvent;
 use App\Events\Notification\NotificationCreatedEvent;
 use App\Events\Notification\NotificationSentEvent;
 use App\Events\User\UserBannedEvent;
@@ -50,7 +52,9 @@ use App\Listeners\Auth\HandleUserLoggedInListener;
 use App\Listeners\Auth\HandleUserLoggedOutListener;
 use App\Listeners\Comment\HandleCommentApprovedListener;
 use App\Listeners\Comment\HandleCommentDeletedListener;
+use App\Listeners\Newsletter\HandleNewsletterSubscriberCreatedListener;
 use App\Listeners\Newsletter\HandleNewsletterSubscriberDeletedListener;
+use App\Listeners\Newsletter\HandleNewsletterSubscriberUnsubscriptionRequestedListener;
 use App\Listeners\Notification\HandleNotificationCreatedListener;
 use App\Listeners\Notification\HandleNotificationSentListener;
 use App\Listeners\User\HandleUserBannedListener;
@@ -162,8 +166,14 @@ final class EventServiceProvider extends ServiceProvider
         ],
 
         // Newsletter Events
+        NewsletterSubscriberCreatedEvent::class => [
+            HandleNewsletterSubscriberCreatedListener::class,
+        ],
         NewsletterSubscriberDeletedEvent::class => [
             HandleNewsletterSubscriberDeletedListener::class,
+        ],
+        NewsletterSubscriberUnsubscriptionRequestedEvent::class => [
+            HandleNewsletterSubscriberUnsubscriptionRequestedListener::class,
         ],
     ];
 

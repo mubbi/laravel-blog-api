@@ -22,6 +22,12 @@ class OptionalSanctumAuthenticate
      */
     public function handle(Request $request, Closure $next): mixed
     {
+        // Check if user is already set (e.g., by actingAs() in tests)
+        $existingUser = $request->user();
+        if ($existingUser instanceof User) {
+            return $next($request);
+        }
+
         $user = null;
 
         $token = $request->bearerToken();

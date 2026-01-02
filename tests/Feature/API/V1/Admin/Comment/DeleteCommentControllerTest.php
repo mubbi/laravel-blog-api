@@ -254,7 +254,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
 
         // Verify error was logged
         Log::shouldReceive('error')->with(
-            'Comment deletion failed',
+            'DeleteCommentController: Exception occurred',
             \Mockery::type('array')
         );
     });

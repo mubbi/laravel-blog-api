@@ -63,4 +63,19 @@ interface NewsletterSubscriberRepositoryInterface
      * Count all newsletter subscribers
      */
     public function count(): int;
+
+    /**
+     * Find a newsletter subscriber by email
+     */
+    public function findByEmail(string $email): ?NewsletterSubscriber;
+
+    /**
+     * Find a newsletter subscriber by verification token
+     */
+    public function findByVerificationToken(string $token): ?NewsletterSubscriber;
+
+    /**
+     * Find a newsletter subscriber by verification token and email
+     */
+    public function findByVerificationTokenAndEmail(string $token, string $email): ?NewsletterSubscriber;
 }

@@ -31,6 +31,7 @@
         <env name="DB_DATABASE" value="laravel_blog_test"/>
         <env name="DB_USERNAME" value="laravel_user"/>
         <env name="DB_PASSWORD" value="laravel_password"/>
+        <env name="LOG_CHANNEL" value="null"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

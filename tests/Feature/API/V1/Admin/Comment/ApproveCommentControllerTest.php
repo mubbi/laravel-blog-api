@@ -270,7 +270,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Verify error was logged
         Log::shouldReceive('error')->with(
-            'Comment approval failed',
+            'ApproveCommentController: Exception occurred',
             \Mockery::type('array')
         );
     });

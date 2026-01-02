@@ -110,3 +110,39 @@ test('logs with empty headers and body', function () {
         return is_array($context['headers']) && is_array($context['body']);
     })->once();
 });
+
+test('masks nested sensitive fields like access_token and refresh_token', function () {
+    Route::middleware('api.logger')->post('/test-nested-masking', function () {
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'user' => [
+                    'id' => 1,
+                    'name' => 'Test User',
+                    'access_token' => 'secret-access-token-123',
+                    'refresh_token' => 'secret-refresh-token-456',
+                ],
+            ],
+        ]);
+    });
+
+    Log::spy();
+    $payload = [
+        'data' => [
+            'access_token' => 'request-access-token-789',
+            'refresh_token' => 'request-refresh-token-012',
+        ],
+    ];
+
+    $response = $this->postJson('/test-nested-masking', $payload);
+    $response->assertOk();
+
+    Log::shouldHaveReceived('info')->withArgs(function ($message, $context) {
+        return $message === 'API Request'
+            && $context['body']['data']['access_token'] === '***MASKED***'
+            && $context['body']['data']['refresh_token'] === '***MASKED***'
+            && is_array($context['response_body'])
+            && $context['response_body']['data']['user']['access_token'] === '***MASKED***'
+            && $context['response_body']['data']['user']['refresh_token'] === '***MASKED***';
+    })->once();
+});

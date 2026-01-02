@@ -236,7 +236,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Verify error was logged
         Log::shouldReceive('error')->with(
-            'Newsletter subscribers retrieval failed',
+            'GetSubscribersController: Exception occurred',
             \Mockery::type('array')
         );
     });

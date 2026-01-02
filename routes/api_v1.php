@@ -78,6 +78,14 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
 
         // Tag Routes
         Route::get('tags', \App\Http\Controllers\Api\V1\Tag\GetTagsController::class)->name('api.v1.tags.index');
+
+        // Newsletter Routes
+        Route::prefix('newsletter')->group(function () {
+            Route::post('/subscribe', \App\Http\Controllers\Api\V1\Newsletter\SubscribeController::class)->name('api.v1.newsletter.subscribe');
+            Route::post('/unsubscribe', \App\Http\Controllers\Api\V1\Newsletter\UnsubscribeController::class)->name('api.v1.newsletter.unsubscribe');
+            Route::post('/verify', \App\Http\Controllers\Api\V1\Newsletter\VerifySubscriptionController::class)->name('api.v1.newsletter.verify');
+            Route::post('/verify-unsubscribe', \App\Http\Controllers\Api\V1\Newsletter\VerifyUnsubscriptionController::class)->name('api.v1.newsletter.verify-unsubscribe');
+        });
     });
 
 });

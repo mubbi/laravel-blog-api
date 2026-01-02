@@ -8,6 +8,7 @@ use App\Models\NewsletterSubscriber;
 use App\Repositories\Contracts\NewsletterSubscriberRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Eloquent implementation of NewsletterSubscriberRepositoryInterface
@@ -96,5 +97,49 @@ final class EloquentNewsletterSubscriberRepository extends BaseEloquentRepositor
     public function count(): int
     {
         return NewsletterSubscriber::count();
+    }
+
+    /**
+     * Find a newsletter subscriber by email
+     */
+    public function findByEmail(string $email): ?NewsletterSubscriber
+    {
+        /** @var NewsletterSubscriber|null $subscriber */
+        $subscriber = $this->query()->where('email', $email)->first();
+
+        return $subscriber;
+    }
+
+    /**
+     * Find a newsletter subscriber by verification token
+     * The token parameter should be the plain token, which will be hashed for comparison
+     */
+    public function findByVerificationToken(string $token): ?NewsletterSubscriber
+    {
+        /** @var NewsletterSubscriber|null $subscriber */
+        $subscriber = $this->query()->get()->first(function ($subscriber) use ($token) {
+            return $subscriber->verification_token !== null
+                && Hash::check($token, $subscriber->verification_token);
+        });
+
+        return $subscriber;
+    }
+
+    /**
+     * Find a newsletter subscriber by verification token and email
+     * The token parameter should be the plain token, which will be hashed for comparison
+     */
+    public function findByVerificationTokenAndEmail(string $token, string $email): ?NewsletterSubscriber
+    {
+        /** @var NewsletterSubscriber|null $subscriber */
+        $subscriber = $this->query()
+            ->where('email', $email)
+            ->get()
+            ->first(function ($subscriber) use ($token) {
+                return $subscriber->verification_token !== null
+                    && Hash::check($token, $subscriber->verification_token);
+            });
+
+        return $subscriber;
     }
 }

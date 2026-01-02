@@ -244,7 +244,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Verify error was logged
         Log::shouldReceive('error')->with(
-            'Notifications retrieval failed',
+            'GetNotificationsController: Exception occurred',
             \Mockery::type('array')
         );
     });

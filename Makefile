@@ -149,6 +149,8 @@ docker-restart: docker-down docker-up
 test:
 	@if docker-compose -f containers/docker-compose.test.yml ps | grep -q 'laravel_blog_api_test' && docker-compose -f containers/docker-compose.test.yml ps | grep 'Up'; then \
 		echo "🧪 TESTING: Test container already running. Skipping setup..."; \
+		echo ">> Clearing config cache..."; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
 		echo ">> Running tests..."; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure; \
 		echo "✅ SUCCESS: Tests completed!"; \
@@ -159,6 +161,7 @@ test:
 		sleep 10; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force; \
 		echo ">> Running tests..."; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure; \
@@ -170,6 +173,8 @@ test:
 test-coverage:
 	@if docker-compose -f containers/docker-compose.test.yml ps | grep -q 'laravel_blog_api_test' && docker-compose -f containers/docker-compose.test.yml ps | grep 'Up'; then \
 		echo "🧪 TESTING: Test container already running. Skipping setup..."; \
+		echo ">> Clearing config cache..."; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
 		echo ">> Running tests with coverage..."; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=70; \
 		echo "✅ SUCCESS: Tests with coverage completed!"; \
@@ -179,6 +184,7 @@ test-coverage:
 		sleep 10; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force; \
 		echo ">> Running tests with coverage..."; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=70; \

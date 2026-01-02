@@ -255,7 +255,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Verify error was logged
         Log::shouldReceive('error')->with(
-            'Newsletter subscriber deletion failed',
+            'DeleteSubscriberController: Exception occurred',
             \Mockery::type('array')
         );
     });

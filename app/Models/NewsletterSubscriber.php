@@ -11,9 +11,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property int $id
  * @property string $email
+ * @property string|null $verification_token
+ * @property \Illuminate\Support\Carbon|null $verification_token_expires_at
  * @property int|null $user_id
  * @property bool $is_verified
  * @property \Illuminate\Support\Carbon $subscribed_at
+ * @property \Illuminate\Support\Carbon|null $unsubscribed_at
  * @property \Illuminate\Support\Carbon $created_at
  * @property \Illuminate\Support\Carbon $updated_at
  * @property-read User|null $user
@@ -38,6 +41,8 @@ final class NewsletterSubscriber extends Model
         return [
             'is_verified' => 'boolean',
             'subscribed_at' => 'datetime',
+            'unsubscribed_at' => 'datetime',
+            'verification_token_expires_at' => 'datetime',
         ];
     }
 
