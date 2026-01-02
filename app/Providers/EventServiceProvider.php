@@ -64,6 +64,10 @@ use App\Listeners\User\HandleUserDeletedListener;
 use App\Listeners\User\HandleUserUnbannedListener;
 use App\Listeners\User\HandleUserUnblockedListener;
 use App\Listeners\User\HandleUserUpdatedListener;
+use App\Models\Category;
+use App\Models\Tag;
+use App\Observers\CategoryObserver;
+use App\Observers\TagObserver;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 final class EventServiceProvider extends ServiceProvider
@@ -182,7 +186,8 @@ final class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Tag::observe(TagObserver::class);
+        Category::observe(CategoryObserver::class);
     }
 
     /**

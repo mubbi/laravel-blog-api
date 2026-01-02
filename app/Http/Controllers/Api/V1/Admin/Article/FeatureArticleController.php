@@ -9,8 +9,10 @@ use App\Http\Requests\V1\Admin\Article\FeatureArticleRequest;
 use App\Http\Resources\V1\Admin\Article\ArticleManagementResource;
 use App\Services\ArticleManagementService;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Admin - Article Management', weight: 2)]
 final class FeatureArticleController extends Controller
@@ -51,7 +53,7 @@ final class FeatureArticleController extends Controller
                 new ArticleManagementResource($article),
                 __('common.article_featured_successfully')
             );
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             /**
              * Article not found
              *
@@ -60,7 +62,7 @@ final class FeatureArticleController extends Controller
              * @body array{status: false, message: string, data: null, error: null}
              */
             return $this->handleException($e, $request);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

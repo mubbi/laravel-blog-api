@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\V1\Comment;
 
+use App\Enums\CommentStatus;
 use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -29,7 +30,7 @@ class CommentResource extends JsonResource
             'content' => $this->content,
             'status' => $this->status->value,
             'status_display' => $this->status->displayName(),
-            'is_approved' => $this->status === \App\Enums\CommentStatus::APPROVED,
+            'is_approved' => $this->status === CommentStatus::APPROVED,
             'approved_by' => $this->approved_by,
             'approved_at' => $this->approved_at?->toISOString(),
             'report_count' => $this->report_count,

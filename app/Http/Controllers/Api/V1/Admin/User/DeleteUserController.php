@@ -8,8 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\User\DeleteUserRequest;
 use App\Services\UserService;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Admin - User Management', weight: 2)]
 final class DeleteUserController extends Controller
@@ -49,7 +52,7 @@ final class DeleteUserController extends Controller
                 null,
                 __('common.user_deleted_successfully')
             );
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+        } catch (AuthorizationException $e) {
             /**
              * Forbidden - Cannot delete self
              *
@@ -58,7 +61,7 @@ final class DeleteUserController extends Controller
              * @body array{status: false, message: string, data: null, error: null}
              */
             return $this->handleException($e, $request);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             /**
              * User not found
              *
@@ -67,7 +70,7 @@ final class DeleteUserController extends Controller
              * @body array{status: false, message: string, data: null, error: null}
              */
             return $this->handleException($e, $request);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

@@ -7,6 +7,7 @@ namespace Database\Seeders;
 use App\Enums\UserRole;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
+use Throwable;
 
 /**
  * Role Seeder
@@ -49,7 +50,7 @@ final class RoleSeeder extends Seeder
             }
 
             $this->command->info("Role seeding completed. Created: {$createdCount}, Existing: {$existingCount}");
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->command->error('Failed to create roles: '.$e->getMessage());
             throw $e;
         }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\V1\Admin\Article;
 
+use App\Enums\ArticleStatus;
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -30,7 +31,7 @@ final class ArticleManagementResource extends JsonResource
             'content_html' => $this->resource->content_html,
             'featured_image' => $this->resource->featured_image,
             'status' => $this->resource->status->value,
-            'status_display' => $this->resource->status instanceof \App\Enums\ArticleStatus ? $this->resource->status->displayName() : $this->resource->status,
+            'status_display' => $this->resource->status instanceof ArticleStatus ? $this->resource->status->displayName() : $this->resource->status,
             'published_at' => $this->resource->published_at,
             'meta_title' => $this->resource->meta_title,
             'meta_description' => $this->resource->meta_description,

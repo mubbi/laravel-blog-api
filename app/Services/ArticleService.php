@@ -5,20 +5,27 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Data\FilterArticleDTO;
+use App\Enums\CacheKey;
 use App\Models\Article;
 use App\Models\Category;
 use App\Models\Comment;
 use App\Models\Tag;
+use App\Repositories\Contracts\ArticleRepositoryInterface;
+use App\Repositories\Contracts\CategoryRepositoryInterface;
+use App\Repositories\Contracts\CommentRepositoryInterface;
+use App\Repositories\Contracts\TagRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 final class ArticleService
 {
     public function __construct(
-        private readonly \App\Repositories\Contracts\ArticleRepositoryInterface $articleRepository,
-        private readonly \App\Repositories\Contracts\CategoryRepositoryInterface $categoryRepository,
-        private readonly \App\Repositories\Contracts\TagRepositoryInterface $tagRepository,
-        private readonly \App\Repositories\Contracts\CommentRepositoryInterface $commentRepository,
+        private readonly ArticleRepositoryInterface $articleRepository,
+        private readonly CategoryRepositoryInterface $categoryRepository,
+        private readonly TagRepositoryInterface $tagRepository,
+        private readonly CommentRepositoryInterface $commentRepository,
+        private readonly CacheService $cacheService,
     ) {}
 
     /**
@@ -134,23 +141,35 @@ final class ArticleService
     }
 
     /**
-     * Get all categories
+     * Get all categories from cache or database
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Category>
+     * @return Collection<int, Category>
      */
     public function getAllCategories()
     {
-        return $this->categoryRepository->all(['id', 'name', 'slug']);
+        return $this->cacheService->remember(
+            CacheKey::CATEGORIES,
+            fn () => $this->categoryRepository->query()
+                ->select(['id', 'name', 'slug'])
+                ->orderBy('name')
+                ->get()
+        );
     }
 
     /**
-     * Get all tags
+     * Get all tags from cache or database
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Tag>
+     * @return Collection<int, Tag>
      */
     public function getAllTags()
     {
-        return $this->tagRepository->all(['id', 'name', 'slug']);
+        return $this->cacheService->remember(
+            CacheKey::TAGS,
+            fn () => $this->tagRepository->query()
+                ->select(['id', 'name', 'slug'])
+                ->orderBy('name')
+                ->get()
+        );
     }
 
     /**
@@ -163,7 +182,7 @@ final class ArticleService
      * @param  int  $perPage  Number of parent comments per page.
      * @param  int  $page  Current page number.
      * @param  int  $repliesPerPage  Number of child comments per parent.
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<int, \App\Models\Comment>
+     * @return LengthAwarePaginator<int, Comment>
      */
     public function getArticleComments(
         int $articleId,
@@ -171,7 +190,7 @@ final class ArticleService
         int $perPage = 10,
         int $page = 1,
         int $repliesPerPage = 3
-    ): \Illuminate\Contracts\Pagination\LengthAwarePaginator {
+    ): LengthAwarePaginator {
         $query = $this->commentRepository->query()
             ->where('article_id', $articleId)
             ->when($parentId !== null, fn ($q) => $q->where('parent_comment_id', $parentId))
@@ -180,7 +199,7 @@ final class ArticleService
 
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
-        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Comment> $comments */
+        /** @var Collection<int, Comment> $comments */
         $comments = $paginator->getCollection();
 
         $comments->load(['user']);

@@ -12,6 +12,7 @@ use App\Services\UserService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Admin - User Management', weight: 2)]
 final class CreateUserController extends Controller
@@ -60,7 +61,7 @@ final class CreateUserController extends Controller
                 __('common.user_created_successfully'),
                 Response::HTTP_CREATED
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

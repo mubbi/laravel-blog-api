@@ -12,6 +12,7 @@ use App\Services\NewsletterService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Newsletter', weight: 4)]
 final class VerifyUnsubscriptionController extends Controller
@@ -64,7 +65,7 @@ final class VerifyUnsubscriptionController extends Controller
                 new NewsletterSubscriberResource($subscriber),
                 __('common.subscriber_unsubscribed_successfully')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

@@ -10,7 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\HasApiTokens;
+use Throwable;
 
 /**
  * @property int $id
@@ -189,8 +191,8 @@ final class User extends Authenticatable
             }
 
             return false;
-        } catch (\Throwable $e) {
-            \Log::error('hasPermission error', [
+        } catch (Throwable $e) {
+            Log::error('hasPermission error', [
                 'user_id' => $this->id,
                 'permission' => $permission,
                 'error' => $e->getMessage(),
@@ -226,8 +228,8 @@ final class User extends Authenticatable
             }
 
             return false;
-        } catch (\Throwable $e) {
-            \Log::error('hasAnyPermission error', [
+        } catch (Throwable $e) {
+            Log::error('hasAnyPermission error', [
                 'user_id' => $this->id,
                 'permissions' => $permissions,
                 'error' => $e->getMessage(),
@@ -263,8 +265,8 @@ final class User extends Authenticatable
             $userPermissions = array_unique($userPermissions);
 
             return empty(array_diff($permissions, $userPermissions));
-        } catch (\Throwable $e) {
-            \Log::error('hasAllPermissions error', [
+        } catch (Throwable $e) {
+            Log::error('hasAllPermissions error', [
                 'user_id' => $this->id,
                 'permissions' => $permissions,
                 'error' => $e->getMessage(),

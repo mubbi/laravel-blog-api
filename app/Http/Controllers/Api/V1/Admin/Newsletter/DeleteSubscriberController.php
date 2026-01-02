@@ -11,6 +11,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Admin - Newsletter', weight: 3)]
 final class DeleteSubscriberController extends Controller
@@ -59,7 +60,7 @@ final class DeleteSubscriberController extends Controller
              * @body array{status: false, message: string, data: null, error: null}
              */
             return $this->handleException($e, $request);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

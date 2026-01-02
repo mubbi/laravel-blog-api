@@ -11,6 +11,7 @@ use App\Services\NewsletterService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Newsletter', weight: 4)]
 final class SubscribeController extends Controller
@@ -56,7 +57,7 @@ final class SubscribeController extends Controller
                 null,
                 __('newsletter.verification_token_sent')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Article;
 
+use App\Data\FilterArticleDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Article\GetArticlesRequest;
 use App\Http\Resources\MetaResource;
@@ -11,7 +12,9 @@ use App\Http\Resources\V1\Article\ArticleResource;
 use App\Services\ArticleService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Articles', weight: 1)]
 final class GetArticlesController extends Controller
@@ -53,7 +56,7 @@ final class GetArticlesController extends Controller
     public function __invoke(GetArticlesRequest $request): JsonResponse
     {
         try {
-            $dto = \App\Data\FilterArticleDTO::fromPublicRequest($request);
+            $dto = FilterArticleDTO::fromPublicRequest($request);
 
             $articles = $this->articleService->getArticles($dto);
 
@@ -66,7 +69,7 @@ final class GetArticlesController extends Controller
 
             // Ensure we have the expected array structure
             if (! is_array($articleCollectionData) || ! isset($articleCollectionData['data'], $articleCollectionData['meta'])) {
-                throw new \RuntimeException(__('common.unexpected_response_format'));
+                throw new RuntimeException(__('common.unexpected_response_format'));
             }
 
             return response()->apiSuccess(
@@ -76,7 +79,7 @@ final class GetArticlesController extends Controller
                 ],
                 __('common.success')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

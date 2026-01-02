@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Data;
 
 use App\Enums\CommentStatus;
+use App\Http\Requests\V1\Admin\Comment\GetCommentsRequest;
 
 /**
  * Data Transfer Object for filtering comments
@@ -27,8 +28,9 @@ final class FilterCommentDTO
     /**
      * Create DTO from request
      */
-    public static function fromRequest(\App\Http\Requests\V1\Admin\Comment\GetCommentsRequest $request): self
+    public static function fromRequest(GetCommentsRequest $request): self
     {
+        /** @var array<string, mixed> $defaults */
         $defaults = $request->withDefaults();
 
         return new self(

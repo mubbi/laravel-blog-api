@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Data;
 
+use App\Http\Requests\V1\Admin\User\GetUsersRequest;
+
 /**
  * Data Transfer Object for filtering users
  */
@@ -24,7 +26,7 @@ final class FilterUserDTO
     /**
      * Create DTO from request
      */
-    public static function fromRequest(\App\Http\Requests\V1\Admin\User\GetUsersRequest $request): self
+    public static function fromRequest(GetUsersRequest $request): self
     {
         $defaults = $request->withDefaults();
 

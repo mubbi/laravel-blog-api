@@ -4,6 +4,20 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Repositories\Contracts\ArticleRepositoryInterface;
+use App\Repositories\Contracts\CategoryRepositoryInterface;
+use App\Repositories\Contracts\CommentRepositoryInterface;
+use App\Repositories\Contracts\NewsletterSubscriberRepositoryInterface;
+use App\Repositories\Contracts\NotificationRepositoryInterface;
+use App\Repositories\Contracts\TagRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Eloquent\EloquentArticleRepository;
+use App\Repositories\Eloquent\EloquentCategoryRepository;
+use App\Repositories\Eloquent\EloquentCommentRepository;
+use App\Repositories\Eloquent\EloquentNewsletterSubscriberRepository;
+use App\Repositories\Eloquent\EloquentNotificationRepository;
+use App\Repositories\Eloquent\EloquentTagRepository;
+use App\Repositories\Eloquent\EloquentUserRepository;
 use App\Support\Helper;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -23,38 +37,38 @@ class AppServiceProvider extends ServiceProvider
     {
         // Repository bindings
         $this->app->bind(
-            \App\Repositories\Contracts\UserRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentUserRepository::class
+            UserRepositoryInterface::class,
+            EloquentUserRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\ArticleRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentArticleRepository::class
+            ArticleRepositoryInterface::class,
+            EloquentArticleRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\CommentRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentCommentRepository::class
+            CommentRepositoryInterface::class,
+            EloquentCommentRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\CategoryRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentCategoryRepository::class
+            CategoryRepositoryInterface::class,
+            EloquentCategoryRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\TagRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentTagRepository::class
+            TagRepositoryInterface::class,
+            EloquentTagRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\NotificationRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentNotificationRepository::class
+            NotificationRepositoryInterface::class,
+            EloquentNotificationRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\NewsletterSubscriberRepositoryInterface::class,
-            \App\Repositories\Eloquent\EloquentNewsletterSubscriberRepository::class
+            NewsletterSubscriberRepositoryInterface::class,
+            EloquentNewsletterSubscriberRepository::class
         );
     }
 

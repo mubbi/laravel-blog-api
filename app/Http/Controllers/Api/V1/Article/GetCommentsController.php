@@ -13,6 +13,7 @@ use App\Services\ArticleService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Comments', weight: 2)]
 final class GetCommentsController extends Controller
@@ -81,7 +82,7 @@ final class GetCommentsController extends Controller
                 ],
                 __('common.success')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

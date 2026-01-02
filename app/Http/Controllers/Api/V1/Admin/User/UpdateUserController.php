@@ -10,8 +10,10 @@ use App\Http\Requests\V1\Admin\User\UpdateUserRequest;
 use App\Http\Resources\V1\Admin\User\UserDetailResource;
 use App\Services\UserService;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Admin - User Management', weight: 2)]
 final class UpdateUserController extends Controller
@@ -63,7 +65,7 @@ final class UpdateUserController extends Controller
                 new UserDetailResource($user),
                 __('common.user_updated_successfully')
             );
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             /**
              * User not found
              *
@@ -72,7 +74,7 @@ final class UpdateUserController extends Controller
              * @body array{status: false, message: string, data: null, error: null}
              */
             return $this->handleException($e, $request);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

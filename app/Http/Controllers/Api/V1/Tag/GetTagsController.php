@@ -9,7 +9,9 @@ use App\Http\Resources\V1\Tag\TagResource;
 use App\Services\ArticleService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Tags', weight: 2)]
 final class GetTagsController extends Controller
@@ -36,7 +38,7 @@ final class GetTagsController extends Controller
      *
      * @response array{status: true, message: string, data: TagResource[]}
      */
-    public function __invoke(\Illuminate\Http\Request $request): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
         try {
             $tags = $this->articleService->getAllTags();
@@ -45,7 +47,7 @@ final class GetTagsController extends Controller
                 TagResource::collection($tags),
                 __('common.success')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

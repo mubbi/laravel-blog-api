@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Data\CreateNotificationDTO;
 use App\Data\FilterNotificationDTO;
+use App\Enums\NotificationType;
 use App\Events\Notification\NotificationCreatedEvent;
 use App\Events\Notification\NotificationSentEvent;
 use App\Models\Notification;
@@ -146,10 +147,10 @@ final class NotificationService
         return [
             'total' => $this->notificationRepository->count(),
             'by_type' => [
-                'article_published' => $this->notificationRepository->countByType(\App\Enums\NotificationType::ARTICLE_PUBLISHED->value),
-                'new_comment' => $this->notificationRepository->countByType(\App\Enums\NotificationType::NEW_COMMENT->value),
-                'newsletter' => $this->notificationRepository->countByType(\App\Enums\NotificationType::NEWSLETTER->value),
-                'system_alert' => $this->notificationRepository->countByType(\App\Enums\NotificationType::SYSTEM_ALERT->value),
+                'article_published' => $this->notificationRepository->countByType(NotificationType::ARTICLE_PUBLISHED->value),
+                'new_comment' => $this->notificationRepository->countByType(NotificationType::NEW_COMMENT->value),
+                'newsletter' => $this->notificationRepository->countByType(NotificationType::NEWSLETTER->value),
+                'system_alert' => $this->notificationRepository->countByType(NotificationType::SYSTEM_ALERT->value),
             ],
         ];
     }

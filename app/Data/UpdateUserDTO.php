@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Data;
 
+use App\Http\Requests\V1\Admin\User\UpdateUserRequest;
+
 /**
  * Data Transfer Object for updating a user
  */
@@ -41,7 +43,7 @@ final class UpdateUserDTO
     /**
      * Create DTO from request
      */
-    public static function fromRequest(\App\Http\Requests\V1\Admin\User\UpdateUserRequest $request): self
+    public static function fromRequest(UpdateUserRequest $request): self
     {
         $validated = $request->validated();
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Data;
 
 use App\Enums\NotificationType;
+use App\Http\Requests\V1\Admin\Notification\CreateNotificationRequest;
 
 /**
  * Data Transfer Object for creating a notification
@@ -26,7 +27,7 @@ final class CreateNotificationDTO
     /**
      * Create DTO from request
      */
-    public static function fromRequest(\App\Http\Requests\V1\Admin\Notification\CreateNotificationRequest $request): self
+    public static function fromRequest(CreateNotificationRequest $request): self
     {
         $validated = $request->validated();
 

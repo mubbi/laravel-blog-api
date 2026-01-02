@@ -14,6 +14,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Admin - Comments', weight: 2)]
 final class ApproveCommentController extends Controller
@@ -66,7 +67,7 @@ final class ApproveCommentController extends Controller
              * @body array{status: false, message: string, data: null, error: null}
              */
             return $this->handleException($e, $request);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

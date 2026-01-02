@@ -30,7 +30,6 @@ parameters:
     bootstrapFiles:
         - phpstan-stubs/JsonResponseStub.php
         - phpstan-stubs/SanctumPersonalAccessTokenStub.php
-        - phpstan-stubs/HasFactoryStub.php
 
 # pre defined rulesset to support laravel
 includes:

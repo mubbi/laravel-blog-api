@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Admin\Newsletter;
 
+use App\Data\FilterNewsletterSubscriberDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Newsletter\GetSubscribersRequest;
 use App\Http\Resources\MetaResource;
@@ -11,7 +12,9 @@ use App\Http\Resources\V1\Newsletter\NewsletterSubscriberResource;
 use App\Services\NewsletterService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Admin - Newsletter', weight: 3)]
 final class GetSubscribersController extends Controller
@@ -50,7 +53,7 @@ final class GetSubscribersController extends Controller
     public function __invoke(GetSubscribersRequest $request): JsonResponse
     {
         try {
-            $dto = \App\Data\FilterNewsletterSubscriberDTO::fromRequest($request);
+            $dto = FilterNewsletterSubscriberDTO::fromRequest($request);
             $subscribers = $this->newsletterService->getSubscribers($dto);
 
             $subscriberCollection = NewsletterSubscriberResource::collection($subscribers);
@@ -58,7 +61,7 @@ final class GetSubscribersController extends Controller
 
             // Ensure we have the expected array structure
             if (! is_array($subscriberCollectionData) || ! isset($subscriberCollectionData['data'], $subscriberCollectionData['meta'])) {
-                throw new \RuntimeException(__('common.unexpected_response_format'));
+                throw new RuntimeException(__('common.unexpected_response_format'));
             }
 
             return response()->apiSuccess(
@@ -68,7 +71,7 @@ final class GetSubscribersController extends Controller
                 ],
                 __('common.success')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

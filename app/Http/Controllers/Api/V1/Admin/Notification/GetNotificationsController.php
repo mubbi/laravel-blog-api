@@ -13,6 +13,7 @@ use App\Services\NotificationService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Admin - Notifications', weight: 4)]
 final class GetNotificationsController extends Controller
@@ -70,7 +71,7 @@ final class GetNotificationsController extends Controller
                 ],
                 __('common.success')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

@@ -21,14 +21,17 @@ use App\Events\Article\ArticleTrashedEvent;
 use App\Events\Article\ArticleUnfeaturedEvent;
 use App\Events\Article\ArticleUnpinnedEvent;
 use App\Models\Article;
+use App\Repositories\Contracts\ArticleRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 final class ArticleManagementService
 {
     public function __construct(
-        private readonly \App\Repositories\Contracts\ArticleRepositoryInterface $articleRepository
+        private readonly ArticleRepositoryInterface $articleRepository
     ) {}
 
     /**
@@ -128,8 +131,8 @@ final class ArticleManagementService
             }
 
             return $freshArticle;
-        } catch (\Throwable $e) {
-            \Log::error('FeatureArticle error', [
+        } catch (Throwable $e) {
+            Log::error('FeatureArticle error', [
                 'id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),

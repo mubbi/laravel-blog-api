@@ -10,6 +10,7 @@ use App\Events\Auth\UserLoggedOutEvent;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Interfaces\AuthServiceInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\UnauthorizedException;
@@ -94,7 +95,7 @@ final class AuthService implements AuthServiceInterface
         }
 
         // Check if refresh token is expired
-        /** @var \Illuminate\Support\Carbon|null $tokenExpiresAt */
+        /** @var Carbon|null $tokenExpiresAt */
         $tokenExpiresAt = $token->expires_at;
         if ($tokenExpiresAt && $tokenExpiresAt->isPast()) {
             $token->delete();

@@ -13,6 +13,7 @@ use App\Services\UserService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Admin - User Management', weight: 2)]
 final class GetUsersController extends Controller
@@ -74,7 +75,7 @@ final class GetUsersController extends Controller
                 ],
                 __('common.success')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

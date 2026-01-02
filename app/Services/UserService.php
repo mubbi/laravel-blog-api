@@ -19,6 +19,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
@@ -304,7 +305,7 @@ final class UserService
         $currentUser = auth()->user();
 
         if ($currentUser && $id === $currentUser->id) {
-            throw new \Illuminate\Auth\Access\AuthorizationException(__("common.{$errorKey}"));
+            throw new AuthorizationException(__("common.{$errorKey}"));
         }
     }
 

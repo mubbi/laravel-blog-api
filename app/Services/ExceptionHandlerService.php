@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Support\ExceptionHelper;
 use App\Support\Helper;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\UnauthorizedException;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 /**
@@ -48,7 +52,7 @@ final class ExceptionHandlerService
 
         // Handle ValidationException with errors
         $errors = null;
-        if ($e instanceof \Illuminate\Validation\ValidationException) {
+        if ($e instanceof ValidationException) {
             $errors = $e->errors();
         }
 
@@ -69,7 +73,7 @@ final class ExceptionHandlerService
         }
 
         // Don't log validation exceptions (they're expected client errors)
-        return ! ($e instanceof \Illuminate\Validation\ValidationException);
+        return ! ($e instanceof ValidationException);
     }
 
     /**
@@ -109,15 +113,15 @@ final class ExceptionHandlerService
             return Response::HTTP_NOT_FOUND;
         }
 
-        if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
+        if ($e instanceof AuthorizationException) {
             return Response::HTTP_FORBIDDEN;
         }
 
-        if ($e instanceof \Illuminate\Validation\ValidationException) {
+        if ($e instanceof ValidationException) {
             return Response::HTTP_UNPROCESSABLE_ENTITY;
         }
 
-        if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+        if ($e instanceof NotFoundHttpException) {
             return Response::HTTP_NOT_FOUND;
         }
 
@@ -139,7 +143,7 @@ final class ExceptionHandlerService
         }
 
         // Check if NotFoundHttpException has a ModelNotFoundException as previous exception
-        if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+        if ($e instanceof NotFoundHttpException) {
             $previous = $e->getPrevious();
             if ($previous instanceof ModelNotFoundException) {
                 return ExceptionHelper::getModelNotFoundMessage($previous);
@@ -148,7 +152,7 @@ final class ExceptionHandlerService
             return __('common.not_found');
         }
 
-        if ($e instanceof \Illuminate\Validation\ValidationException) {
+        if ($e instanceof ValidationException) {
             // For ValidationException, use Laravel's default message format which includes "(and X more errors)"
             // This matches the expected format in tests and provides better UX
             return $e->getMessage();
@@ -158,7 +162,7 @@ final class ExceptionHandlerService
             return $e->getMessage() ?: __('auth.failed');
         }
 
-        if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
+        if ($e instanceof AuthorizationException) {
             return $e->getMessage() ?: __('common.forbidden');
         }
 
@@ -203,7 +207,7 @@ final class ExceptionHandlerService
         }
 
         if ($request !== null) {
-            /** @var \App\Models\User|null $user */
+            /** @var User|null $user */
             $user = $request->user();
 
             $logContext['request'] = [
@@ -268,7 +272,7 @@ final class ExceptionHandlerService
             return "{$prefix}Authentication failed";
         }
 
-        if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
+        if ($e instanceof AuthorizationException) {
             return "{$prefix}Authorization failed";
         }
 

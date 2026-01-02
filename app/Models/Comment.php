@@ -8,6 +8,7 @@ use App\Enums\CommentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -87,11 +88,11 @@ final class Comment extends Model
     /**
      * Get the replies (child comments) for this comment.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Comment, Comment>
+     * @return HasMany<Comment, Comment>
      */
-    public function replies(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function replies(): HasMany
     {
-        /** @var \Illuminate\Database\Eloquent\Relations\HasMany<Comment, Comment> $relation */
+        /** @var HasMany<Comment, Comment> $relation */
         $relation = $this->hasMany(Comment::class, 'parent_comment_id');
 
         return $relation;

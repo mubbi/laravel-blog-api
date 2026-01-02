@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Data;
 
+use App\Http\Requests\V1\Admin\Comment\DeleteCommentRequest;
+
 /**
  * Data Transfer Object for deleting a comment
  */
@@ -16,8 +18,9 @@ final class DeleteCommentDTO
     /**
      * Create DTO from request
      */
-    public static function fromRequest(\App\Http\Requests\V1\Admin\Comment\DeleteCommentRequest $request): self
+    public static function fromRequest(DeleteCommentRequest $request): self
     {
+        /** @var array<string, mixed> $validated */
         $validated = $request->validated();
 
         return new self(
