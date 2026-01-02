@@ -6,6 +6,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Auth\AuthService;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\UnauthorizedException;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -91,8 +92,8 @@ describe('App\Services\Auth\AuthService tests', function () {
             expect($result)->toBeInstanceOf(User::class);
             expect($result->access_token)->toBeString();
             expect($result->refresh_token)->toBe($refreshToken->plainTextToken);
-            expect($result->access_token_expires_at)->toBeInstanceOf(\Carbon\CarbonInterface::class);
-            expect($result->refresh_token_expires_at)->toBeInstanceOf(\Carbon\CarbonInterface::class);
+            expect($result->access_token_expires_at)->toBeInstanceOf(CarbonInterface::class);
+            expect($result->refresh_token_expires_at)->toBeInstanceOf(CarbonInterface::class);
 
             // Verify relationships are loaded
             expect($result->relationLoaded('roles'))->toBeTrue();

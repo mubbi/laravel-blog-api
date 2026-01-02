@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Event;
 
@@ -15,7 +16,7 @@ abstract class TestCase extends BaseTestCase
     /**
      * Specify which seeder to use
      */
-    protected string $seeder = \Database\Seeders\DatabaseSeeder::class;
+    protected string $seeder = DatabaseSeeder::class;
 
     /**
      * Setup the test environment.

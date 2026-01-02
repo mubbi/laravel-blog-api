@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\CacheKey;
 use App\Models\Tag;
+use App\Services\TagService;
 use Illuminate\Support\Facades\Cache;
 
 describe('API/V1/Tag/GetTagsController', function () {
@@ -134,9 +135,9 @@ describe('API/V1/Tag/GetTagsController', function () {
     });
 
     it('returns error if service throws', function () {
-        $this->mock(\App\Services\TagService::class, function ($mock) {
+        $this->mock(TagService::class, function ($mock) {
             $mock->shouldReceive('getAllTags')
-                ->andThrow(new Exception('fail'));
+                ->andThrow(new \Exception('fail'));
         });
 
         $response = $this->getJson(route('api.v1.tags.index'));

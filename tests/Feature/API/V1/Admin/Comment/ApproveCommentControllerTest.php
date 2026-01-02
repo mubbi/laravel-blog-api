@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Data\ApproveCommentDTO;
 use App\Enums\CommentStatus;
 use App\Enums\UserRole;
 use App\Events\Comment\CommentApprovedEvent;
+use App\Models\Article;
 use App\Models\Comment;
 use App\Models\Role;
 use App\Models\User;
@@ -249,7 +251,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Mock CommentService to throw exception
         $this->mock(CommentService::class, function ($mock) {
             $mock->shouldReceive('approveComment')
-                ->with(\Mockery::type('int'), \Mockery::type(\App\Data\ApproveCommentDTO::class), \Mockery::type('int'))
+                ->with(\Mockery::type('int'), \Mockery::type(ApproveCommentDTO::class), \Mockery::type('int'))
                 ->andThrow(new \Exception('Service error'));
         });
 
@@ -288,9 +290,9 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Mock CommentService to throw ModelNotFoundException
         $this->mock(CommentService::class, function ($mock) {
             $exception = new ModelNotFoundException;
-            $exception->setModel(\App\Models\Comment::class);
+            $exception->setModel(Comment::class);
             $mock->shouldReceive('approveComment')
-                ->with(\Mockery::type('int'), \Mockery::type(\App\Data\ApproveCommentDTO::class), \Mockery::type('int'))
+                ->with(\Mockery::type('int'), \Mockery::type(ApproveCommentDTO::class), \Mockery::type('int'))
                 ->andThrow($exception);
         });
 
@@ -347,7 +349,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
             'status' => CommentStatus::PENDING->value,
             'content' => 'Original content',
             'user_id' => User::factory()->create()->id,
-            'article_id' => \App\Models\Article::factory()->create()->id,
+            'article_id' => Article::factory()->create()->id,
         ]);
 
         // Act

@@ -6,6 +6,7 @@ use App\Models\Article;
 use App\Models\Category;
 use App\Models\Tag;
 use App\Models\User;
+use App\Services\ArticleService;
 use Illuminate\Support\Facades\Cache;
 
 describe('API/V1/Article/GetArticlesController', function () {
@@ -222,7 +223,7 @@ describe('API/V1/Article/GetArticlesController', function () {
 
     it('returns 500 when getting articles fails with exception', function () {
         // Mock ArticleService to throw an exception
-        $this->mock(\App\Services\ArticleService::class, function ($mock) {
+        $this->mock(ArticleService::class, function ($mock) {
             $mock->shouldReceive('getArticles')
                 ->andThrow(new \Exception('Database connection failed'));
         });

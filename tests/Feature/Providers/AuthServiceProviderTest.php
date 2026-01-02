@@ -2,10 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Models\Article;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Policies\ArticlePolicy;
 use App\Providers\AuthServiceProvider;
+use App\Services\Auth\AuthService;
+use App\Services\Interfaces\AuthServiceInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
@@ -20,9 +24,9 @@ describe('AuthServiceProvider', function () {
         $provider = new AuthServiceProvider(app());
         $provider->register();
 
-        expect(app()->bound(\App\Services\Interfaces\AuthServiceInterface::class))->toBeTrue();
-        expect(app()->make(\App\Services\Interfaces\AuthServiceInterface::class))
-            ->toBeInstanceOf(\App\Services\Auth\AuthService::class);
+        expect(app()->bound(AuthServiceInterface::class))->toBeTrue();
+        expect(app()->make(AuthServiceInterface::class))
+            ->toBeInstanceOf(AuthService::class);
     });
 
     it('registers policies and dynamic gates when permissions table exists', function () {
@@ -246,19 +250,20 @@ describe('AuthServiceProvider', function () {
         $provider = new class(app()) extends AuthServiceProvider
         {
             protected $policies = [
-                \App\Models\Article::class => TestPolicyWithPermissions::class,
+                Article::class => TestPolicyWithPermissions::class,
             ];
         };
 
         // Create the test policy class
         if (! class_exists('TestPolicyWithPermissions')) {
-            eval('
-                class TestPolicyWithPermissions extends \App\Policies\ArticlePolicy {
+            $articlePolicyClass = ArticlePolicy::class;
+            eval("
+                class TestPolicyWithPermissions extends {$articlePolicyClass} {
                     public static function permissions(): array {
-                        return ["policy-permission-1", "policy-permission-2"];
+                        return [\"policy-permission-1\", \"policy-permission-2\"];
                     }
                 }
-            ');
+            ");
         }
 
         // Create permissions in database that would conflict with policy
@@ -281,19 +286,20 @@ describe('AuthServiceProvider', function () {
         $provider = new class(app()) extends AuthServiceProvider
         {
             protected $policies = [
-                \App\Models\Article::class => TestPolicyWithPermissions::class,
+                Article::class => TestPolicyWithPermissions::class,
             ];
         };
 
         // Create the test policy class that returns specific permissions
         if (! class_exists('TestPolicyWithPermissions')) {
-            eval('
-                class TestPolicyWithPermissions extends \App\Policies\ArticlePolicy {
+            $articlePolicyClass = ArticlePolicy::class;
+            eval("
+                class TestPolicyWithPermissions extends {$articlePolicyClass} {
                     public static function permissions(): array {
-                        return ["skip-this-permission"];
+                        return [\"skip-this-permission\"];
                     }
                 }
-            ');
+            ");
         }
 
         // Create permissions in database - one that will be skipped by policy, one normal
@@ -330,7 +336,7 @@ describe('AuthServiceProvider', function () {
         $provider = new class(app()) extends AuthServiceProvider
         {
             protected $policies = [
-                \App\Models\Article::class => TestArticlePolicy::class,
+                Article::class => TestArticlePolicy::class,
             ];
         };
 
@@ -401,7 +407,7 @@ describe('AuthServiceProvider', function () {
         $provider = new class(app()) extends AuthServiceProvider
         {
             protected $policies = [
-                \App\Models\Article::class => TestAssociativePolicyClass::class,
+                Article::class => TestAssociativePolicyClass::class,
             ];
         };
 
