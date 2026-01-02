@@ -47,7 +47,9 @@ final class UnblockUserController extends Controller
     public function __invoke(int $id, UnblockUserRequest $request): JsonResponse
     {
         try {
-            $user = $this->userService->unblockUser($id);
+            $currentUser = $request->user();
+            assert($currentUser !== null);
+            $user = $this->userService->unblockUser($id, $currentUser->id);
 
             return response()->apiSuccess(
                 new UserDetailResource($user),

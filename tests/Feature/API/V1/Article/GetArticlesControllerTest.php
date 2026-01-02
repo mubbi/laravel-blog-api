@@ -6,8 +6,13 @@ use App\Models\Article;
 use App\Models\Category;
 use App\Models\Tag;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 describe('API/V1/Article/GetArticlesController', function () {
+    beforeEach(function () {
+        // Clear all caches before each test for isolation
+        Cache::flush();
+    });
     it('can get articles with basic pagination', function () {
         // Create test data
         $user = User::factory()->create();

@@ -249,7 +249,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         // Mock CommentService to throw exception
         $this->mock(CommentService::class, function ($mock) {
             $mock->shouldReceive('approveComment')
-                ->with(\Mockery::type('int'), \Mockery::type(\App\Data\ApproveCommentDTO::class))
+                ->with(\Mockery::type('int'), \Mockery::type(\App\Data\ApproveCommentDTO::class), \Mockery::type('int'))
                 ->andThrow(new \Exception('Service error'));
         });
 
@@ -290,7 +290,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
             $exception = new ModelNotFoundException;
             $exception->setModel(\App\Models\Comment::class);
             $mock->shouldReceive('approveComment')
-                ->with(\Mockery::type('int'), \Mockery::type(\App\Data\ApproveCommentDTO::class))
+                ->with(\Mockery::type('int'), \Mockery::type(\App\Data\ApproveCommentDTO::class), \Mockery::type('int'))
                 ->andThrow($exception);
         });
 

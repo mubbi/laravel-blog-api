@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories\Eloquent;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -129,5 +130,32 @@ abstract class BaseEloquentRepository
         $paginator = $this->query()->paginate((int) $perPage, ['*'], 'page', (int) $page);
 
         return $paginator;
+    }
+
+    /**
+     * Get all models
+     *
+     * @param  array<string>|null  $columns
+     * @return Collection<int, TModel>
+     */
+    public function all(?array $columns = null): Collection
+    {
+        /** @var class-string<TModel> $modelClass */
+        $modelClass = $this->getModelClass();
+
+        if ($columns !== null) {
+            /** @var array<int, string> $columnArray */
+            $columnArray = array_values($columns);
+
+            /** @var Collection<int, TModel> $collection */
+            $collection = $this->query()->get($columnArray);
+
+            return $collection;
+        }
+
+        /** @var Collection<int, TModel> $collection */
+        $collection = $modelClass::all();
+
+        return $collection;
     }
 }

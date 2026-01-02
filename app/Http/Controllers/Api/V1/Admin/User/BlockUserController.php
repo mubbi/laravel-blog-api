@@ -48,7 +48,9 @@ final class BlockUserController extends Controller
     public function __invoke(int $id, BlockUserRequest $request): JsonResponse
     {
         try {
-            $user = $this->userService->blockUser($id);
+            $currentUser = $request->user();
+            assert($currentUser !== null);
+            $user = $this->userService->blockUser($id, $currentUser->id);
 
             return response()->apiSuccess(
                 new UserDetailResource($user),

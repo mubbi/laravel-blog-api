@@ -63,6 +63,18 @@ final class NewsletterService
     {
         $query = $this->newsletterSubscriberRepository->query();
 
+        $this->applyFilters($query, $dto);
+
+        return $query->orderBy($dto->sortBy, $dto->sortOrder)->paginate($dto->perPage, ['*'], 'page', $dto->page);
+    }
+
+    /**
+     * Apply filters to the query
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<NewsletterSubscriber>  $query
+     */
+    private function applyFilters(\Illuminate\Database\Eloquent\Builder $query, FilterNewsletterSubscriberDTO $dto): void
+    {
         if ($dto->search !== null) {
             $query->where('email', 'like', "%{$dto->search}%");
         }
@@ -82,8 +94,6 @@ final class NewsletterService
         if ($dto->subscribedAtTo !== null) {
             $query->where('created_at', '<=', $dto->subscribedAtTo);
         }
-
-        return $query->orderBy($dto->sortBy, $dto->sortOrder)->paginate($dto->perPage, ['*'], 'page', $dto->page);
     }
 
     /**

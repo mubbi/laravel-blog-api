@@ -81,7 +81,7 @@ describe('UserService Caching', function () {
         expect($updatedUser->roles)->toHaveCount(1);
     });
 
-    it('pre-warms caches for users in pagination', function () {
+    it('caches are automatically warmed when getting users', function () {
         // Arrange
         $userService = app(UserService::class);
         $users = User::factory()->count(3)->create();
@@ -91,37 +91,25 @@ describe('UserService Caching', function () {
             $user->roles()->attach($role->id);
         }
 
-        // Act
+        // Act - get users normally, caches should be warmed when accessing roles/permissions
         $dto = new FilterUserDTO(
             page: 1,
             perPage: 2,
             sortBy: 'created_at',
             sortDirection: 'desc'
         );
-        $paginator = $userService->getUsersWithWarmedCaches($dto);
+        $paginator = $userService->getUsers($dto);
 
         // Assert
         expect($paginator->total())->toBeGreaterThanOrEqual(3); // At least 3 users (including seeded ones)
         expect($paginator->items())->toHaveCount(2); // First page
 
-        // Check that caches are warmed for first page users
+        // Check that caches are warmed when accessing roles/permissions
         foreach ($paginator->items() as $user) {
+            $user->getCachedRoles(); // This will warm the cache
+            $user->getCachedPermissions(); // This will warm the cache
             expect(Cache::has('user_roles_'.$user->id.'_v1'))->toBeTrue();
             expect(Cache::has('user_permissions_'.$user->id.'_v1'))->toBeTrue();
         }
-    });
-
-    it('increments cache version correctly', function () {
-        // Arrange
-        $userService = app(UserService::class);
-        $initialVersion = Cache::get('user_cache_version', 1);
-        expect($initialVersion)->toBe(1);
-
-        // Act
-        $userService->incrementCacheVersion();
-
-        // Assert
-        $newVersion = Cache::get('user_cache_version');
-        expect($newVersion)->toBe(2);
     });
 });

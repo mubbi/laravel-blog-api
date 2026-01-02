@@ -47,7 +47,9 @@ final class BanUserController extends Controller
     public function __invoke(int $id, BanUserRequest $request): JsonResponse
     {
         try {
-            $user = $this->userService->banUser($id);
+            $currentUser = $request->user();
+            assert($currentUser !== null);
+            $user = $this->userService->banUser($id, $currentUser->id);
 
             return response()->apiSuccess(
                 new UserDetailResource($user),

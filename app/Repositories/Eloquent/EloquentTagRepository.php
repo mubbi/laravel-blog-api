@@ -68,7 +68,10 @@ final class EloquentTagRepository extends BaseEloquentRepository implements TagR
      */
     public function findBySlug(string $slug): ?Tag
     {
-        return Tag::where('slug', $slug)->first();
+        /** @var Tag|null $tag */
+        $tag = $this->query()->where('slug', $slug)->first();
+
+        return $tag;
     }
 
     /**
@@ -79,14 +82,10 @@ final class EloquentTagRepository extends BaseEloquentRepository implements TagR
      */
     public function all(?array $columns = null): Collection
     {
-        if ($columns !== null) {
-            /** @var array<int, string> $columnArray */
-            $columnArray = array_values($columns);
+        /** @var Collection<int, Tag> $collection */
+        $collection = parent::all($columns);
 
-            return Tag::query()->get($columnArray);
-        }
-
-        return Tag::all();
+        return $collection;
     }
 
     /**

@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Api\V1\Tag;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\Tag\TagResource;
-use App\Services\ArticleService;
+use App\Services\TagService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ use Throwable;
 #[Group('Tags', weight: 2)]
 final class GetTagsController extends Controller
 {
-    public function __construct(private readonly ArticleService $articleService) {}
+    public function __construct(private readonly TagService $tagService) {}
 
     /**
      * Get All Article Tags
@@ -41,7 +41,7 @@ final class GetTagsController extends Controller
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $tags = $this->articleService->getAllTags();
+            $tags = $this->tagService->getAllTags();
 
             return response()->apiSuccess(
                 TagResource::collection($tags),

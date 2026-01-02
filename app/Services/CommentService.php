@@ -27,14 +27,14 @@ final class CommentService
      *
      * @throws ModelNotFoundException
      */
-    public function approveComment(int $commentId, ApproveCommentDTO $dto): Comment
+    public function approveComment(int $commentId, ApproveCommentDTO $dto, int $approvedBy): Comment
     {
         $comment = $this->commentRepository->findOrFail($commentId);
 
         $updateData = [
             'status' => CommentStatus::APPROVED,
             'approved_at' => now(),
-            'approved_by' => auth()->id(),
+            'approved_by' => $approvedBy,
         ];
 
         $dtoData = $dto->toArray();
@@ -57,12 +57,12 @@ final class CommentService
      *
      * @throws ModelNotFoundException
      */
-    public function deleteComment(int $commentId, DeleteCommentDTO $dto): void
+    public function deleteComment(int $commentId, DeleteCommentDTO $dto, int $deletedBy): void
     {
         $comment = $this->commentRepository->findOrFail($commentId);
 
         $updateData = [
-            'deleted_by' => auth()->id(),
+            'deleted_by' => $deletedBy,
             'deleted_at' => now(),
         ];
 
@@ -107,6 +107,18 @@ final class CommentService
         $query = $this->commentRepository->query()
             ->with(['user:id,name,email', 'article:id,title,slug', 'approver:id,name,email', 'deletedBy:id,name,email']);
 
+        $this->applyFilters($query, $dto);
+
+        return $query->orderBy($dto->sortBy, $dto->sortOrder)->paginate($dto->perPage);
+    }
+
+    /**
+     * Apply filters to the query
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Comment>  $query
+     */
+    private function applyFilters(\Illuminate\Database\Eloquent\Builder $query, FilterCommentDTO $dto): void
+    {
         if ($dto->status !== null) {
             $query->where('status', $dto->status);
         }
@@ -138,7 +150,5 @@ final class CommentService
                 $query->where('report_count', 0);
             }
         }
-
-        return $query->orderBy($dto->sortBy, $dto->sortOrder)->paginate($dto->perPage);
     }
 }

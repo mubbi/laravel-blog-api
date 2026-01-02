@@ -69,7 +69,10 @@ final class EloquentArticleRepository extends BaseEloquentRepository implements 
      */
     public function findBySlug(string $slug): ?Article
     {
-        return Article::where('slug', $slug)->first();
+        /** @var Article|null $article */
+        $article = $this->query()->where('slug', $slug)->first();
+
+        return $article;
     }
 
     /**
@@ -79,7 +82,10 @@ final class EloquentArticleRepository extends BaseEloquentRepository implements 
      */
     public function findBySlugOrFail(string $slug): Article
     {
-        return Article::where('slug', $slug)->firstOrFail();
+        /** @var Article $article */
+        $article = $this->query()->where('slug', $slug)->firstOrFail();
+
+        return $article;
     }
 
     /**

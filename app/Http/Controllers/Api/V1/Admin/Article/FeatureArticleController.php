@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Api\V1\Admin\Article;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Article\FeatureArticleRequest;
 use App\Http\Resources\V1\Admin\Article\ArticleManagementResource;
-use App\Services\ArticleManagementService;
+use App\Services\ArticleFeatureService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +18,7 @@ use Throwable;
 final class FeatureArticleController extends Controller
 {
     public function __construct(
-        private readonly ArticleManagementService $articleManagementService
+        private readonly ArticleFeatureService $articleFeatureService
     ) {}
 
     /**
@@ -47,7 +47,7 @@ final class FeatureArticleController extends Controller
     public function __invoke(int $id, FeatureArticleRequest $request): JsonResponse
     {
         try {
-            $article = $this->articleManagementService->featureArticle($id);
+            $article = $this->articleFeatureService->featureArticle($id);
 
             return response()->apiSuccess(
                 new ArticleManagementResource($article),

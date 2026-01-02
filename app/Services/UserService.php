@@ -15,9 +15,9 @@ use App\Events\User\UserDeletedEvent;
 use App\Events\User\UserUnbannedEvent;
 use App\Events\User\UserUnblockedEvent;
 use App\Events\User\UserUpdatedEvent;
-use App\Models\Permission;
-use App\Models\Role;
 use App\Models\User;
+use App\Repositories\Contracts\PermissionRepositoryInterface;
+use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,7 +30,9 @@ use Illuminate\Support\Facades\Hash;
 final class UserService
 {
     public function __construct(
-        private readonly UserRepositoryInterface $userRepository
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly RoleRepositoryInterface $roleRepository,
+        private readonly PermissionRepositoryInterface $permissionRepository
     ) {}
 
     /**
@@ -84,8 +86,7 @@ final class UserService
 
             // Assign default role if specified
             if ($dto->roleId !== null) {
-                /** @var Role $role */
-                $role = Role::findOrFail($dto->roleId);
+                $role = $this->roleRepository->findOrFail($dto->roleId);
                 $user->roles()->attach($role->id);
             }
 
@@ -134,9 +135,9 @@ final class UserService
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function deleteUser(int $id): bool
+    public function deleteUser(int $id, int $currentUserId): bool
     {
-        $this->preventSelfAction($id, 'cannot_delete_self');
+        $this->preventSelfAction($id, $currentUserId, 'cannot_delete_self');
 
         $user = $this->userRepository->findOrFail($id);
         $email = $user->email;
@@ -154,9 +155,9 @@ final class UserService
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function banUser(int $id): User
+    public function banUser(int $id, int $currentUserId): User
     {
-        $this->preventSelfAction($id, 'cannot_ban_self');
+        $this->preventSelfAction($id, $currentUserId, 'cannot_ban_self');
 
         $this->userRepository->update($id, ['banned_at' => now()]);
         $user = $this->userRepository->findOrFail($id);
@@ -172,9 +173,9 @@ final class UserService
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function unbanUser(int $id): User
+    public function unbanUser(int $id, int $currentUserId): User
     {
-        $this->preventSelfAction($id, 'cannot_unban_self');
+        $this->preventSelfAction($id, $currentUserId, 'cannot_unban_self');
 
         $this->userRepository->update($id, ['banned_at' => null]);
         $user = $this->userRepository->findOrFail($id);
@@ -190,9 +191,9 @@ final class UserService
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function blockUser(int $id): User
+    public function blockUser(int $id, int $currentUserId): User
     {
-        $this->preventSelfAction($id, 'cannot_block_self');
+        $this->preventSelfAction($id, $currentUserId, 'cannot_block_self');
 
         $this->userRepository->update($id, ['blocked_at' => now()]);
         $user = $this->userRepository->findOrFail($id);
@@ -208,9 +209,9 @@ final class UserService
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function unblockUser(int $id): User
+    public function unblockUser(int $id, int $currentUserId): User
     {
-        $this->preventSelfAction($id, 'cannot_unblock_self');
+        $this->preventSelfAction($id, $currentUserId, 'cannot_unblock_self');
 
         $this->userRepository->update($id, ['blocked_at' => null]);
         $user = $this->userRepository->findOrFail($id);
@@ -224,13 +225,13 @@ final class UserService
     /**
      * Get all roles with cached permissions
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Role>
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\Role>
      */
     public function getAllRoles(): \Illuminate\Database\Eloquent\Collection
     {
-        /** @var \Illuminate\Database\Eloquent\Collection<int, Role> $result */
+        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Role> $result */
         $result = Cache::remember(CacheKeys::ALL_ROLES_CACHE_KEY, CacheKeys::CACHE_TTL, function () {
-            return Role::query()->with(['permissions:id,name,slug'])->get();
+            return $this->roleRepository->getAllWithPermissions();
         });
 
         return $result;
@@ -239,13 +240,13 @@ final class UserService
     /**
      * Get all permissions with caching
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Permission>
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permission>
      */
     public function getAllPermissions(): \Illuminate\Database\Eloquent\Collection
     {
-        /** @var \Illuminate\Database\Eloquent\Collection<int, Permission> $result */
+        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permission> $result */
         $result = Cache::remember(CacheKeys::ALL_PERMISSIONS_CACHE_KEY, CacheKeys::CACHE_TTL, function () {
-            return Permission::query()->get();
+            return $this->permissionRepository->getAll();
         });
 
         return $result;
@@ -268,43 +269,13 @@ final class UserService
     }
 
     /**
-     * Get users with pre-warmed caches
-     *
-     * @return LengthAwarePaginator<int, User>
-     */
-    public function getUsersWithWarmedCaches(FilterUserDTO $dto): LengthAwarePaginator
-    {
-        $paginator = $this->getUsers($dto);
-
-        // Pre-warm cache for users in the current page
-        foreach ($paginator->items() as $user) {
-            $user->getCachedRoles();
-            $user->getCachedPermissions();
-        }
-
-        return $paginator;
-    }
-
-    /**
-     * Increment cache version (for testing purposes)
-     */
-    public function incrementCacheVersion(): void
-    {
-        /** @var int $currentVersion */
-        $currentVersion = Cache::get('user_cache_version', 1);
-        Cache::put('user_cache_version', $currentVersion + 1, CacheKeys::CACHE_TTL);
-    }
-
-    /**
      * Prevent users from performing actions on themselves
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    private function preventSelfAction(int $id, string $errorKey): void
+    private function preventSelfAction(int $id, int $currentUserId, string $errorKey): void
     {
-        $currentUser = auth()->user();
-
-        if ($currentUser && $id === $currentUser->id) {
+        if ($id === $currentUserId) {
             throw new AuthorizationException(__("common.{$errorKey}"));
         }
     }

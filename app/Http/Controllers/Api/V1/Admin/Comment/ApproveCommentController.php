@@ -51,8 +51,10 @@ final class ApproveCommentController extends Controller
     public function __invoke(ApproveCommentRequest $request, int $id): JsonResponse
     {
         try {
+            $user = $request->user();
+            assert($user !== null);
             $dto = ApproveCommentDTO::fromRequest($request);
-            $comment = $this->commentService->approveComment($id, $dto);
+            $comment = $this->commentService->approveComment($id, $dto, $user->id);
 
             return response()->apiSuccess(
                 new CommentResource($comment),

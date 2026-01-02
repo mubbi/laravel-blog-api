@@ -50,8 +50,10 @@ final class DeleteCommentController extends Controller
     public function __invoke(DeleteCommentRequest $request, int $id): JsonResponse
     {
         try {
+            $user = $request->user();
+            assert($user !== null);
             $dto = DeleteCommentDTO::fromRequest($request);
-            $this->commentService->deleteComment($id, $dto);
+            $this->commentService->deleteComment($id, $dto, $user->id);
 
             return response()->apiSuccess(
                 null,

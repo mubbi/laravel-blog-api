@@ -47,7 +47,9 @@ final class UnbanUserController extends Controller
     public function __invoke(UnbanUserRequest $request, int $id): JsonResponse
     {
         try {
-            $user = $this->userService->unbanUser($id);
+            $currentUser = $request->user();
+            assert($currentUser !== null);
+            $user = $this->userService->unbanUser($id, $currentUser->id);
 
             return response()->apiSuccess(
                 new UserDetailResource($user),

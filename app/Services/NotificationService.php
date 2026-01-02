@@ -10,9 +10,9 @@ use App\Enums\NotificationType;
 use App\Events\Notification\NotificationCreatedEvent;
 use App\Events\Notification\NotificationSentEvent;
 use App\Models\Notification;
-use App\Models\NotificationAudience;
-use App\Models\Role;
+use App\Repositories\Contracts\NotificationAudienceRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
+use App\Repositories\Contracts\RoleRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\Event;
 final class NotificationService
 {
     public function __construct(
-        private readonly NotificationRepositoryInterface $notificationRepository
+        private readonly NotificationRepositoryInterface $notificationRepository,
+        private readonly NotificationAudienceRepositoryInterface $notificationAudienceRepository,
+        private readonly RoleRepositoryInterface $roleRepository
     ) {}
 
     /**
@@ -37,23 +39,23 @@ final class NotificationService
             foreach ($dto->audiences as $audience) {
                 if ($audience === 'specific_users' && $dto->userIds !== null) {
                     foreach ($dto->userIds as $userId) {
-                        NotificationAudience::create([
+                        $this->notificationAudienceRepository->create([
                             'notification_id' => $notification->id,
                             'audience_type' => 'user',
                             'audience_id' => $userId,
                         ]);
                     }
                 } elseif ($audience === 'administrators') {
-                    $adminRole = Role::where('name', 'administrator')->first();
-                    if ($adminRole) {
-                        NotificationAudience::create([
+                    $adminRole = $this->roleRepository->findByName('administrator');
+                    if ($adminRole !== null) {
+                        $this->notificationAudienceRepository->create([
                             'notification_id' => $notification->id,
                             'audience_type' => 'role',
                             'audience_id' => $adminRole->id,
                         ]);
                     }
                 } elseif ($audience === 'all_users') {
-                    NotificationAudience::create([
+                    $this->notificationAudienceRepository->create([
                         'notification_id' => $notification->id,
                         'audience_type' => 'all',
                         'audience_id' => null,
@@ -107,6 +109,18 @@ final class NotificationService
         $query = $this->notificationRepository->query()
             ->with(['audiences']);
 
+        $this->applyFilters($query, $dto);
+
+        return $query->orderBy($dto->sortBy, $dto->sortOrder)->paginate($dto->perPage);
+    }
+
+    /**
+     * Apply filters to the query
+     *
+     * @param  Builder<Notification>  $query
+     */
+    private function applyFilters(Builder $query, FilterNotificationDTO $dto): void
+    {
         if ($dto->search !== null) {
             $query->where(function (Builder $q) use ($dto) {
                 $q->whereRaw("JSON_EXTRACT(message, '$.title') LIKE ?", ["%{$dto->search}%"])
@@ -125,8 +139,6 @@ final class NotificationService
         if ($dto->createdAtTo !== null) {
             $query->where('created_at', '<=', $dto->createdAtTo);
         }
-
-        return $query->orderBy($dto->sortBy, $dto->sortOrder)->paginate($dto->perPage);
     }
 
     /**

@@ -68,7 +68,10 @@ final class EloquentCategoryRepository extends BaseEloquentRepository implements
      */
     public function findBySlug(string $slug): ?Category
     {
-        return Category::where('slug', $slug)->first();
+        /** @var Category|null $category */
+        $category = $this->query()->where('slug', $slug)->first();
+
+        return $category;
     }
 
     /**
@@ -79,14 +82,10 @@ final class EloquentCategoryRepository extends BaseEloquentRepository implements
      */
     public function all(?array $columns = null): Collection
     {
-        if ($columns !== null) {
-            /** @var array<int, string> $columnArray */
-            $columnArray = array_values($columns);
+        /** @var Collection<int, Category> $collection */
+        $collection = parent::all($columns);
 
-            return Category::query()->get($columnArray);
-        }
-
-        return Category::all();
+        return $collection;
     }
 
     /**

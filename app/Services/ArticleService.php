@@ -5,15 +5,10 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Data\FilterArticleDTO;
-use App\Enums\CacheKey;
 use App\Models\Article;
-use App\Models\Category;
 use App\Models\Comment;
-use App\Models\Tag;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
-use App\Repositories\Contracts\CategoryRepositoryInterface;
 use App\Repositories\Contracts\CommentRepositoryInterface;
-use App\Repositories\Contracts\TagRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -22,10 +17,7 @@ final class ArticleService
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,
-        private readonly CategoryRepositoryInterface $categoryRepository,
-        private readonly TagRepositoryInterface $tagRepository,
         private readonly CommentRepositoryInterface $commentRepository,
-        private readonly CacheService $cacheService,
     ) {}
 
     /**
@@ -138,38 +130,6 @@ final class ArticleService
                 ->whereNotNull('published_at')
                 ->where('published_at', '<=', now());
         }
-    }
-
-    /**
-     * Get all categories from cache or database
-     *
-     * @return Collection<int, Category>
-     */
-    public function getAllCategories()
-    {
-        return $this->cacheService->remember(
-            CacheKey::CATEGORIES,
-            fn () => $this->categoryRepository->query()
-                ->select(['id', 'name', 'slug'])
-                ->orderBy('name')
-                ->get()
-        );
-    }
-
-    /**
-     * Get all tags from cache or database
-     *
-     * @return Collection<int, Tag>
-     */
-    public function getAllTags()
-    {
-        return $this->cacheService->remember(
-            CacheKey::TAGS,
-            fn () => $this->tagRepository->query()
-                ->select(['id', 'name', 'slug'])
-                ->orderBy('name')
-                ->get()
-        );
     }
 
     /**

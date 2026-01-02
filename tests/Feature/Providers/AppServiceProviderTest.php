@@ -12,7 +12,7 @@ it('sets rate limiting for api routes in non-testing environment', function () {
     RateLimiter::clear('api');
 
     // Fake a non-testing environment by mocking the environment() method
-    $provider = new class($app) extends \App\Providers\AppServiceProvider
+    $provider = new class($app) extends \App\Providers\RateLimitServiceProvider
     {
         public function boot(): void
         {

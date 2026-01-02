@@ -8,7 +8,7 @@ use App\Data\ReportArticleDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Article\ReportArticleRequest;
 use App\Http\Resources\V1\Admin\Article\ArticleManagementResource;
-use App\Services\ArticleManagementService;
+use App\Services\ArticleReportService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -19,7 +19,7 @@ use Throwable;
 final class ReportArticleController extends Controller
 {
     public function __construct(
-        private readonly ArticleManagementService $articleManagementService
+        private readonly ArticleReportService $articleReportService
     ) {}
 
     /**
@@ -53,7 +53,7 @@ final class ReportArticleController extends Controller
     {
         try {
             $dto = ReportArticleDTO::fromRequest($request);
-            $article = $this->articleManagementService->reportArticle($id, $dto);
+            $article = $this->articleReportService->reportArticle($id, $dto);
 
             return response()->apiSuccess(
                 new ArticleManagementResource($article),

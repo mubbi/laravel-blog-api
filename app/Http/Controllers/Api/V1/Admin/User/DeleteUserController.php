@@ -46,7 +46,9 @@ final class DeleteUserController extends Controller
     public function __invoke(DeleteUserRequest $request, int $id): JsonResponse
     {
         try {
-            $this->userService->deleteUser($id);
+            $currentUser = $request->user();
+            assert($currentUser !== null);
+            $this->userService->deleteUser($id, $currentUser->id);
 
             return response()->apiSuccess(
                 null,

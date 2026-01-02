@@ -96,7 +96,7 @@ final class EloquentNewsletterSubscriberRepository extends BaseEloquentRepositor
      */
     public function count(): int
     {
-        return NewsletterSubscriber::count();
+        return $this->query()->count();
     }
 
     /**
@@ -113,13 +113,25 @@ final class EloquentNewsletterSubscriberRepository extends BaseEloquentRepositor
     /**
      * Find a newsletter subscriber by verification token
      * The token parameter should be the plain token, which will be hashed for comparison
+     *
+     * Note: Since tokens are hashed, we filter by non-null tokens first, then verify the hash.
+     * This is more efficient than loading all records.
      */
     public function findByVerificationToken(string $token): ?NewsletterSubscriber
     {
+        // Filter by non-null tokens first to reduce the dataset
+        $subscribers = $this->query()
+            ->whereNotNull('verification_token')
+            ->get();
+
         /** @var NewsletterSubscriber|null $subscriber */
-        $subscriber = $this->query()->get()->first(function ($subscriber) use ($token) {
-            return $subscriber->verification_token !== null
-                && Hash::check($token, $subscriber->verification_token);
+        $subscriber = $subscribers->first(function ($subscriber) use ($token) {
+            $verificationToken = $subscriber->verification_token;
+            if ($verificationToken === null) {
+                return false;
+            }
+
+            return Hash::check($token, $verificationToken);
         });
 
         return $subscriber;
@@ -128,17 +140,27 @@ final class EloquentNewsletterSubscriberRepository extends BaseEloquentRepositor
     /**
      * Find a newsletter subscriber by verification token and email
      * The token parameter should be the plain token, which will be hashed for comparison
+     *
+     * Note: Since tokens are hashed, we filter by email first (indexed), then verify the hash.
+     * This is much more efficient than loading all records.
      */
     public function findByVerificationTokenAndEmail(string $token, string $email): ?NewsletterSubscriber
     {
-        /** @var NewsletterSubscriber|null $subscriber */
+        // Filter by email first (indexed column) and non-null token
         $subscriber = $this->query()
             ->where('email', $email)
-            ->get()
-            ->first(function ($subscriber) use ($token) {
-                return $subscriber->verification_token !== null
-                    && Hash::check($token, $subscriber->verification_token);
-            });
+            ->whereNotNull('verification_token')
+            ->first();
+
+        if ($subscriber === null) {
+            return null;
+        }
+
+        // Verify the token hash
+        $verificationToken = $subscriber->verification_token;
+        if ($verificationToken === null || ! Hash::check($token, $verificationToken)) {
+            return null;
+        }
 
         return $subscriber;
     }
