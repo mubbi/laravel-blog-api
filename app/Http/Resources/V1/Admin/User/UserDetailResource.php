@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\V1\Admin\User;
 
-use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -43,7 +42,7 @@ final class UserDetailResource extends JsonResource
                         'id' => $role->id,
                         'name' => $role->name,
                         'slug' => $role->slug,
-                        'display_name' => UserRole::from($role->name)->displayName(),
+                        'display_name' => __('enums.user_role.'.$role->name),
                     ];
                 });
             }),

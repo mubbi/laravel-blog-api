@@ -19,19 +19,18 @@ final class ArticleReportService
     ) {}
 
     /**
-     * Report an article
+     * Report an article (using route model binding)
      */
-    public function reportArticle(int $id, ReportArticleDTO $dto): Article
+    public function reportArticle(Article $article, ReportArticleDTO $dto): Article
     {
-        $article = $this->articleRepository->findOrFail($id);
-
-        $this->articleRepository->update($id, [
+        $this->articleRepository->update($article->id, [
             'report_count' => $article->report_count + 1,
             'last_reported_at' => now(),
             'report_reason' => $dto->getReason(),
         ]);
 
-        $updatedArticle = $this->articleManagementService->getArticleWithRelationships($id);
+        $article->refresh();
+        $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
         Event::dispatch(new ArticleReportedEvent($updatedArticle));
 
@@ -39,20 +38,20 @@ final class ArticleReportService
     }
 
     /**
-     * Clear article reports
+     * Clear article reports (using route model binding)
      */
-    public function clearArticleReports(int $id): Article
+    public function clearArticleReports(Article $article): Article
     {
-        $this->articleRepository->update($id, [
+        $this->articleRepository->update($article->id, [
             'report_count' => 0,
             'last_reported_at' => null,
             'report_reason' => null,
         ]);
 
-        $article = $this->articleManagementService->getArticleWithRelationships($id);
+        $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
-        Event::dispatch(new ArticleReportsClearedEvent($article));
+        Event::dispatch(new ArticleReportsClearedEvent($updatedArticle));
 
-        return $article;
+        return $updatedArticle;
     }
 }

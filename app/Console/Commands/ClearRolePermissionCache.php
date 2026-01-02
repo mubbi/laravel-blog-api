@@ -36,19 +36,18 @@ final class ClearRolePermissionCache extends Command
         if ($userId) {
             $user = User::find($userId);
             if (! $user) {
-                $this->error("User with ID {$userId} not found.");
+                $this->error(__('console.user_not_found', ['id' => $userId]));
 
                 return 1;
             }
 
             $user->clearCache();
-            $this->info("Cache cleared for user: {$user->name} (ID: {$userId})");
+            $this->info(__('console.cache_cleared_for_user', ['name' => $user->name, 'id' => $userId]));
         } elseif ($clearAll) {
             $this->clearAllUserCaches();
-            $this->info('All user caches cleared by incrementing cache version.');
+            $this->info(__('console.all_user_caches_cleared'));
         } else {
             $this->clearGlobalCaches();
-            $this->info('Global role and permission caches cleared successfully.');
         }
 
         return 0;
@@ -65,8 +64,8 @@ final class ClearRolePermissionCache extends Command
 
         Cache::put('user_cache_version', $newVersion, CacheKeys::CACHE_TTL);
 
-        $this->info("Cache version incremented from {$currentVersion} to {$newVersion}");
-        $this->info('All user caches are now invalidated.');
+        $this->info(__('console.cache_version_incremented', ['from' => $currentVersion, 'to' => $newVersion]));
+        $this->info(__('console.all_user_caches_invalidated'));
     }
 
     /**
@@ -78,6 +77,6 @@ final class ClearRolePermissionCache extends Command
         Cache::forget(CacheKeys::ALL_ROLES_CACHE_KEY);
         Cache::forget(CacheKeys::ALL_PERMISSIONS_CACHE_KEY);
 
-        $this->info('Global caches cleared successfully.');
+        $this->info(__('console.global_caches_cleared'));
     }
 }

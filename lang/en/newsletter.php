@@ -19,4 +19,6 @@ return [
     'unsubscription_token_sent' => 'An unsubscription token has been sent to your email address. Please check your inbox and click the verification link to complete your unsubscription.',
     'subscriber_already_unsubscribed' => 'This email address is already unsubscribed from the newsletter.',
     'subscriber_not_verified' => 'This email address has not been verified. Please verify your subscription before unsubscribing.',
+    'verification_email_token_usage' => 'Use this token to verify your subscription by making a POST request to: :url with the token in the request body.',
+    'unsubscription_email_token_usage' => 'Use this token to verify your unsubscription by making a POST request to: :url with the token in the request body.',
 ];

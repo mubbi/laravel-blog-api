@@ -26,7 +26,7 @@ describe('ClearRolePermissionCache Command', function () {
 
         // Act
         $this->artisan('cache:clear-roles-permissions', ['--user-id' => $user->id])
-            ->expectsOutput("Cache cleared for user: {$user->name} (ID: {$user->id})")
+            ->expectsOutput(__('console.cache_cleared_for_user', ['name' => $user->name, 'id' => $user->id]))
             ->assertExitCode(0);
 
         // Assert
@@ -36,7 +36,7 @@ describe('ClearRolePermissionCache Command', function () {
     it('handles non-existent user gracefully', function () {
         // Act
         $this->artisan('cache:clear-roles-permissions', ['--user-id' => 99999])
-            ->expectsOutput('User with ID 99999 not found.')
+            ->expectsOutput(__('console.user_not_found', ['id' => 99999]))
             ->assertExitCode(1);
     });
 
@@ -53,7 +53,7 @@ describe('ClearRolePermissionCache Command', function () {
 
         // Act
         $this->artisan('cache:clear-roles-permissions', ['--all' => true])
-            ->expectsOutput('All user caches cleared by incrementing cache version.')
+            ->expectsOutput(__('console.all_user_caches_cleared'))
             ->assertExitCode(0);
 
         // Assert - New cache should be created with version 2
@@ -71,7 +71,7 @@ describe('ClearRolePermissionCache Command', function () {
 
         // Act
         $this->artisan('cache:clear-roles-permissions')
-            ->expectsOutput('Global role and permission caches cleared successfully.')
+            ->expectsOutput(__('console.global_caches_cleared'))
             ->assertExitCode(0);
 
         // Assert
@@ -86,8 +86,8 @@ describe('ClearRolePermissionCache Command', function () {
 
         // Act
         $this->artisan('cache:clear-roles-permissions', ['--all' => true])
-            ->expectsOutput('Cache version incremented from 1 to 2')
-            ->expectsOutput('All user caches are now invalidated.')
+            ->expectsOutput(__('console.cache_version_incremented', ['from' => 1, 'to' => 2]))
+            ->expectsOutput(__('console.all_user_caches_invalidated'))
             ->assertExitCode(0);
 
         // Assert
@@ -101,8 +101,8 @@ describe('ClearRolePermissionCache Command', function () {
 
         // Act
         $this->artisan('cache:clear-roles-permissions', ['--all' => true])
-            ->expectsOutput('Cache version incremented from 5 to 6')
-            ->expectsOutput('All user caches are now invalidated.')
+            ->expectsOutput(__('console.cache_version_incremented', ['from' => 5, 'to' => 6]))
+            ->expectsOutput(__('console.all_user_caches_invalidated'))
             ->assertExitCode(0);
 
         // Assert

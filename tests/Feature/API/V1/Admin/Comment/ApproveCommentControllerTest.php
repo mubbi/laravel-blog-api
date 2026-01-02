@@ -28,7 +28,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved after review',
             ]);
 
@@ -78,7 +78,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id));
+            ->postJson(route('api.v1.admin.comments.approve', $comment));
 
         // Assert
         $response->assertStatus(200)
@@ -109,7 +109,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Re-approved',
             ]);
 
@@ -136,7 +136,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved after reconsideration',
             ]);
 
@@ -187,7 +187,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -202,7 +202,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         // Act
-        $response = $this->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+        $response = $this->postJson(route('api.v1.admin.comments.approve', $comment), [
             'admin_note' => 'Test note',
         ]);
 
@@ -222,7 +222,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => str_repeat('a', 501), // Exceeds max length
             ]);
 
@@ -257,7 +257,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -288,17 +288,17 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         // Mock CommentService to throw ModelNotFoundException
-        $this->mock(CommentService::class, function ($mock) {
+        $this->mock(CommentService::class, function ($mock) use ($comment) {
             $exception = new ModelNotFoundException;
             $exception->setModel(Comment::class);
             $mock->shouldReceive('approveComment')
-                ->with(\Mockery::type('int'), \Mockery::type(ApproveCommentDTO::class), \Mockery::type('int'))
+                ->with(\Mockery::on(fn ($arg) => $arg instanceof Comment && $arg->id === $comment->id), \Mockery::type(ApproveCommentDTO::class), \Mockery::type(User::class))
                 ->andThrow($exception);
         });
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -327,7 +327,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
@@ -354,7 +354,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
@@ -382,7 +382,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 

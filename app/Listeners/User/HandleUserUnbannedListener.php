@@ -18,7 +18,7 @@ final class HandleUserUnbannedListener implements ShouldQueue
      */
     public function handle(UserUnbannedEvent $event): void
     {
-        Log::info('User unbanned', [
+        Log::info(__('log.user_unbanned'), [
             'user_id' => $event->user->id,
             'email' => $event->user->email,
         ]);

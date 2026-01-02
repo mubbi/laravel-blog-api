@@ -29,6 +29,18 @@ final class DeleteCommentDTO
     }
 
     /**
+     * Create DTO from array
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            reason: isset($data['reason']) ? (string) $data['reason'] : null,
+        );
+    }
+
+    /**
      * Convert to array for database operations
      *
      * @return array<string, mixed>

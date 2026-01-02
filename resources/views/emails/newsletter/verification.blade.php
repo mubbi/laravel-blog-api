@@ -58,7 +58,7 @@
             {{ $verificationToken }}
         </div>
         
-        <p>Use this token to verify your subscription by making a POST request to: <code>{{ $verificationUrl }}</code> with the token in the request body.</p>
+        <p>{{ __('newsletter.verification_email_token_usage', ['url' => $verificationUrl]) }}</p>
         
         <p>{{ __('newsletter.verification_email_outro') }}</p>
         

@@ -286,4 +286,30 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         // Assert
         $response->assertStatus(403);
     });
+
+    it('returns 500 when service throws exception', function () {
+        // Arrange
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        // Mock service to throw exception
+        $this->mock(\App\Services\ArticleManagementService::class, function ($mock) {
+            $mock->shouldReceive('getArticles')
+                ->andThrow(new \Exception('Service error'));
+        });
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->getJson(route('api.v1.admin.articles.index'));
+
+        // Assert
+        $response->assertStatus(500)
+            ->assertJson([
+                'status' => false,
+                'message' => __('common.something_went_wrong'),
+                'data' => null,
+                'error' => null,
+            ]);
+    });
 });

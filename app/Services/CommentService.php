@@ -11,6 +11,7 @@ use App\Enums\CommentStatus;
 use App\Events\Comment\CommentApprovedEvent;
 use App\Events\Comment\CommentDeletedEvent;
 use App\Models\Comment;
+use App\Models\User;
 use App\Repositories\Contracts\CommentRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -23,18 +24,14 @@ final class CommentService
     ) {}
 
     /**
-     * Approve a comment
-     *
-     * @throws ModelNotFoundException
+     * Approve a comment (using route model binding)
      */
-    public function approveComment(int $commentId, ApproveCommentDTO $dto, int $approvedBy): Comment
+    public function approveComment(Comment $comment, ApproveCommentDTO $dto, User $approvedBy): Comment
     {
-        $comment = $this->commentRepository->findOrFail($commentId);
-
         $updateData = [
             'status' => CommentStatus::APPROVED,
             'approved_at' => now(),
-            'approved_by' => $approvedBy,
+            'approved_by' => $approvedBy->id,
         ];
 
         $dtoData = $dto->toArray();
@@ -42,7 +39,7 @@ final class CommentService
             $updateData = array_merge($updateData, $dtoData);
         }
 
-        $this->commentRepository->update($commentId, $updateData);
+        $this->commentRepository->update($comment->id, $updateData);
 
         /** @var Comment $freshComment */
         $freshComment = $comment->fresh(['user', 'article']);
@@ -53,16 +50,12 @@ final class CommentService
     }
 
     /**
-     * Delete a comment
-     *
-     * @throws ModelNotFoundException
+     * Delete a comment (using route model binding)
      */
-    public function deleteComment(int $commentId, DeleteCommentDTO $dto, int $deletedBy): void
+    public function deleteComment(Comment $comment, DeleteCommentDTO $dto, User $deletedBy): void
     {
-        $comment = $this->commentRepository->findOrFail($commentId);
-
         $updateData = [
-            'deleted_by' => $deletedBy,
+            'deleted_by' => $deletedBy->id,
             'deleted_at' => now(),
         ];
 
@@ -71,13 +64,13 @@ final class CommentService
             $updateData = array_merge($updateData, ['deleted_reason' => $dto->reason]);
         }
 
-        $this->commentRepository->update($commentId, $updateData);
+        $this->commentRepository->update($comment->id, $updateData);
 
         // Force delete to completely remove from database
         // Need to use repository query to find with trashed
         $commentToDelete = $this->commentRepository->query()
             ->withTrashed()
-            ->where('id', $commentId)
+            ->where('id', $comment->id)
             ->firstOrFail();
 
         Event::dispatch(new CommentDeletedEvent($commentToDelete));

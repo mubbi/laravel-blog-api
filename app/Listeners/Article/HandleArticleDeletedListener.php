@@ -18,7 +18,7 @@ final class HandleArticleDeletedListener implements ShouldQueue
      */
     public function handle(ArticleDeletedEvent $event): void
     {
-        Log::info('Article deleted', [
+        Log::info(__('log.article_deleted'), [
             'article_id' => $event->article->id,
             'title' => $event->article->title,
         ]);

@@ -18,6 +18,15 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
         Route::put('/profile', \App\Http\Controllers\Api\V1\User\UpdateProfileController::class)->name('api.v1.user.profile.update');
 
         Route::post('/auth/logout', \App\Http\Controllers\Api\V1\Auth\LogoutController::class)->name('api.v1.auth.logout');
+
+        // Article Management (accessible by authenticated users - users can manage their own articles, admins can manage all)
+        Route::prefix('articles')->group(function () {
+            Route::post('/', \App\Http\Controllers\Api\V1\Admin\Article\CreateArticleController::class)->name('api.v1.articles.store');
+            Route::post('/{article}/archive', \App\Http\Controllers\Api\V1\Admin\Article\ArchiveArticleController::class)->name('api.v1.articles.archive');
+            Route::post('/{article}/restore', \App\Http\Controllers\Api\V1\Admin\Article\RestoreArticleController::class)->name('api.v1.articles.restore');
+            Route::post('/{article}/trash', \App\Http\Controllers\Api\V1\Admin\Article\TrashArticleController::class)->name('api.v1.articles.trash');
+            Route::post('/{article}/restore-from-trash', \App\Http\Controllers\Api\V1\Admin\Article\RestoreFromTrashController::class)->name('api.v1.articles.restore-from-trash');
+        });
     });
 
     // Admin Routes
@@ -26,35 +35,37 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
         Route::prefix('users')->group(function () {
             Route::get('/', \App\Http\Controllers\Api\V1\Admin\User\GetUsersController::class)->name('api.v1.admin.users.index');
             Route::post('/', \App\Http\Controllers\Api\V1\Admin\User\CreateUserController::class)->name('api.v1.admin.users.store');
-            Route::get('/{id}', \App\Http\Controllers\Api\V1\Admin\User\ShowUserController::class)->name('api.v1.admin.users.show');
-            Route::put('/{id}', \App\Http\Controllers\Api\V1\Admin\User\UpdateUserController::class)->name('api.v1.admin.users.update');
-            Route::delete('/{id}', \App\Http\Controllers\Api\V1\Admin\User\DeleteUserController::class)->name('api.v1.admin.users.destroy');
-            Route::post('/{id}/ban', \App\Http\Controllers\Api\V1\Admin\User\BanUserController::class)->name('api.v1.admin.users.ban');
-            Route::post('/{id}/unban', \App\Http\Controllers\Api\V1\Admin\User\UnbanUserController::class)->name('api.v1.admin.users.unban');
-            Route::post('/{id}/block', \App\Http\Controllers\Api\V1\Admin\User\BlockUserController::class)->name('api.v1.admin.users.block');
-            Route::post('/{id}/unblock', \App\Http\Controllers\Api\V1\Admin\User\UnblockUserController::class)->name('api.v1.admin.users.unblock');
+            Route::get('/{user}', \App\Http\Controllers\Api\V1\Admin\User\ShowUserController::class)->name('api.v1.admin.users.show');
+            Route::put('/{user}', \App\Http\Controllers\Api\V1\Admin\User\UpdateUserController::class)->name('api.v1.admin.users.update');
+            Route::delete('/{user}', \App\Http\Controllers\Api\V1\Admin\User\DeleteUserController::class)->name('api.v1.admin.users.destroy');
+            Route::post('/{user}/ban', \App\Http\Controllers\Api\V1\Admin\User\BanUserController::class)->name('api.v1.admin.users.ban');
+            Route::post('/{user}/unban', \App\Http\Controllers\Api\V1\Admin\User\UnbanUserController::class)->name('api.v1.admin.users.unban');
+            Route::post('/{user}/block', \App\Http\Controllers\Api\V1\Admin\User\BlockUserController::class)->name('api.v1.admin.users.block');
+            Route::post('/{user}/unblock', \App\Http\Controllers\Api\V1\Admin\User\UnblockUserController::class)->name('api.v1.admin.users.unblock');
         });
 
-        // Article Management
+        // Article Management (Admin-only actions)
         Route::prefix('articles')->group(function () {
             Route::get('/', \App\Http\Controllers\Api\V1\Admin\Article\GetArticlesController::class)->name('api.v1.admin.articles.index');
-            Route::get('/{id}', \App\Http\Controllers\Api\V1\Admin\Article\ShowArticleController::class)->name('api.v1.admin.articles.show');
-            Route::post('/{id}/approve', \App\Http\Controllers\Api\V1\Admin\Article\ApproveArticleController::class)->name('api.v1.admin.articles.approve');
-            Route::post('/{id}/feature', \App\Http\Controllers\Api\V1\Admin\Article\FeatureArticleController::class)->name('api.v1.admin.articles.feature');
-            Route::post('/{id}/report', \App\Http\Controllers\Api\V1\Admin\Article\ReportArticleController::class)->name('api.v1.admin.articles.report');
+            Route::get('/{article}', \App\Http\Controllers\Api\V1\Admin\Article\ShowArticleController::class)->name('api.v1.admin.articles.show');
+            Route::post('/{article}/report', \App\Http\Controllers\Api\V1\Admin\Article\ReportArticleController::class)->name('api.v1.admin.articles.report');
+            Route::post('/{article}/approve', \App\Http\Controllers\Api\V1\Admin\Article\ApproveArticleController::class)->name('api.v1.admin.articles.approve');
+            Route::post('/{article}/pin', \App\Http\Controllers\Api\V1\Admin\Article\PinArticleController::class)->name('api.v1.admin.articles.pin');
+            Route::post('/{article}/unpin', \App\Http\Controllers\Api\V1\Admin\Article\UnpinArticleController::class)->name('api.v1.admin.articles.unpin');
+            Route::post('/{article}/feature', \App\Http\Controllers\Api\V1\Admin\Article\FeatureArticleController::class)->name('api.v1.admin.articles.feature');
         });
 
         // Comment Management
         Route::prefix('comments')->group(function () {
             Route::get('/', \App\Http\Controllers\Api\V1\Admin\Comment\GetCommentsController::class)->name('api.v1.admin.comments.index');
-            Route::post('/{id}/approve', \App\Http\Controllers\Api\V1\Admin\Comment\ApproveCommentController::class)->name('api.v1.admin.comments.approve');
-            Route::delete('/{id}', \App\Http\Controllers\Api\V1\Admin\Comment\DeleteCommentController::class)->name('api.v1.admin.comments.destroy');
+            Route::post('/{comment}/approve', \App\Http\Controllers\Api\V1\Admin\Comment\ApproveCommentController::class)->name('api.v1.admin.comments.approve');
+            Route::delete('/{comment}', \App\Http\Controllers\Api\V1\Admin\Comment\DeleteCommentController::class)->name('api.v1.admin.comments.destroy');
         });
 
         // Newsletter Management
         Route::prefix('newsletter')->group(function () {
             Route::get('/subscribers', \App\Http\Controllers\Api\V1\Admin\Newsletter\GetSubscribersController::class)->name('api.v1.admin.newsletter.subscribers.index');
-            Route::delete('/subscribers/{id}', \App\Http\Controllers\Api\V1\Admin\Newsletter\DeleteSubscriberController::class)->name('api.v1.admin.newsletter.subscribers.destroy');
+            Route::delete('/subscribers/{newsletterSubscriber}', \App\Http\Controllers\Api\V1\Admin\Newsletter\DeleteSubscriberController::class)->name('api.v1.admin.newsletter.subscribers.destroy');
         });
 
         // Notification Management

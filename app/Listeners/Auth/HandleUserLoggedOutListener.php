@@ -18,7 +18,7 @@ final class HandleUserLoggedOutListener implements ShouldQueue
      */
     public function handle(UserLoggedOutEvent $event): void
     {
-        Log::info('User logged out', [
+        Log::info(__('log.user_logged_out'), [
             'user_id' => $event->user->id,
             'email' => $event->user->email,
         ]);

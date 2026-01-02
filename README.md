@@ -378,6 +378,7 @@ Based on the codebase review, the following APIs and features are pending implem
 - **Comment Management (Admin)**: List, Approve, Delete
 - **Comment Management (Public)**: Get comments for article
 - **Newsletter Management (Admin)**: List subscribers, Delete subscriber
+- **Newsletter Management (Public)**: Subscribe, Unsubscribe, Verify subscription, Verify unsubscription ✅
 - **Notification Management (Admin)**: List, Create
 - **Taxonomy (Public)**: Get categories, Get tags
 
@@ -392,20 +393,20 @@ Based on the codebase review, the following APIs and features are pending implem
   - Password reset functionality
 
 - **Role & Permission Management**
-  - Assign roles to users endpoint
-  - Get all roles endpoint (service method exists but no endpoint)
-  - Get all permissions endpoint (service method exists but no endpoint)
+  - Assign roles to users endpoint (service method exists: `assignRoles()` in `UserService`)
+  - Get all roles endpoint (service method exists: `getAllRoles()` in `UserService`)
+  - Get all permissions endpoint (service method exists: `getAllPermissions()` in `UserService`)
 
 - **Article/Post Management**
-  - Admin - Create article to support Schedule article options 
-  - Admin - Pin article endpoint (service method exists: `pinArticle()`)
-  - Admin - Unpin article endpoint (service method exists: `unpinArticle()`)
-  - Admin - Archive article endpoint (service method exists: `archiveArticle()`)
-  - Admin - Restore article from archive endpoint (service method exists: `restoreArticle()`)
-  - Admin - Trash article endpoint (service method exists: `trashArticle()`)
-  - Admin - Restore from trash endpoint (service method exists: `restoreFromTrash()`)
-  - Like article endpoint
-  - Dislike article endpoint
+  - Admin - Create article endpoint (to support scheduled article options)
+  - Admin - Pin article endpoint (service method exists: `pinArticle()` in `ArticleFeatureService`)
+  - Admin - Unpin article endpoint (service method exists: `unpinArticle()` in `ArticleFeatureService`)
+  - Admin - Archive article endpoint (service method exists: `archiveArticle()` in `ArticleStatusService`)
+  - Admin - Restore article from archive endpoint (service method exists: `restoreArticle()` in `ArticleStatusService`)
+  - Admin - Trash article endpoint (service method exists: `trashArticle()` in `ArticleStatusService`)
+  - Admin - Restore from trash endpoint (service method exists: `restoreFromTrash()` in `ArticleStatusService`)
+  - Public - Like article endpoint
+  - Public - Dislike article endpoint
 
 - **Comment Management**
   - Create comment endpoint (for authenticated users)
@@ -430,11 +431,6 @@ Based on the codebase review, the following APIs and features are pending implem
   - Get media details endpoint
   - Update media metadata endpoint
   - Image optimization and storage integration
-
-- **Newsletter Management (Public)**
-  - Subscribe to newsletter endpoint
-  - Unsubscribe from newsletter endpoint
-  - Verify subscription email endpoint
 
 - **User Notifications**
   - Get user's notifications endpoint
@@ -468,6 +464,9 @@ Based on the codebase review, the following APIs and features are pending implem
   - Add API versioning strategy documentation
   - Review and update API documentation (Scramble) for all endpoints
 
-> _Note: Some service methods exist (e.g., `pinArticle()`, `archiveArticle()`) but lack corresponding API endpoints. Review `app/Services/ArticleManagementService.php` and `app/Services/UserService.php` for available methods that need endpoints._
+> _Note: Several service methods exist but lack corresponding API endpoints. Key services to review:_
+> - `app/Services/ArticleFeatureService.php` - `pinArticle()`, `unpinArticle()`
+> - `app/Services/ArticleStatusService.php` - `archiveArticle()`, `restoreArticle()`, `trashArticle()`, `restoreFromTrash()`
+> - `app/Services/UserService.php` - `getAllRoles()`, `getAllPermissions()`, `assignRoles()`
 
 ---

@@ -55,7 +55,7 @@ class ApiLogger
             : $responseContent;
         $duration = round(($endTime - $startTime) * 1000, 2);
 
-        Log::info('API Request', [
+        Log::info(__('log.api_request'), [
             'request_id' => $requestId,
             'user_id' => $userId,
             'ip' => $ip,

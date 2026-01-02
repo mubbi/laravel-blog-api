@@ -30,7 +30,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
 
         // Assert
         $response->assertStatus(200)
@@ -83,7 +83,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
 
         // Assert
         $response->assertStatus(200);
@@ -115,7 +115,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
 
         // Assert
         $response->assertStatus(200);
@@ -163,7 +163,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         ];
 
         // Act
-        $response = $this->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+        $response = $this->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
 
         // Assert
         $response->assertStatus(401);
@@ -187,7 +187,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
 
         // Assert
         $response->assertStatus(403);
@@ -211,7 +211,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
 
         // Assert
         $response->assertStatus(422)
@@ -242,7 +242,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
 
         // Assert
         $response->assertStatus(422)
@@ -275,7 +275,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
 
         // Assert
         $response->assertStatus(200);
@@ -305,7 +305,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
 
         // Assert
         $response->assertStatus(422)
@@ -335,7 +335,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
 
         // Assert
         $response->assertStatus(422)
@@ -371,7 +371,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
 
         // Assert
         $response->assertStatus(200);
@@ -403,7 +403,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $admin->id), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $admin), $updateData);
 
         // Assert
         $response->assertStatus(200);
@@ -438,7 +438,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate->id), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
 
         // Assert
         $response->assertStatus(200);

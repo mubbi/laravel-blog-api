@@ -28,6 +28,18 @@ final class ApproveCommentDTO
     }
 
     /**
+     * Create DTO from array
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            adminNote: isset($data['admin_note']) ? (string) $data['admin_note'] : null,
+        );
+    }
+
+    /**
      * Convert to array for database operations
      *
      * @return array<string, mixed>

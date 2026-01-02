@@ -29,7 +29,7 @@ class CommentResource extends JsonResource
             'parent_comment_id' => $this->parent_comment_id,
             'content' => $this->content,
             'status' => $this->status->value,
-            'status_display' => $this->status->displayName(),
+            'status_display' => __('enums.comment_status.'.$this->status->value),
             'is_approved' => $this->status === CommentStatus::APPROVED,
             'approved_by' => $this->approved_by,
             'approved_at' => $this->approved_at?->toISOString(),

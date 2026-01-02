@@ -18,7 +18,7 @@ final class HandleNotificationCreatedListener implements ShouldQueue
      */
     public function handle(NotificationCreatedEvent $event): void
     {
-        Log::info('Notification created', [
+        Log::info(__('log.notification_created'), [
             'notification_id' => $event->notification->id,
             'type' => $event->notification->type->value,
         ]);

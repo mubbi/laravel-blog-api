@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Api\V1\Admin\Newsletter;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Newsletter\DeleteSubscriberRequest;
+use App\Models\NewsletterSubscriber;
 use App\Services\NewsletterService;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -31,7 +31,7 @@ final class DeleteSubscriberController extends Controller
      * Requires a valid Bearer token with `access-api` ability and `manage_newsletter_subscribers` permission.
      *
      * **Route Parameters:**
-     * - `id` (integer, required): The unique identifier of the subscriber to remove
+     * - `newsletterSubscriber` (NewsletterSubscriber, required): The newsletter subscriber model instance to remove
      *
      * **Response:**
      * Returns a success message confirming the subscriber has been removed. The response
@@ -42,24 +42,15 @@ final class DeleteSubscriberController extends Controller
      *
      * @response array{status: true, message: string, data: null}
      */
-    public function __invoke(DeleteSubscriberRequest $request, int $id): JsonResponse
+    public function __invoke(DeleteSubscriberRequest $request, NewsletterSubscriber $newsletterSubscriber): JsonResponse
     {
         try {
-            $this->newsletterService->deleteSubscriber($id);
+            $this->newsletterService->deleteSubscriber($newsletterSubscriber);
 
             return response()->apiSuccess(
                 null,
                 __('common.subscriber_deleted')
             );
-        } catch (ModelNotFoundException $e) {
-            /**
-             * Subscriber not found
-             *
-             * @status 404
-             *
-             * @body array{status: false, message: string, data: null, error: null}
-             */
-            return $this->handleException($e, $request);
         } catch (Throwable $e) {
             /**
              * Internal server error

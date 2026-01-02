@@ -74,6 +74,21 @@ final class UserService
     }
 
     /**
+     * Get user with relationships loaded (for route model binding)
+     */
+    public function getUserWithRelationships(User $user): User
+    {
+        $user->load(['roles:id,name,slug']);
+        $user->loadCount(['articles', 'comments']);
+
+        // Pre-warm cache for this user
+        $user->getCachedRoles();
+        $user->getCachedPermissions();
+
+        return $user;
+    }
+
+    /**
      * Create a new user
      */
     public function createUser(CreateUserDTO $dto): User
@@ -99,13 +114,11 @@ final class UserService
     }
 
     /**
-     * Update an existing user
+     * Update an existing user (using route model binding)
      */
-    public function updateUser(int $id, UpdateUserDTO $dto): User
+    public function updateUser(User $user, UpdateUserDTO $dto): User
     {
-        return DB::transaction(function () use ($id, $dto) {
-            $user = $this->userRepository->findOrFail($id);
-
+        return DB::transaction(function () use ($user, $dto) {
             $updateData = $dto->toArray();
 
             // Update password if provided
@@ -113,7 +126,7 @@ final class UserService
                 $updateData['password'] = Hash::make($dto->password);
             }
 
-            $this->userRepository->update($id, $updateData);
+            $this->userRepository->update($user->id, $updateData);
 
             // Update roles if specified
             if ($dto->roleIds !== null) {
@@ -131,36 +144,36 @@ final class UserService
     }
 
     /**
-     * Delete a user
+     * Delete a user (using route model binding)
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function deleteUser(int $id, int $currentUserId): bool
+    public function deleteUser(User $user, User $currentUser): bool
     {
-        $this->preventSelfAction($id, $currentUserId, 'cannot_delete_self');
+        $this->preventSelfAction($user->id, $currentUser->id, 'cannot_delete_self');
 
-        $user = $this->userRepository->findOrFail($id);
         $email = $user->email;
-        $deleted = $this->userRepository->delete($id);
+        $userId = $user->id;
+        $deleted = $this->userRepository->delete($user->id);
 
         if ($deleted) {
-            Event::dispatch(new UserDeletedEvent($id, $email));
+            Event::dispatch(new UserDeletedEvent($userId, $email));
         }
 
         return $deleted;
     }
 
     /**
-     * Ban a user
+     * Ban a user (using route model binding)
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function banUser(int $id, int $currentUserId): User
+    public function banUser(User $user, User $currentUser): User
     {
-        $this->preventSelfAction($id, $currentUserId, 'cannot_ban_self');
+        $this->preventSelfAction($user->id, $currentUser->id, 'cannot_ban_self');
 
-        $this->userRepository->update($id, ['banned_at' => now()]);
-        $user = $this->userRepository->findOrFail($id);
+        $this->userRepository->update($user->id, ['banned_at' => now()]);
+        $user->refresh();
         $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
 
         Event::dispatch(new UserBannedEvent($user));
@@ -169,16 +182,16 @@ final class UserService
     }
 
     /**
-     * Unban a user
+     * Unban a user (using route model binding)
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function unbanUser(int $id, int $currentUserId): User
+    public function unbanUser(User $user, User $currentUser): User
     {
-        $this->preventSelfAction($id, $currentUserId, 'cannot_unban_self');
+        $this->preventSelfAction($user->id, $currentUser->id, 'cannot_unban_self');
 
-        $this->userRepository->update($id, ['banned_at' => null]);
-        $user = $this->userRepository->findOrFail($id);
+        $this->userRepository->update($user->id, ['banned_at' => null]);
+        $user->refresh();
         $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
 
         Event::dispatch(new UserUnbannedEvent($user));
@@ -187,16 +200,16 @@ final class UserService
     }
 
     /**
-     * Block a user
+     * Block a user (using route model binding)
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function blockUser(int $id, int $currentUserId): User
+    public function blockUser(User $user, User $currentUser): User
     {
-        $this->preventSelfAction($id, $currentUserId, 'cannot_block_self');
+        $this->preventSelfAction($user->id, $currentUser->id, 'cannot_block_self');
 
-        $this->userRepository->update($id, ['blocked_at' => now()]);
-        $user = $this->userRepository->findOrFail($id);
+        $this->userRepository->update($user->id, ['blocked_at' => now()]);
+        $user->refresh();
         $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
 
         Event::dispatch(new UserBlockedEvent($user));
@@ -205,16 +218,16 @@ final class UserService
     }
 
     /**
-     * Unblock a user
+     * Unblock a user (using route model binding)
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function unblockUser(int $id, int $currentUserId): User
+    public function unblockUser(User $user, User $currentUser): User
     {
-        $this->preventSelfAction($id, $currentUserId, 'cannot_unblock_self');
+        $this->preventSelfAction($user->id, $currentUser->id, 'cannot_unblock_self');
 
-        $this->userRepository->update($id, ['blocked_at' => null]);
-        $user = $this->userRepository->findOrFail($id);
+        $this->userRepository->update($user->id, ['blocked_at' => null]);
+        $user->refresh();
         $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
 
         Event::dispatch(new UserUnblockedEvent($user));

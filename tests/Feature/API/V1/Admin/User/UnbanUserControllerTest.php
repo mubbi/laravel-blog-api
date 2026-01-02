@@ -19,7 +19,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban->id));
+            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
 
         // Assert
         $response->assertStatus(200)
@@ -57,7 +57,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban->id));
+            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
 
         // Assert
         $response->assertStatus(200);
@@ -77,7 +77,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban->id));
+            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
 
         // Assert
         $response->assertStatus(200);
@@ -114,7 +114,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban->id));
+            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
 
         // Assert
         $response->assertStatus(403);
@@ -125,7 +125,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         $userToUnban = User::factory()->create(['banned_at' => now()]);
 
         // Act
-        $response = $this->postJson(route('api.v1.admin.users.unban', $userToUnban->id));
+        $response = $this->postJson(route('api.v1.admin.users.unban', $userToUnban));
 
         // Assert
         $response->assertStatus(401);
@@ -139,7 +139,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $admin->id));
+            ->postJson(route('api.v1.admin.users.unban', $admin));
 
         // Assert
         $response->assertStatus(403)
@@ -171,7 +171,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban->id));
+            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
 
         // Assert
         $response->assertStatus(200);
@@ -195,7 +195,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban->id));
+            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
 
         // Assert
         $response->assertStatus(200);
@@ -216,7 +216,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban->id));
+            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
 
         // Assert
         $response->assertStatus(200);

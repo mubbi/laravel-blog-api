@@ -67,7 +67,7 @@ final class GetCommentsController extends Controller
             $perPage = (int) $perPageParam;
             $page = (int) $pageParam;
             $commentsDataResponse = CommentResource::collection($this->articleService->getArticleComments(
-                $article->id,
+                $article,
                 $parentId,
                 $perPage,
                 $page

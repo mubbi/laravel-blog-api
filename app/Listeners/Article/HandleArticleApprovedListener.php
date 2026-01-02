@@ -18,7 +18,7 @@ final class HandleArticleApprovedListener implements ShouldQueue
      */
     public function handle(ArticleApprovedEvent $event): void
     {
-        Log::info('Article approved', [
+        Log::info(__('log.article_approved'), [
             'article_id' => $event->article->id,
             'title' => $event->article->title,
             'approved_by' => $event->article->approved_by,

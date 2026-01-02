@@ -32,7 +32,7 @@ final class ReportArticleDTO
      */
     public function getReason(): string
     {
-        return $this->reason ?? 'No reason provided';
+        return $this->reason ?? __('common.no_reason_provided');
     }
 
     /**

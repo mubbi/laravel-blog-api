@@ -137,7 +137,7 @@ final class ArticleService
      *
      * Loads the comment's user, count of replies, and top replies (limited by $repliesPerPage).
      *
-     * @param  int  $articleId  The ID of the article.
+     * @param  Article|int  $article  The article model instance or article ID.
      * @param  int|null  $parentId  The ID of the parent comment (if loading child comments).
      * @param  int  $perPage  Number of parent comments per page.
      * @param  int  $page  Current page number.
@@ -145,12 +145,13 @@ final class ArticleService
      * @return LengthAwarePaginator<int, Comment>
      */
     public function getArticleComments(
-        int $articleId,
+        Article|int $article,
         ?int $parentId = null,
         int $perPage = 10,
         int $page = 1,
         int $repliesPerPage = 3
     ): LengthAwarePaginator {
+        $articleId = $article instanceof Article ? $article->id : $article;
         $query = $this->commentRepository->query()
             ->where('article_id', $articleId)
             ->when($parentId !== null, fn ($q) => $q->where('parent_comment_id', $parentId))

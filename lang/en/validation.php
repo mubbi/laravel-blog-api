@@ -209,6 +209,8 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'refresh_token' => 'refresh token',
+    ],
 
 ];

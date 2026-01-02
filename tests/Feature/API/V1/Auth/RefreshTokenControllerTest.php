@@ -57,7 +57,7 @@ describe('API/V1/Auth/RefreshTokenController', function () {
             $mock->shouldReceive('refreshToken')
                 ->with('invalid-refresh-token')
                 ->once()
-                ->andThrow(new UnauthorizedException('Invalid or expired refresh token'));
+                ->andThrow(new UnauthorizedException(__('auth.invalid_refresh_token')));
         });
 
         // Attempt to refresh token with invalid token
@@ -69,7 +69,7 @@ describe('API/V1/Auth/RefreshTokenController', function () {
         $response->assertStatus(401)
             ->assertJson([
                 'status' => false,
-                'message' => 'Invalid or expired refresh token',
+                'message' => __('auth.invalid_refresh_token'),
                 'data' => null,
                 'error' => null,
             ]);

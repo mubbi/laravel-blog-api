@@ -265,18 +265,18 @@ final class ExceptionHandlerService
         if ($e instanceof ModelNotFoundException) {
             $model = class_basename($e->getModel() ?? 'Model');
 
-            return "{$prefix}{$model} not found";
+            return $prefix.__('log.model_not_found', ['model' => $model]);
         }
 
         if ($e instanceof UnauthorizedException) {
-            return "{$prefix}Authentication failed";
+            return $prefix.__('log.authentication_failed');
         }
 
         if ($e instanceof AuthorizationException) {
-            return "{$prefix}Authorization failed";
+            return $prefix.__('log.authorization_failed');
         }
 
-        return "{$prefix}Exception occurred";
+        return $prefix.__('log.exception_occurred');
     }
 
     /**

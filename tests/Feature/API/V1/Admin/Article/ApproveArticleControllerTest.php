@@ -24,7 +24,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
         // Act
         $admin->withAccessToken($token->accessToken);
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.articles.approve', $article->id));
+            ->postJson(route('api.v1.admin.articles.approve', $article));
 
         // Assert
         $response->assertStatus(200)
@@ -59,7 +59,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.approve', $article->id));
+        ])->postJson(route('api.v1.admin.articles.approve', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -84,7 +84,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.approve', $article->id));
+        ])->postJson(route('api.v1.admin.articles.approve', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -118,7 +118,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
         $article = Article::factory()->create();
 
         // Act
-        $response = $this->postJson(route('api.v1.admin.articles.approve', $article->id));
+        $response = $this->postJson(route('api.v1.admin.articles.approve', $article));
 
         // Assert
         $response->assertStatus(401);
@@ -137,7 +137,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.approve', $article->id));
+        ])->postJson(route('api.v1.admin.articles.approve', $article));
 
         // Assert
         $response->assertStatus(403);
@@ -162,7 +162,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.approve', $article->id));
+        ])->postJson(route('api.v1.admin.articles.approve', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -188,7 +188,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.approve', $article->id));
+        ])->postJson(route('api.v1.admin.articles.approve', $article));
 
         // Assert
         $response->assertStatus(200);

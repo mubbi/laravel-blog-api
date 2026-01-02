@@ -63,6 +63,28 @@ final class UpdateUserDTO
     }
 
     /**
+     * Create DTO from array
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            name: isset($data['name']) ? (string) $data['name'] : null,
+            email: isset($data['email']) ? (string) $data['email'] : null,
+            password: isset($data['password']) ? (string) $data['password'] : null,
+            avatarUrl: isset($data['avatar_url']) ? (string) $data['avatar_url'] : null,
+            bio: isset($data['bio']) ? (string) $data['bio'] : null,
+            twitter: isset($data['twitter']) ? (string) $data['twitter'] : null,
+            facebook: isset($data['facebook']) ? (string) $data['facebook'] : null,
+            linkedin: isset($data['linkedin']) ? (string) $data['linkedin'] : null,
+            github: isset($data['github']) ? (string) $data['github'] : null,
+            website: isset($data['website']) ? (string) $data['website'] : null,
+            roleIds: isset($data['role_ids']) && is_array($data['role_ids']) ? array_map(fn ($id) => (int) $id, $data['role_ids']) : null,
+        );
+    }
+
+    /**
      * Convert to array for database operations
      * Includes null values for optional clearable fields that were explicitly provided
      *

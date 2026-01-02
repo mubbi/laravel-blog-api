@@ -22,7 +22,8 @@ abstract class TestCase extends BaseTestCase
      * Setup the test environment.
      * Fake all events by default to prevent listeners from running during tests,
      * which improves performance. Tests that need to verify event dispatching
-     * can use Event::fake([SpecificEvent::class]) to fake specific events.
+     * can use Event::fake([SpecificEvent::class]) to fake specific events, which
+     * will reset the global fake and only fake the specified events.
      */
     protected function setUp(): void
     {
@@ -31,6 +32,8 @@ abstract class TestCase extends BaseTestCase
         // Fake all events globally to prevent listeners from executing
         // This significantly improves test performance since listeners are queued
         // and run synchronously with QUEUE_CONNECTION=sync
+        // Note: Tests can call Event::fake([SpecificEvent::class]) to reset
+        // and only fake specific events, allowing them to be dispatched and recorded
         Event::fake();
     }
 }

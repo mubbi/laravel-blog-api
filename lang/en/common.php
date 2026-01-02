@@ -53,6 +53,7 @@ return [
     'article_restored_from_trash_successfully' => 'Article restored from trash successfully.',
     'article_reported_successfully' => 'Article reported successfully.',
     'article_reports_cleared_successfully' => 'Article reports cleared successfully.',
+    'no_reason_provided' => 'No reason provided',
 
     // Comment Management
     'comment_not_found' => 'Comment not found.',

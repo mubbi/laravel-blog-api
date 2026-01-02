@@ -18,7 +18,7 @@ final class HandleUserCreatedListener implements ShouldQueue
      */
     public function handle(UserCreatedEvent $event): void
     {
-        Log::info('User created', [
+        Log::info(__('log.user_created'), [
             'user_id' => $event->user->id,
             'email' => $event->user->email,
             'name' => $event->user->name,

@@ -7,10 +7,10 @@ namespace App\Http\Controllers\Api\V1\Admin\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\User\UnblockUserRequest;
 use App\Http\Resources\V1\Admin\User\UserDetailResource;
+use App\Models\User;
 use App\Services\UserService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -33,7 +33,7 @@ final class UnblockUserController extends Controller
      * Requires a valid Bearer token with `access-api` ability and `restore_users` permission.
      *
      * **Route Parameters:**
-     * - `id` (integer, required): The unique identifier of the user to unblock
+     * - `user` (User, required): The user model instance to unblock
      *
      * **Response:**
      * Returns the updated user object with the block removed and full access restored.
@@ -44,12 +44,12 @@ final class UnblockUserController extends Controller
      *
      * @response array{status: true, message: string, data: UserDetailResource}
      */
-    public function __invoke(int $id, UnblockUserRequest $request): JsonResponse
+    public function __invoke(User $user, UnblockUserRequest $request): JsonResponse
     {
         try {
             $currentUser = $request->user();
             assert($currentUser !== null);
-            $user = $this->userService->unblockUser($id, $currentUser->id);
+            $user = $this->userService->unblockUser($user, $currentUser);
 
             return response()->apiSuccess(
                 new UserDetailResource($user),
@@ -60,15 +60,6 @@ final class UnblockUserController extends Controller
              * Forbidden - Cannot unblock self
              *
              * @status 403
-             *
-             * @body array{status: false, message: string, data: null, error: null}
-             */
-            return $this->handleException($e, $request);
-        } catch (ModelNotFoundException $e) {
-            /**
-             * User not found
-             *
-             * @status 404
              *
              * @body array{status: false, message: string, data: null, error: null}
              */

@@ -31,7 +31,7 @@ final class ArticleManagementResource extends JsonResource
             'content_html' => $this->resource->content_html,
             'featured_image' => $this->resource->featured_image,
             'status' => $this->resource->status->value,
-            'status_display' => $this->resource->status instanceof ArticleStatus ? $this->resource->status->displayName() : $this->resource->status,
+            'status_display' => $this->resource->status instanceof ArticleStatus ? __('enums.article_status.'.$this->resource->status->value) : $this->resource->status,
             'published_at' => $this->resource->published_at,
             'meta_title' => $this->resource->meta_title,
             'meta_description' => $this->resource->meta_description,

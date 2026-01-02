@@ -18,7 +18,7 @@ final class HandleArticleUnpinnedListener implements ShouldQueue
      */
     public function handle(ArticleUnpinnedEvent $event): void
     {
-        Log::info('Article unpinned', [
+        Log::info(__('log.article_unpinned'), [
             'article_id' => $event->article->id,
             'title' => $event->article->title,
         ]);

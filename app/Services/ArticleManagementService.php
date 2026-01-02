@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Data\CreateArticleDTO;
 use App\Data\FilterArticleManagementDTO;
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 final class ArticleManagementService
 {
@@ -17,15 +19,22 @@ final class ArticleManagementService
     ) {}
 
     /**
-     * Get articles with filters and pagination for admin management
+     * Get articles with filters and pagination for article management
+     * Non-admin users will only see their own articles
      *
+     * @param  int|null  $userIdForFiltering  If provided, filter articles to only those created by this user
      * @return LengthAwarePaginator<int, Article>
      */
-    public function getArticles(FilterArticleManagementDTO $dto): LengthAwarePaginator
+    public function getArticles(FilterArticleManagementDTO $dto, ?int $userIdForFiltering = null): LengthAwarePaginator
     {
         $query = $this->articleRepository->query()
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->withCount(['comments', 'authors']);
+
+        // Filter by user if provided (non-admin users see only their own articles)
+        if ($userIdForFiltering !== null) {
+            $query->where('created_by', $userIdForFiltering);
+        }
 
         // Apply filters
         $this->applyFilters($query, $dto);
@@ -38,7 +47,8 @@ final class ArticleManagementService
     }
 
     /**
-     * Get a single article by ID for admin management
+     * Get a single article by ID for article management
+     * Non-admin users can only access their own articles (authorization should be checked in request/controller)
      */
     public function getArticleById(int $id): Article
     {
@@ -73,6 +83,18 @@ final class ArticleManagementService
     {
         return $this->loadArticleRelationships($this->articleRepository->query())
             ->findOrFail($id);
+    }
+
+    /**
+     * Load relationships on an existing article model (using route model binding)
+     * Made public for use by other services
+     */
+    public function loadArticleRelationshipsOnModel(Article $article): Article
+    {
+        $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article->loadCount(['comments', 'authors']);
+
+        return $article;
     }
 
     /**
@@ -150,5 +172,34 @@ final class ArticleManagementService
         if ($dto->publishedBefore !== null) {
             $query->where('published_at', '<=', $dto->publishedBefore);
         }
+    }
+
+    /**
+     * Create a new article with relationships
+     */
+    public function createArticle(CreateArticleDTO $dto): Article
+    {
+        return DB::transaction(function () use ($dto) {
+            // Create the article
+            $article = $this->articleRepository->create($dto->toArray());
+
+            // Attach categories
+            if (! empty($dto->categoryIds)) {
+                $article->categories()->attach($dto->categoryIds);
+            }
+
+            // Attach tags
+            if (! empty($dto->tagIds)) {
+                $article->tags()->attach($dto->tagIds);
+            }
+
+            // Attach authors with roles (DTO always provides at least the creator as author)
+            foreach ($dto->authors as $author) {
+                $article->authors()->attach($author['user_id'], ['role' => $author['role']]);
+            }
+
+            // Reload with relationships
+            return $this->getArticleWithRelationships($article->id);
+        });
     }
 }

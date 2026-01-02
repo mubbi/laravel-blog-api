@@ -13,6 +13,7 @@ use App\Events\Article\ArticleRestoredEvent;
 use App\Events\Article\ArticleRestoredFromTrashEvent;
 use App\Events\Article\ArticleTrashedEvent;
 use App\Models\Article;
+use App\Models\User;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use Illuminate\Support\Facades\Event;
 
@@ -24,102 +25,111 @@ final class ArticleStatusService
     ) {}
 
     /**
-     * Approve an article
+     * Approve an article (using route model binding)
      */
-    public function approveArticle(int $id, int $approvedBy): Article
+    public function approveArticle(Article $article, User $approvedBy): Article
     {
-        $this->articleRepository->update($id, [
+        $this->articleRepository->update($article->id, [
             'status' => ArticleStatus::PUBLISHED,
-            'approved_by' => $approvedBy,
+            'approved_by' => $approvedBy->id,
             'published_at' => now(),
         ]);
 
-        $article = $this->articleManagementService->getArticleWithRelationships($id);
+        $article->refresh();
+        $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
-        Event::dispatch(new ArticleApprovedEvent($article));
+        Event::dispatch(new ArticleApprovedEvent($updatedArticle));
 
-        return $article;
+        return $updatedArticle;
     }
 
     /**
      * Reject an article (set to draft)
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
     public function rejectArticle(int $id, int $rejectedBy): Article
     {
+        $article = $this->articleRepository->findOrFail($id);
+
         $this->articleRepository->update($id, [
             'status' => ArticleStatus::DRAFT,
             'approved_by' => $rejectedBy,
         ]);
 
-        $article = $this->articleManagementService->getArticleWithRelationships($id);
+        $updatedArticle = $this->articleManagementService->getArticleWithRelationships($id);
 
-        Event::dispatch(new ArticleRejectedEvent($article));
+        Event::dispatch(new ArticleRejectedEvent($updatedArticle));
 
-        return $article;
+        return $updatedArticle;
     }
 
     /**
-     * Archive an article
+     * Archive an article (using route model binding)
      */
-    public function archiveArticle(int $id): Article
+    public function archiveArticle(Article $article): Article
     {
-        $this->articleRepository->update($id, [
+        $this->articleRepository->update($article->id, [
             'status' => ArticleStatus::ARCHIVED,
         ]);
 
-        $article = $this->articleManagementService->getArticleWithRelationships($id);
+        $article->refresh();
+        $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
-        Event::dispatch(new ArticleArchivedEvent($article));
+        Event::dispatch(new ArticleArchivedEvent($updatedArticle));
 
-        return $article;
+        return $updatedArticle;
     }
 
     /**
-     * Restore an article from archive
+     * Restore an article from archive (using route model binding)
      */
-    public function restoreArticle(int $id): Article
+    public function restoreArticle(Article $article): Article
     {
-        $this->articleRepository->update($id, [
+        $this->articleRepository->update($article->id, [
             'status' => ArticleStatus::PUBLISHED,
         ]);
 
-        $article = $this->articleManagementService->getArticleWithRelationships($id);
+        $article->refresh();
+        $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
-        Event::dispatch(new ArticleRestoredEvent($article));
+        Event::dispatch(new ArticleRestoredEvent($updatedArticle));
 
-        return $article;
+        return $updatedArticle;
     }
 
     /**
-     * Trash an article
+     * Trash an article (using route model binding)
      */
-    public function trashArticle(int $id): Article
+    public function trashArticle(Article $article): Article
     {
-        $this->articleRepository->update($id, [
+        $this->articleRepository->update($article->id, [
             'status' => ArticleStatus::TRASHED,
         ]);
 
-        $article = $this->articleManagementService->getArticleWithRelationships($id);
+        $article->refresh();
+        $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
-        Event::dispatch(new ArticleTrashedEvent($article));
+        Event::dispatch(new ArticleTrashedEvent($updatedArticle));
 
-        return $article;
+        return $updatedArticle;
     }
 
     /**
-     * Restore an article from trash
+     * Restore an article from trash (using route model binding)
      */
-    public function restoreFromTrash(int $id): Article
+    public function restoreFromTrash(Article $article): Article
     {
-        $this->articleRepository->update($id, [
+        $this->articleRepository->update($article->id, [
             'status' => ArticleStatus::DRAFT,
         ]);
 
-        $article = $this->articleManagementService->getArticleWithRelationships($id);
+        $article->refresh();
+        $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
-        Event::dispatch(new ArticleRestoredFromTrashEvent($article));
+        Event::dispatch(new ArticleRestoredFromTrashEvent($updatedArticle));
 
-        return $article;
+        return $updatedArticle;
     }
 
     /**
@@ -127,7 +137,12 @@ final class ArticleStatusService
      */
     public function deleteArticle(int $id): bool
     {
-        $article = $this->articleRepository->findOrFail($id);
+        $article = $this->articleRepository->findById($id);
+
+        if ($article === null) {
+            return false;
+        }
+
         $deleted = $this->articleRepository->delete($id);
 
         if ($deleted) {

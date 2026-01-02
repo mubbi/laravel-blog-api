@@ -18,7 +18,7 @@ final class HandleCommentApprovedListener implements ShouldQueue
      */
     public function handle(CommentApprovedEvent $event): void
     {
-        Log::info('Comment approved', [
+        Log::info(__('log.comment_approved'), [
             'comment_id' => $event->comment->id,
             'article_id' => $event->comment->article_id,
             'user_id' => $event->comment->user_id,

@@ -18,7 +18,7 @@ final class HandleCommentDeletedListener implements ShouldQueue
      */
     public function handle(CommentDeletedEvent $event): void
     {
-        Log::info('Comment deleted', [
+        Log::info(__('log.comment_deleted'), [
             'comment_id' => $event->comment->id,
             'article_id' => $event->comment->article_id,
             'user_id' => $event->comment->user_id,

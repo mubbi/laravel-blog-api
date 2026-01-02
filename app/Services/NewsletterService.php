@@ -31,15 +31,13 @@ final class NewsletterService
     ) {}
 
     /**
-     * Delete a newsletter subscriber
-     *
-     * @throws ModelNotFoundException
+     * Delete a newsletter subscriber (using route model binding)
      */
-    public function deleteSubscriber(int $subscriberId): void
+    public function deleteSubscriber(NewsletterSubscriber $newsletterSubscriber): void
     {
-        $subscriber = $this->newsletterSubscriberRepository->findOrFail($subscriberId);
-        $email = $subscriber->email;
-        $this->newsletterSubscriberRepository->delete($subscriberId);
+        $email = $newsletterSubscriber->email;
+        $subscriberId = $newsletterSubscriber->id;
+        $this->newsletterSubscriberRepository->delete($newsletterSubscriber->id);
 
         Event::dispatch(new NewsletterSubscriberDeletedEvent($subscriberId, $email));
     }

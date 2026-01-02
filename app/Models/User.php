@@ -192,7 +192,7 @@ final class User extends Authenticatable
 
             return false;
         } catch (Throwable $e) {
-            Log::error('hasPermission error', [
+            Log::error(__('log.has_permission_error'), [
                 'user_id' => $this->id,
                 'permission' => $permission,
                 'error' => $e->getMessage(),
@@ -229,7 +229,7 @@ final class User extends Authenticatable
 
             return false;
         } catch (Throwable $e) {
-            Log::error('hasAnyPermission error', [
+            Log::error(__('log.has_any_permission_error'), [
                 'user_id' => $this->id,
                 'permissions' => $permissions,
                 'error' => $e->getMessage(),
@@ -266,7 +266,7 @@ final class User extends Authenticatable
 
             return empty(array_diff($permissions, $userPermissions));
         } catch (Throwable $e) {
-            Log::error('hasAllPermissions error', [
+            Log::error(__('log.has_all_permissions_error'), [
                 'user_id' => $this->id,
                 'permissions' => $permissions,
                 'error' => $e->getMessage(),

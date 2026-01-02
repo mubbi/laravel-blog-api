@@ -81,7 +81,7 @@ final class UpdateProfileController extends Controller
                 providedFields: $providedFields,
             );
 
-            $user = $this->userService->updateUser($authenticatedUser->id, $dto);
+            $user = $this->userService->updateUser($authenticatedUser, $dto);
 
             return response()->apiSuccess(
                 new UserResource($user),

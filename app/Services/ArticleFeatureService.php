@@ -22,20 +22,20 @@ final class ArticleFeatureService
     ) {}
 
     /**
-     * Feature an article
+     * Feature an article (using route model binding)
      */
-    public function featureArticle(int $id): Article
+    public function featureArticle(Article $article): Article
     {
         try {
-            $article = $this->articleRepository->findOrFail($id);
             $newFeaturedStatus = ! $article->is_featured;
 
-            $this->articleRepository->update($id, [
+            $this->articleRepository->update($article->id, [
                 'is_featured' => $newFeaturedStatus,
                 'featured_at' => $newFeaturedStatus ? now() : null,
             ]);
 
-            $freshArticle = $this->articleManagementService->getArticleWithRelationships($id);
+            $article->refresh();
+            $freshArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
             if ($newFeaturedStatus) {
                 Event::dispatch(new ArticleFeaturedEvent($freshArticle));
@@ -45,8 +45,8 @@ final class ArticleFeatureService
 
             return $freshArticle;
         } catch (Throwable $e) {
-            Log::error('FeatureArticle error', [
-                'id' => $id,
+            Log::error(__('log.feature_article_error'), [
+                'id' => $article->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -72,36 +72,38 @@ final class ArticleFeatureService
     }
 
     /**
-     * Pin an article
+     * Pin an article (using route model binding)
      */
-    public function pinArticle(int $id): Article
+    public function pinArticle(Article $article): Article
     {
-        $this->articleRepository->update($id, [
+        $this->articleRepository->update($article->id, [
             'is_pinned' => true,
             'pinned_at' => now(),
         ]);
 
-        $article = $this->articleManagementService->getArticleWithRelationships($id);
+        $article->refresh();
+        $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
-        Event::dispatch(new ArticlePinnedEvent($article));
+        Event::dispatch(new ArticlePinnedEvent($updatedArticle));
 
-        return $article;
+        return $updatedArticle;
     }
 
     /**
-     * Unpin an article
+     * Unpin an article (using route model binding)
      */
-    public function unpinArticle(int $id): Article
+    public function unpinArticle(Article $article): Article
     {
-        $this->articleRepository->update($id, [
+        $this->articleRepository->update($article->id, [
             'is_pinned' => false,
             'pinned_at' => null,
         ]);
 
-        $article = $this->articleManagementService->getArticleWithRelationships($id);
+        $article->refresh();
+        $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
-        Event::dispatch(new ArticleUnpinnedEvent($article));
+        Event::dispatch(new ArticleUnpinnedEvent($updatedArticle));
 
-        return $article;
+        return $updatedArticle;
     }
 }

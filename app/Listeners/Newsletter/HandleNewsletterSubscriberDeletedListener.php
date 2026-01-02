@@ -18,7 +18,7 @@ final class HandleNewsletterSubscriberDeletedListener implements ShouldQueue
      */
     public function handle(NewsletterSubscriberDeletedEvent $event): void
     {
-        Log::info('Newsletter subscriber deleted', [
+        Log::info(__('log.newsletter_subscriber_deleted'), [
             'subscriber_id' => $event->subscriberId,
             'email' => $event->email,
         ]);

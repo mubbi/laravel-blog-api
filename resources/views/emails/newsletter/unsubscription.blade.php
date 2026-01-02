@@ -58,7 +58,7 @@
             {{ $unsubscriptionToken }}
         </div>
         
-        <p>Use this token to verify your unsubscription by making a POST request to: <code>{{ $unsubscriptionUrl }}</code> with the token in the request body.</p>
+        <p>{{ __('newsletter.unsubscription_email_token_usage', ['url' => $unsubscriptionUrl]) }}</p>
         
         <p>{{ __('newsletter.unsubscription_email_outro') }}</p>
         

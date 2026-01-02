@@ -27,7 +27,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.articles.show', $article->id));
+        ])->getJson(route('api.v1.admin.articles.show', $article));
 
         // Assert
         $response->assertStatus(200)
@@ -69,7 +69,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.articles.show', $article->id));
+        ])->getJson(route('api.v1.admin.articles.show', $article));
 
         // Assert
         $response->assertStatus(200)
@@ -94,7 +94,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.articles.show', $article->id));
+        ])->getJson(route('api.v1.admin.articles.show', $article));
 
         // Assert
         $response->assertStatus(200)
@@ -119,7 +119,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.articles.show', $article->id));
+        ])->getJson(route('api.v1.admin.articles.show', $article));
 
         // Assert
         $response->assertStatus(200)
@@ -157,7 +157,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         $article = Article::factory()->create();
 
         // Act
-        $response = $this->getJson(route('api.v1.admin.articles.show', $article->id));
+        $response = $this->getJson(route('api.v1.admin.articles.show', $article));
 
         // Assert
         $response->assertStatus(401);
@@ -175,7 +175,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.articles.show', $article->id));
+        ])->getJson(route('api.v1.admin.articles.show', $article));
 
         // Assert
         $response->assertStatus(403);
@@ -195,7 +195,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.articles.show', $article->id));
+        ])->getJson(route('api.v1.admin.articles.show', $article));
 
         // Assert
         $response->assertStatus(200)
@@ -214,6 +214,62 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
                         'email' => $author->email,
                     ],
                 ],
+            ]);
+    });
+
+    it('can show a trashed article', function () {
+        // Arrange
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $token = $admin->createToken('test-token', ['access-api']);
+
+        $article = Article::factory()->create(['status' => ArticleStatus::TRASHED]);
+
+        // Act
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token->plainTextToken,
+        ])->getJson(route('api.v1.admin.articles.show', $article));
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'id' => $article->id,
+                    'status' => ArticleStatus::TRASHED->value,
+                ],
+            ]);
+    });
+
+    it('returns 500 when service throws exception', function () {
+        // Arrange
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        $token = $admin->createToken('test-token', ['access-api']);
+
+        $article = Article::factory()->create();
+
+        // Mock service to throw exception
+        $this->mock(\App\Services\ArticleManagementService::class, function ($mock) {
+            $mock->shouldReceive('loadArticleRelationshipsOnModel')
+                ->andThrow(new \Exception('Service error'));
+        });
+
+        // Act
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token->plainTextToken,
+        ])->getJson(route('api.v1.admin.articles.show', $article));
+
+        // Assert
+        $response->assertStatus(500)
+            ->assertJson([
+                'status' => false,
+                'message' => __('common.something_went_wrong'),
+                'data' => null,
+                'error' => null,
             ]);
     });
 

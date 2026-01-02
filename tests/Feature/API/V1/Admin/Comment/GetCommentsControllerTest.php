@@ -404,4 +404,30 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         $meta = $response->json('data.meta');
         $this->assertEquals(0, $meta['total']);
     });
+
+    it('returns 500 when service throws exception', function () {
+        // Arrange
+        $admin = User::factory()->create();
+        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
+        attachRoleAndRefreshCache($admin, $adminRole);
+
+        // Mock service to throw exception
+        $this->mock(\App\Services\CommentService::class, function ($mock) {
+            $mock->shouldReceive('getComments')
+                ->andThrow(new \Exception('Service error'));
+        });
+
+        // Act
+        $response = $this->actingAs($admin)
+            ->getJson(route('api.v1.admin.comments.index'));
+
+        // Assert
+        $response->assertStatus(500)
+            ->assertJson([
+                'status' => false,
+                'message' => __('common.something_went_wrong'),
+                'data' => null,
+                'error' => null,
+            ]);
+    });
 });
