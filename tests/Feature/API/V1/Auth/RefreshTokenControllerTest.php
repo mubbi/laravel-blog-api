@@ -103,9 +103,15 @@ describe('API/V1/Auth/RefreshTokenController', function () {
         // Arrange
         Event::fake([TokenRefreshedEvent::class]);
 
+        // Create user with roles and permissions (like in service test)
+        $permission = \App\Models\Permission::factory()->create(['slug' => 'refresh-permission-'.uniqid()]);
+        $role = \App\Models\Role::factory()->create(['slug' => 'refresh-role-'.uniqid()]);
+        $role->permissions()->attach($permission->id);
+
         $user = User::factory()->create([
             'email' => 'test@example.com',
         ]);
+        $user->roles()->attach($role->id);
 
         // Create a real refresh token (don't mock the service to allow event dispatch)
         $refreshTokenExpiration = now()->addDays(30);

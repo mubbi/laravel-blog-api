@@ -11,6 +11,8 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
     // Auth Routes
     Route::post('/auth/login', \App\Http\Controllers\Api\V1\Auth\LoginController::class)->name('api.v1.auth.login');
     Route::post('/auth/refresh', \App\Http\Controllers\Api\V1\Auth\RefreshTokenController::class)->name('api.v1.auth.refresh');
+    Route::post('/auth/forgot-password', \App\Http\Controllers\Api\V1\Auth\ForgotPasswordController::class)->name('api.v1.auth.password.forgot');
+    Route::post('/auth/reset-password', \App\Http\Controllers\Api\V1\Auth\ResetPasswordController::class)->name('api.v1.auth.password.reset');
 
     // User Routes
     Route::middleware(['auth:sanctum', 'ability:access-api'])->group(function () {

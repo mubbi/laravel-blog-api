@@ -157,4 +157,159 @@ describe('App\Services\Auth\AuthService tests', function () {
             expect($user->fresh()->tokens()->count())->toBe(0);
         });
     });
+
+    describe('forgotPassword', function () {
+        it('sends password reset email to existing user', function () {
+            \Illuminate\Support\Facades\Mail::fake();
+
+            $user = User::factory()->create([
+                'email' => 'test@example.com',
+                'name' => 'Test User',
+            ]);
+
+            $this->authService->forgotPassword('test@example.com');
+
+            \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\PasswordResetMail::class, function ($mail) {
+                return $mail->hasTo('test@example.com')
+                    && $mail->token !== null
+                    && $mail->name === 'Test User';
+            });
+
+            // Verify token was stored in database
+            $this->assertDatabaseHas('password_reset_tokens', [
+                'email' => 'test@example.com',
+            ]);
+        });
+
+        it('does not send email for non-existent user to prevent enumeration', function () {
+            \Illuminate\Support\Facades\Mail::fake();
+
+            $this->authService->forgotPassword('nonexistent@example.com');
+
+            \Illuminate\Support\Facades\Mail::assertNothingSent();
+
+            // Verify no token was stored
+            $this->assertDatabaseMissing('password_reset_tokens', [
+                'email' => 'nonexistent@example.com',
+            ]);
+        });
+
+        it('deletes existing token before creating new one', function () {
+            \Illuminate\Support\Facades\Mail::fake();
+
+            $user = User::factory()->create([
+                'email' => 'test@example.com',
+            ]);
+
+            // Create an existing token
+            \Illuminate\Support\Facades\DB::table('password_reset_tokens')->insert([
+                'email' => 'test@example.com',
+                'token' => \Illuminate\Support\Facades\Hash::make('old-token'),
+                'created_at' => now(),
+            ]);
+
+            $this->authService->forgotPassword('test@example.com');
+
+            // Should only have one token (the new one)
+            $tokenCount = \Illuminate\Support\Facades\DB::table('password_reset_tokens')
+                ->where('email', 'test@example.com')
+                ->count();
+
+            expect($tokenCount)->toBe(1);
+        });
+    });
+
+    describe('resetPassword', function () {
+        it('successfully resets password with valid token', function () {
+            $user = User::factory()->create([
+                'email' => 'test@example.com',
+                'password' => Hash::make('old-password'),
+            ]);
+
+            // Create a valid reset token
+            $token = \Illuminate\Support\Str::random(64);
+            $table = config('auth.passwords.users.table', 'password_reset_tokens');
+
+            \Illuminate\Support\Facades\DB::table($table)->insert([
+                'email' => 'test@example.com',
+                'token' => Hash::make($token),
+                'created_at' => now(),
+            ]);
+
+            // Create some tokens to verify they get revoked
+            $user->createToken('token1', ['access-api']);
+            $user->createToken('token2', ['refresh-token']);
+
+            $this->authService->resetPassword('test@example.com', $token, 'NewSecureP@ssw0rd123');
+
+            // Verify password was updated
+            $user->refresh();
+            expect(Hash::check('NewSecureP@ssw0rd123', $user->password))->toBeTrue();
+            expect(Hash::check('old-password', $user->password))->toBeFalse();
+
+            // Verify token was deleted
+            $this->assertDatabaseMissing('password_reset_tokens', [
+                'email' => 'test@example.com',
+            ]);
+
+            // Verify all user tokens were revoked
+            expect($user->fresh()->tokens()->count())->toBe(0);
+        });
+
+        it('throws ValidationException when user does not exist', function () {
+            expect(fn () => $this->authService->resetPassword('nonexistent@example.com', 'token', 'NewPass123!'))
+                ->toThrow(\Illuminate\Validation\ValidationException::class);
+        });
+
+        it('throws ValidationException when token does not exist', function () {
+            $user = User::factory()->create([
+                'email' => 'test@example.com',
+            ]);
+
+            expect(fn () => $this->authService->resetPassword('test@example.com', 'invalid-token', 'NewPass123!'))
+                ->toThrow(\Illuminate\Validation\ValidationException::class);
+        });
+
+        it('throws ValidationException when token is expired', function () {
+            $user = User::factory()->create([
+                'email' => 'test@example.com',
+            ]);
+
+            $token = \Illuminate\Support\Str::random(64);
+            $table = config('auth.passwords.users.table', 'password_reset_tokens');
+
+            // Create expired token (more than 60 minutes ago)
+            \Illuminate\Support\Facades\DB::table($table)->insert([
+                'email' => 'test@example.com',
+                'token' => Hash::make($token),
+                'created_at' => now()->subHours(2),
+            ]);
+
+            expect(fn () => $this->authService->resetPassword('test@example.com', $token, 'NewPass123!'))
+                ->toThrow(\Illuminate\Validation\ValidationException::class);
+
+            // Verify expired token was deleted
+            $this->assertDatabaseMissing('password_reset_tokens', [
+                'email' => 'test@example.com',
+            ]);
+        });
+
+        it('throws ValidationException when token is invalid', function () {
+            $user = User::factory()->create([
+                'email' => 'test@example.com',
+            ]);
+
+            $table = config('auth.passwords.users.table', 'password_reset_tokens');
+
+            // Create token with different hash
+            \Illuminate\Support\Facades\DB::table($table)->insert([
+                'email' => 'test@example.com',
+                'token' => Hash::make('different-token'),
+                'created_at' => now(),
+            ]);
+
+            expect(fn () => $this->authService->resetPassword('test@example.com', 'wrong-token', 'NewPass123!'))
+                ->toThrow(\Illuminate\Validation\ValidationException::class);
+        });
+    });
 });
