@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Constants\CacheKeys;
 use App\Data\ReportArticleDTO;
 use App\Events\Article\ArticleReportedEvent;
 use App\Events\Article\ArticleReportsClearedEvent;
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use App\Services\Interfaces\ArticleReportServiceInterface;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 
 final class ArticleReportService implements ArticleReportServiceInterface
@@ -33,6 +35,9 @@ final class ArticleReportService implements ArticleReportServiceInterface
         $article->refresh();
         $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
+        // Invalidate article cache
+        $this->invalidateArticleCache($article);
+
         Event::dispatch(new ArticleReportedEvent($updatedArticle));
 
         return $updatedArticle;
@@ -51,8 +56,20 @@ final class ArticleReportService implements ArticleReportServiceInterface
 
         $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
+        // Invalidate article cache
+        $this->invalidateArticleCache($article);
+
         Event::dispatch(new ArticleReportsClearedEvent($updatedArticle));
 
         return $updatedArticle;
+    }
+
+    /**
+     * Invalidate article cache by slug and ID
+     */
+    private function invalidateArticleCache(Article $article): void
+    {
+        Cache::forget(CacheKeys::articleBySlug($article->slug));
+        Cache::forget(CacheKeys::articleById($article->id));
     }
 }

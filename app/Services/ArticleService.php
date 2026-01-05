@@ -9,13 +9,11 @@ use App\Enums\ArticleReactionType;
 use App\Enums\ArticleStatus;
 use App\Models\Article;
 use App\Models\ArticleLike;
-use App\Models\Comment;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
-use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Services\Interfaces\ArticleServiceInterface;
+use App\Services\Interfaces\CommentServiceInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -24,7 +22,7 @@ final class ArticleService implements ArticleServiceInterface
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,
-        private readonly CommentRepositoryInterface $commentRepository
+        private readonly CommentServiceInterface $commentService
     ) {}
 
     /**
@@ -61,7 +59,7 @@ final class ArticleService implements ArticleServiceInterface
      */
     public function getArticleBySlug(string $slug): Article
     {
-        $cacheKey = 'article:slug:'.$slug;
+        $cacheKey = \App\Constants\CacheKeys::articleBySlug($slug);
 
         /** @var int $ttl */
         $ttl = (int) config('cache-ttl.keys.article_by_slug', 3600);
@@ -157,14 +155,14 @@ final class ArticleService implements ArticleServiceInterface
     /**
      * Get paginated comments for an article (with 1 child level or for a parent comment).
      *
-     * Loads the comment's user, count of replies, and top replies (limited by $repliesPerPage).
+     * Delegates to CommentService for pagination logic.
      *
      * @param  Article  $article  The article model instance.
      * @param  int|null  $parentId  The ID of the parent comment (if loading child comments).
      * @param  int  $perPage  Number of parent comments per page.
      * @param  int  $page  Current page number.
      * @param  int  $repliesPerPage  Number of child comments per parent.
-     * @return Paginator<int, Comment>
+     * @return Paginator<int, \App\Models\Comment>
      */
     public function getArticleComments(
         Article $article,
@@ -173,42 +171,13 @@ final class ArticleService implements ArticleServiceInterface
         int $page = 1,
         int $repliesPerPage = 3
     ): Paginator {
-        $articleId = $article->id;
-        $query = $this->commentRepository->query()
-            ->where('article_id', $articleId)
-            ->when($parentId !== null, fn ($q) => $q->where('parent_comment_id', $parentId))
-            ->when($parentId === null, fn ($q) => $q->whereNull('parent_comment_id'))
-            ->orderBy('created_at');
-
-        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
-
-        /** @var Collection<int, Comment> $comments */
-        $comments = $paginator->getCollection();
-
-        $comments->load(['user']);
-        $comments->loadCount('replies');
-
-        // Collect IDs of parent comments
-        $parentCommentIds = $comments->pluck('id');
-
-        // Fetch replies in batch (LIMIT repliesPerPage per parent)
-        $replies = $this->commentRepository->query()
-            ->whereIn('parent_comment_id', $parentCommentIds)
-            ->with('user')
-            ->withCount('replies')
-            ->orderBy('created_at')
-            ->get()
-            ->groupBy('parent_comment_id');
-
-        // Attach limited replies to each comment
-        $comments->each(function (Comment $comment) use ($replies, $repliesPerPage) {
-            $replyCollection = $replies[$comment->id] ?? collect();
-            $limitedReplies = $replyCollection->take($repliesPerPage);
-            $comment->setRelation('replies_page', $limitedReplies);
-        });
-
-        // Replace the collection on paginator so it's returned with relations loaded
-        return $paginator->setCollection($comments);
+        return $this->commentService->getPaginatedCommentsWithReplies(
+            $article,
+            $parentId,
+            $perPage,
+            $page,
+            $repliesPerPage
+        );
     }
 
     /**

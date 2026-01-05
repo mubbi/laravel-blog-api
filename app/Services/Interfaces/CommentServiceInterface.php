@@ -62,4 +62,24 @@ interface CommentServiceInterface
      * @return LengthAwarePaginator<int, Comment>
      */
     public function getOwnComments(User $user, int $page = 1, int $perPage = 15): LengthAwarePaginator;
+
+    /**
+     * Get paginated comments for an article (with 1 child level or for a parent comment).
+     *
+     * Loads the comment's user, count of replies, and top replies (limited by $repliesPerPage).
+     *
+     * @param  Article  $article  The article model instance.
+     * @param  int|null  $parentId  The ID of the parent comment (if loading child comments).
+     * @param  int  $perPage  Number of parent comments per page.
+     * @param  int  $page  Current page number.
+     * @param  int  $repliesPerPage  Number of child comments per parent.
+     * @return \Illuminate\Pagination\LengthAwarePaginator<int, Comment>
+     */
+    public function getPaginatedCommentsWithReplies(
+        Article $article,
+        ?int $parentId = null,
+        int $perPage = 10,
+        int $page = 1,
+        int $repliesPerPage = 3
+    ): \Illuminate\Pagination\LengthAwarePaginator;
 }

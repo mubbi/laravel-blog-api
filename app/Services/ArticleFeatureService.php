@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Constants\CacheKeys;
 use App\Events\Article\ArticleFeaturedEvent;
 use App\Events\Article\ArticlePinnedEvent;
 use App\Events\Article\ArticleUnfeaturedEvent;
@@ -11,6 +12,7 @@ use App\Events\Article\ArticleUnpinnedEvent;
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use App\Services\Interfaces\ArticleFeatureServiceInterface;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -37,6 +39,9 @@ final class ArticleFeatureService implements ArticleFeatureServiceInterface
 
             $article->refresh();
             $freshArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
+
+            // Invalidate article cache
+            $this->invalidateArticleCache($article);
 
             if ($newFeaturedStatus) {
                 Event::dispatch(new ArticleFeaturedEvent($freshArticle));
@@ -67,6 +72,9 @@ final class ArticleFeatureService implements ArticleFeatureServiceInterface
 
         $article = $this->articleManagementService->getArticleWithRelationships($id);
 
+        // Invalidate article cache
+        $this->invalidateArticleCache($article);
+
         Event::dispatch(new ArticleUnfeaturedEvent($article));
 
         return $article;
@@ -84,6 +92,9 @@ final class ArticleFeatureService implements ArticleFeatureServiceInterface
 
         $article->refresh();
         $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
+
+        // Invalidate article cache
+        $this->invalidateArticleCache($article);
 
         Event::dispatch(new ArticlePinnedEvent($updatedArticle));
 
@@ -103,8 +114,20 @@ final class ArticleFeatureService implements ArticleFeatureServiceInterface
         $article->refresh();
         $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
+        // Invalidate article cache
+        $this->invalidateArticleCache($article);
+
         Event::dispatch(new ArticleUnpinnedEvent($updatedArticle));
 
         return $updatedArticle;
+    }
+
+    /**
+     * Invalidate article cache by slug and ID
+     */
+    private function invalidateArticleCache(Article $article): void
+    {
+        Cache::forget(CacheKeys::articleBySlug($article->slug));
+        Cache::forget(CacheKeys::articleById($article->id));
     }
 }
