@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Data\FilterArticleDTO;
+use App\Enums\ArticleReactionType;
+use App\Enums\ArticleStatus;
 use App\Models\Article;
+use App\Models\ArticleLike;
 use App\Models\Comment;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use App\Repositories\Contracts\CommentRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 final class ArticleService
 {
@@ -137,7 +142,7 @@ final class ArticleService
      *
      * Loads the comment's user, count of replies, and top replies (limited by $repliesPerPage).
      *
-     * @param  Article|int  $article  The article model instance or article ID.
+     * @param  Article  $article  The article model instance.
      * @param  int|null  $parentId  The ID of the parent comment (if loading child comments).
      * @param  int  $perPage  Number of parent comments per page.
      * @param  int  $page  Current page number.
@@ -145,13 +150,13 @@ final class ArticleService
      * @return LengthAwarePaginator<int, Comment>
      */
     public function getArticleComments(
-        Article|int $article,
+        Article $article,
         ?int $parentId = null,
         int $perPage = 10,
         int $page = 1,
         int $repliesPerPage = 3
     ): LengthAwarePaginator {
-        $articleId = $article instanceof Article ? $article->id : $article;
+        $articleId = $article->id;
         $query = $this->commentRepository->query()
             ->where('article_id', $articleId)
             ->when($parentId !== null, fn ($q) => $q->where('parent_comment_id', $parentId))
@@ -187,5 +192,155 @@ final class ArticleService
 
         // Replace the collection on paginator so it's returned with relations loaded
         return $paginator->setCollection($comments);
+    }
+
+    /**
+     * Like an article
+     *
+     * @param  Article  $article  The article model instance
+     * @param  int|null  $userId  The user ID if authenticated, null for anonymous
+     * @param  string|null  $ipAddress  The IP address for anonymous likes
+     *
+     * @throws InvalidArgumentException
+     */
+    public function likeArticle(Article $article, ?int $userId = null, ?string $ipAddress = null): ArticleLike
+    {
+        $this->validateArticleIsPublished($article, ArticleReactionType::LIKE);
+        $this->validateUserOrIp($userId, $ipAddress);
+
+        return $this->toggleArticleReaction($article->id, ArticleReactionType::LIKE, $userId, $ipAddress);
+    }
+
+    /**
+     * Dislike an article
+     *
+     * @param  Article  $article  The article model instance
+     * @param  int|null  $userId  The user ID if authenticated, null for anonymous
+     * @param  string|null  $ipAddress  The IP address for anonymous dislikes
+     *
+     * @throws InvalidArgumentException
+     */
+    public function dislikeArticle(Article $article, ?int $userId = null, ?string $ipAddress = null): ArticleLike
+    {
+        $this->validateArticleIsPublished($article, ArticleReactionType::DISLIKE);
+        $this->validateUserOrIp($userId, $ipAddress);
+
+        return $this->toggleArticleReaction($article->id, ArticleReactionType::DISLIKE, $userId, $ipAddress);
+    }
+
+    /**
+     * Validate that the article is published
+     *
+     * @param  Article  $article  The article model instance
+     * @param  ArticleReactionType  $reactionType  The reaction type being performed
+     *
+     * @throws InvalidArgumentException
+     */
+    private function validateArticleIsPublished(Article $article, ArticleReactionType $reactionType): void
+    {
+        if ($article->status !== ArticleStatus::PUBLISHED || $article->published_at === null) {
+            $message = $reactionType === ArticleReactionType::LIKE
+                ? __('article.must_be_published_to_like')
+                : __('article.must_be_published_to_dislike');
+
+            throw new InvalidArgumentException($message);
+        }
+    }
+
+    /**
+     * Validate that either userId or ipAddress is provided, but not both
+     *
+     * @param  int|null  $userId  The user ID if authenticated, null for anonymous
+     * @param  string|null  $ipAddress  The IP address for anonymous reactions
+     *
+     * @throws InvalidArgumentException
+     */
+    private function validateUserOrIp(?int $userId, ?string $ipAddress): void
+    {
+        if ($userId === null && $ipAddress === null) {
+            throw new InvalidArgumentException(__('article.user_or_ip_required'));
+        }
+
+        if ($userId !== null && $ipAddress !== null) {
+            throw new InvalidArgumentException(__('article.cannot_set_both_user_and_ip'));
+        }
+    }
+
+    /**
+     * Toggle article reaction (like or dislike) with transaction handling
+     *
+     * @param  int  $articleId  The article ID
+     * @param  ArticleReactionType  $reactionType  The reaction type
+     * @param  int|null  $userId  The user ID if authenticated, null for anonymous
+     * @param  string|null  $ipAddress  The IP address for anonymous reactions
+     */
+    private function toggleArticleReaction(
+        int $articleId,
+        ArticleReactionType $reactionType,
+        ?int $userId,
+        ?string $ipAddress
+    ): ArticleLike {
+        return DB::transaction(function () use ($articleId, $reactionType, $userId, $ipAddress) {
+            // Check if user/IP already has this reaction
+            $existingReaction = $this->findExistingReaction($articleId, $reactionType, $userId, $ipAddress);
+
+            if ($existingReaction !== null) {
+                return $existingReaction;
+            }
+
+            // Remove opposite reaction if it exists
+            $oppositeType = $reactionType->opposite();
+            $this->removeReaction($articleId, $oppositeType, $userId, $ipAddress);
+
+            // Create the new reaction
+            return ArticleLike::create([
+                'article_id' => $articleId,
+                'user_id' => $userId,
+                'ip_address' => $ipAddress,
+                'type' => $reactionType,
+            ]);
+        });
+    }
+
+    /**
+     * Find an existing reaction for the given article and user/IP
+     *
+     * @param  int  $articleId  The article ID
+     * @param  ArticleReactionType  $reactionType  The reaction type
+     * @param  int|null  $userId  The user ID if authenticated, null for anonymous
+     * @param  string|null  $ipAddress  The IP address for anonymous reactions
+     */
+    private function findExistingReaction(
+        int $articleId,
+        ArticleReactionType $reactionType,
+        ?int $userId,
+        ?string $ipAddress
+    ): ?ArticleLike {
+        return ArticleLike::where('article_id', $articleId)
+            ->where('type', $reactionType->value)
+            ->when($userId !== null, fn ($q) => $q->where('user_id', $userId)->whereNull('ip_address'))
+            ->when($userId === null, fn ($q) => $q->whereNull('user_id')->where('ip_address', $ipAddress))
+            ->first();
+    }
+
+    /**
+     * Remove a reaction for the given article and user/IP
+     *
+     * @param  int  $articleId  The article ID
+     * @param  ArticleReactionType  $reactionType  The reaction type to remove
+     * @param  int|null  $userId  The user ID if authenticated, null for anonymous
+     * @param  string|null  $ipAddress  The IP address for anonymous reactions
+     */
+    private function removeReaction(
+        int $articleId,
+        ArticleReactionType $reactionType,
+        ?int $userId,
+        ?string $ipAddress
+    ): void {
+        ArticleLike::where('article_id', $articleId)
+            ->where('type', $reactionType->value)
+            ->when($userId !== null, fn ($q) => $q->where('user_id', $userId)->whereNull('ip_address'))
+            ->when($userId === null, fn ($q) => $q->whereNull('user_id')->where('ip_address', $ipAddress))
+            ->delete();
     }
 }

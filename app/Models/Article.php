@@ -43,6 +43,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Category> $categories
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Tag> $tags
  * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $authors
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ArticleLike> $likes
  *
  * @mixin \Eloquent
  *
@@ -145,6 +146,17 @@ final class Article extends Model
     {
         /** @var BelongsToMany<User, Article, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
         $relation = $this->belongsToMany(User::class, 'article_authors')->withPivot('role');
+
+        return $relation;
+    }
+
+    /**
+     * @return HasMany<ArticleLike, Article>
+     */
+    public function likes(): HasMany
+    {
+        /** @var HasMany<ArticleLike, Article> $relation */
+        $relation = $this->hasMany(ArticleLike::class);
 
         return $relation;
     }

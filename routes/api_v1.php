@@ -84,6 +84,8 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
             Route::get('/', \App\Http\Controllers\Api\V1\Article\GetArticlesController::class)->name('api.v1.articles.index');
             Route::get('/{slug}', \App\Http\Controllers\Api\V1\Article\ShowArticleController::class)->name('api.v1.articles.show');
             Route::get('/{article:slug}/comments', \App\Http\Controllers\Api\V1\Article\GetCommentsController::class)->name('api.v1.articles.comments.index');
+            Route::post('/{article:slug}/like', \App\Http\Controllers\Api\V1\Article\LikeArticleController::class)->name('api.v1.articles.like');
+            Route::post('/{article:slug}/dislike', \App\Http\Controllers\Api\V1\Article\DislikeArticleController::class)->name('api.v1.articles.dislike');
         });
 
         // Category Routes

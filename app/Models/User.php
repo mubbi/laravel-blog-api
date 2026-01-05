@@ -40,6 +40,7 @@ use Throwable;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Role> $roles
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Article> $articles
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Comment> $comments
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ArticleLike> $articleLikes
  *
  * @mixin \Eloquent
  *
@@ -298,6 +299,19 @@ final class User extends Authenticatable
     {
         /** @var HasMany<Comment, User> $relation */
         $relation = $this->hasMany(Comment::class, 'user_id');
+
+        return $relation;
+    }
+
+    /**
+     * Get the article likes/dislikes created by the user.
+     *
+     * @return HasMany<\App\Models\ArticleLike, User>
+     */
+    public function articleLikes(): HasMany
+    {
+        /** @var HasMany<\App\Models\ArticleLike, User> $relation */
+        $relation = $this->hasMany(\App\Models\ArticleLike::class, 'user_id');
 
         return $relation;
     }
