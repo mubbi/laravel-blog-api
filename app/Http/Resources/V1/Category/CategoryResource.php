@@ -23,6 +23,9 @@ class CategoryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
+            'parent_id' => $this->parent_id,
+            'parent' => $this->whenLoaded('parent', fn () => new self($this->parent)),
+            'children' => $this->whenLoaded('children', fn () => self::collection($this->children)),
         ];
     }
 }

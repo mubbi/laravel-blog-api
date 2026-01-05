@@ -379,11 +379,12 @@ Based on the codebase review, the following APIs and features are pending implem
   - Real IP address detection via `Helper::getRealIpAddress()` for accurate tracking
   - Refactored service methods with reduced code duplication
 - **Comment Management (Admin)**: List, Approve, Delete
-- **Comment Management (Public)**: Get comments for article
+- **Comment Management (Public)**: Get comments for article, Create comment, Update own comment, Delete own comment, Report comment, Get own comments
 - **Newsletter Management (Admin)**: List subscribers, Delete subscriber
 - **Newsletter Management (Public)**: Subscribe, Unsubscribe, Verify subscription, Verify unsubscription
 - **Notification Management (Admin)**: List, Create
 - **Taxonomy (Public)**: Get categories, Get tags
+- **Taxonomy Management (Admin/Editor)**: Create category, Update category, Delete category, Create tag, Update tag, Delete tag
 
 ### ❌ Pending Implementation
 
@@ -394,22 +395,6 @@ Based on the codebase review, the following APIs and features are pending implem
   - Assign roles to users endpoint (service method exists: `assignRoles()` in `UserService`)
   - Get all roles endpoint (service method exists: `getAllRoles()` in `UserService`)
   - Get all permissions endpoint (service method exists: `getAllPermissions()` in `UserService`)
-
-- **Comment Management**
-  - Create comment endpoint (for authenticated users)
-  - Update own comment endpoint
-  - Delete own comment endpoint
-  - Report comment endpoint (for users)
-  - Get own comments endpoint
-
-- **Taxonomy Management (Admin/Editor)**
-  - Create category (with parent/child support) endpoint
-  - Update category (with parent/child support) endpoint
-  - Delete category (ask for child categories deletion) endpoint
-  - Create tag (with parent/child support) endpoint
-  - Update tag (with parent/child support) endpoint
-  - Delete tag (ask for child tags deletion) endpoint
-  - Hierarchical category/tag management (parent/child relationships)
 
 - **Media Management**
   - Upload media endpoint

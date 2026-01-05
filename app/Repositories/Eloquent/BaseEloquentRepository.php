@@ -29,7 +29,7 @@ abstract class BaseEloquentRepository
      * @param  array<string, mixed>  $data
      * @return TModel
      */
-    public function create(array $data)
+    public function create(array $data): Model
     {
         /** @var class-string<TModel> $modelClass */
         $modelClass = $this->getModelClass();
@@ -57,7 +57,7 @@ abstract class BaseEloquentRepository
      *
      * @return TModel|null
      */
-    public function findById(int $id)
+    public function findById(int $id): ?Model
     {
         /** @var class-string<TModel> $modelClass */
         $modelClass = $this->getModelClass();
@@ -75,7 +75,7 @@ abstract class BaseEloquentRepository
      *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
-    public function findOrFail(int $id)
+    public function findOrFail(int $id): Model
     {
         /** @var class-string<TModel> $modelClass */
         $modelClass = $this->getModelClass();
@@ -104,7 +104,7 @@ abstract class BaseEloquentRepository
      *
      * @return Builder<TModel>
      */
-    public function query()
+    public function query(): Builder
     {
         /** @var class-string<TModel> $modelClass */
         $modelClass = $this->getModelClass();

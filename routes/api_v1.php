@@ -86,6 +86,19 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
             Route::get('/', \App\Http\Controllers\Api\V1\Admin\Notification\GetNotificationsController::class)->name('api.v1.admin.notifications.index');
             Route::post('/', \App\Http\Controllers\Api\V1\Admin\Notification\CreateNotificationController::class)->name('api.v1.admin.notifications.store');
         });
+
+        // Taxonomy Management (Admin/Editor)
+        Route::prefix('categories')->group(function () {
+            Route::post('/', \App\Http\Controllers\Api\V1\Admin\Category\CreateCategoryController::class)->name('api.v1.admin.categories.store');
+            Route::put('/{category}', \App\Http\Controllers\Api\V1\Admin\Category\UpdateCategoryController::class)->name('api.v1.admin.categories.update');
+            Route::delete('/{category}', \App\Http\Controllers\Api\V1\Admin\Category\DeleteCategoryController::class)->name('api.v1.admin.categories.destroy');
+        });
+
+        Route::prefix('tags')->group(function () {
+            Route::post('/', \App\Http\Controllers\Api\V1\Admin\Tag\CreateTagController::class)->name('api.v1.admin.tags.store');
+            Route::put('/{tag}', \App\Http\Controllers\Api\V1\Admin\Tag\UpdateTagController::class)->name('api.v1.admin.tags.update');
+            Route::delete('/{tag}', \App\Http\Controllers\Api\V1\Admin\Tag\DeleteTagController::class)->name('api.v1.admin.tags.destroy');
+        });
     });
 
     // Public Routes
