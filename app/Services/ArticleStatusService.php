@@ -15,9 +15,10 @@ use App\Events\Article\ArticleTrashedEvent;
 use App\Models\Article;
 use App\Models\User;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
+use App\Services\Interfaces\ArticleStatusServiceInterface;
 use Illuminate\Support\Facades\Event;
 
-final class ArticleStatusService
+final class ArticleStatusService implements ArticleStatusServiceInterface
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,

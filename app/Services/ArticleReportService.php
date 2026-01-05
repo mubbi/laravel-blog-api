@@ -9,9 +9,10 @@ use App\Events\Article\ArticleReportedEvent;
 use App\Events\Article\ArticleReportsClearedEvent;
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
+use App\Services\Interfaces\ArticleReportServiceInterface;
 use Illuminate\Support\Facades\Event;
 
-final class ArticleReportService
+final class ArticleReportService implements ArticleReportServiceInterface
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,

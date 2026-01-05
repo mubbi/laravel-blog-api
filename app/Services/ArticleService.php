@@ -12,17 +12,19 @@ use App\Models\ArticleLike;
 use App\Models\Comment;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use App\Repositories\Contracts\CommentRepositoryInterface;
+use App\Services\Interfaces\ArticleServiceInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
-final class ArticleService
+final class ArticleService implements ArticleServiceInterface
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,
-        private readonly CommentRepositoryInterface $commentRepository,
+        private readonly CommentRepositoryInterface $commentRepository
     ) {}
 
     /**
@@ -55,21 +57,36 @@ final class ArticleService
 
     /**
      * Get a single article by slug
+     * Cached for 1 hour to reduce database load on frequently accessed articles
      */
     public function getArticleBySlug(string $slug): Article
     {
-        return $this->articleRepository->query()
-            ->with([
-                'author:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
-                'approver:id,name,email,avatar_url',
-                'updater:id,name,email,avatar_url',
-                'categories:id,name,slug',
-                'tags:id,name,slug',
-                'authors:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
-            ])
-            ->withCount('comments')
-            ->where('slug', $slug)
-            ->firstOrFail();
+        $cacheKey = 'article:slug:'.$slug;
+
+        /** @var int $ttl */
+        $ttl = (int) config('cache-ttl.keys.article_by_slug', 3600);
+
+        /** @var Article $article */
+        $article = \Illuminate\Support\Facades\Cache::remember(
+            $cacheKey,
+            $ttl,
+            function () use ($slug) {
+                return $this->articleRepository->query()
+                    ->with([
+                        'author:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
+                        'approver:id,name,email,avatar_url',
+                        'updater:id,name,email,avatar_url',
+                        'categories:id,name,slug',
+                        'tags:id,name,slug',
+                        'authors:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
+                    ])
+                    ->withCount('comments')
+                    ->where('slug', $slug)
+                    ->firstOrFail();
+            }
+        );
+
+        return $article;
     }
 
     /**
@@ -147,7 +164,7 @@ final class ArticleService
      * @param  int  $perPage  Number of parent comments per page.
      * @param  int  $page  Current page number.
      * @param  int  $repliesPerPage  Number of child comments per parent.
-     * @return LengthAwarePaginator<int, Comment>
+     * @return Paginator<int, Comment>
      */
     public function getArticleComments(
         Article $article,
@@ -155,7 +172,7 @@ final class ArticleService
         int $perPage = 10,
         int $page = 1,
         int $repliesPerPage = 3
-    ): LengthAwarePaginator {
+    ): Paginator {
         $articleId = $article->id;
         $query = $this->commentRepository->query()
             ->where('article_id', $articleId)

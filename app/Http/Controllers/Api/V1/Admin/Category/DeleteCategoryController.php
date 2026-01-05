@@ -8,7 +8,7 @@ use App\Data\DeleteCategoryDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Category\DeleteCategoryRequest;
 use App\Models\Category;
-use App\Services\CategoryService;
+use App\Services\Interfaces\CategoryServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use Throwable;
 final class DeleteCategoryController extends Controller
 {
     public function __construct(
-        private readonly CategoryService $categoryService
+        private readonly CategoryServiceInterface $categoryService
     ) {}
 
     /**

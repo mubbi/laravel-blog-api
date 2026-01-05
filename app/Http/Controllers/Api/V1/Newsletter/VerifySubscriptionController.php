@@ -8,7 +8,7 @@ use App\Data\VerifySubscriptionDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Newsletter\VerifySubscriptionRequest;
 use App\Http\Resources\V1\Newsletter\NewsletterSubscriberResource;
-use App\Services\NewsletterService;
+use App\Services\Interfaces\NewsletterServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use Throwable;
 final class VerifySubscriptionController extends Controller
 {
     public function __construct(
-        private readonly NewsletterService $newsletterService
+        private readonly NewsletterServiceInterface $newsletterService
     ) {}
 
     /**

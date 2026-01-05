@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\CacheKey;
+use App\Services\Interfaces\CacheServiceInterface;
 use Illuminate\Support\Facades\Cache;
 
 /**
  * Cache service for managing application cache operations
  * Follows SOLID principles - single responsibility: cache management only
  */
-final class CacheService
+final class CacheService implements CacheServiceInterface
 {
     /**
      * Get TTL for a specific cache key

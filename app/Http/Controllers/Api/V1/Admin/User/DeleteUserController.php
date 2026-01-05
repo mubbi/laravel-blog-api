@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Api\V1\Admin\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\User\DeleteUserRequest;
 use App\Models\User;
-use App\Services\UserService;
+use App\Services\Interfaces\UserServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +17,7 @@ use Throwable;
 final class DeleteUserController extends Controller
 {
     public function __construct(
-        private readonly UserService $userService
+        private readonly UserServiceInterface $userService
     ) {}
 
     /**

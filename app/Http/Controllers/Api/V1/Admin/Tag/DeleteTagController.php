@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Api\V1\Admin\Tag;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Tag\DeleteTagRequest;
 use App\Models\Tag;
-use App\Services\TagService;
+use App\Services\Interfaces\TagServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +17,7 @@ use Throwable;
 final class DeleteTagController extends Controller
 {
     public function __construct(
-        private readonly TagService $tagService
+        private readonly TagServiceInterface $tagService
     ) {}
 
     /**

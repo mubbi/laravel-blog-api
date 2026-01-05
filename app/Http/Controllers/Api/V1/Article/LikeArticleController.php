@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Api\V1\Article;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
-use App\Services\ArticleService;
+use App\Services\Interfaces\ArticleServiceInterface;
 use App\Support\Helper;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -19,7 +19,7 @@ use Throwable;
 final class LikeArticleController extends Controller
 {
     public function __construct(
-        private readonly ArticleService $articleService
+        private readonly ArticleServiceInterface $articleService
     ) {}
 
     /**

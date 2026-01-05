@@ -8,11 +8,12 @@ use App\Data\CreateArticleDTO;
 use App\Data\FilterArticleManagementDTO;
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
+use App\Services\Interfaces\ArticleManagementServiceInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
-final class ArticleManagementService
+final class ArticleManagementService implements ArticleManagementServiceInterface
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository

@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Tag\UpdateTagRequest;
 use App\Http\Resources\V1\Tag\TagResource;
 use App\Models\Tag;
-use App\Services\TagService;
+use App\Services\Interfaces\TagServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +19,7 @@ use Throwable;
 final class UpdateTagController extends Controller
 {
     public function __construct(
-        private readonly TagService $tagService
+        private readonly TagServiceInterface $tagService
     ) {}
 
     /**

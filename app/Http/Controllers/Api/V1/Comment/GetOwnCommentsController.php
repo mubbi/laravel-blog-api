@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Comment\GetOwnCommentsRequest;
 use App\Http\Resources\MetaResource;
 use App\Http\Resources\V1\Comment\CommentResource;
-use App\Services\CommentService;
+use App\Services\Interfaces\CommentServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use Throwable;
 final class GetOwnCommentsController extends Controller
 {
     public function __construct(
-        private readonly CommentService $commentService
+        private readonly CommentServiceInterface $commentService
     ) {}
 
     /**

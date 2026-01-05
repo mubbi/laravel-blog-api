@@ -20,11 +20,12 @@ use App\Models\Article;
 use App\Models\Comment;
 use App\Models\User;
 use App\Repositories\Contracts\CommentRepositoryInterface;
+use App\Services\Interfaces\CommentServiceInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Event;
 
-final class CommentService
+final class CommentService implements CommentServiceInterface
 {
     public function __construct(
         private readonly CommentRepositoryInterface $commentRepository

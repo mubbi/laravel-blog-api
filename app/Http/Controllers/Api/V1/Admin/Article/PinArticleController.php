@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Article\PinArticleRequest;
 use App\Http\Resources\V1\Admin\Article\ArticleManagementResource;
 use App\Models\Article;
-use App\Services\ArticleFeatureService;
+use App\Services\Interfaces\ArticleFeatureServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use Throwable;
 final class PinArticleController extends Controller
 {
     public function __construct(
-        private readonly ArticleFeatureService $articleFeatureService
+        private readonly ArticleFeatureServiceInterface $articleFeatureService
     ) {}
 
     /**

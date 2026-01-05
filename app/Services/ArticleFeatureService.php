@@ -10,11 +10,12 @@ use App\Events\Article\ArticleUnfeaturedEvent;
 use App\Events\Article\ArticleUnpinnedEvent;
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
+use App\Services\Interfaces\ArticleFeatureServiceInterface;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-final class ArticleFeatureService
+final class ArticleFeatureService implements ArticleFeatureServiceInterface
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,

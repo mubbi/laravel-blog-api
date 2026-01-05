@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Comment\ReportCommentRequest;
 use App\Http\Resources\V1\Comment\CommentResource;
 use App\Models\Comment;
-use App\Services\CommentService;
+use App\Services\Interfaces\CommentServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +19,7 @@ use Throwable;
 final class ReportCommentController extends Controller
 {
     public function __construct(
-        private readonly CommentService $commentService
+        private readonly CommentServiceInterface $commentService
     ) {}
 
     /**

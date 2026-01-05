@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Api\V1\Category;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\Category\CategoryResource;
-use App\Services\CategoryService;
+use App\Services\Interfaces\CategoryServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ use Throwable;
 #[Group('Categories', weight: 2)]
 final class GetCategoriesController extends Controller
 {
-    public function __construct(private readonly CategoryService $categoryService) {}
+    public function __construct(private readonly CategoryServiceInterface $categoryService) {}
 
     /**
      * Get All Article Categories

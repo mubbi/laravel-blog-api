@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Newsletter\GetSubscribersRequest;
 use App\Http\Resources\MetaResource;
 use App\Http\Resources\V1\Newsletter\NewsletterSubscriberResource;
-use App\Services\NewsletterService;
+use App\Services\Interfaces\NewsletterServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
@@ -20,7 +20,7 @@ use Throwable;
 final class GetSubscribersController extends Controller
 {
     public function __construct(
-        private readonly NewsletterService $newsletterService
+        private readonly NewsletterServiceInterface $newsletterService
     ) {}
 
     /**

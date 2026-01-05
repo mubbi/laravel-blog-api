@@ -16,6 +16,7 @@ use App\Events\Newsletter\NewsletterSubscriberUnsubscriptionRequestedEvent;
 use App\Events\Newsletter\NewsletterSubscriberVerifiedEvent;
 use App\Models\NewsletterSubscriber;
 use App\Repositories\Contracts\NewsletterSubscriberRepositoryInterface;
+use App\Services\Interfaces\NewsletterServiceInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-final class NewsletterService
+final class NewsletterService implements NewsletterServiceInterface
 {
     public function __construct(
         private readonly NewsletterSubscriberRepositoryInterface $newsletterSubscriberRepository

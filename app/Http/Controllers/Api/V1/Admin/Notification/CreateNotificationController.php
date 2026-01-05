@@ -8,7 +8,7 @@ use App\Data\CreateNotificationDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Notification\CreateNotificationRequest;
 use App\Http\Resources\V1\Notification\NotificationResource;
-use App\Services\NotificationService;
+use App\Services\Interfaces\NotificationServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use Throwable;
 final class CreateNotificationController extends Controller
 {
     public function __construct(
-        private readonly NotificationService $notificationService
+        private readonly NotificationServiceInterface $notificationService
     ) {}
 
     /**

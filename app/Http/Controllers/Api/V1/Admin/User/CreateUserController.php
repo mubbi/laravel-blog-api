@@ -8,7 +8,7 @@ use App\Data\CreateUserDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\User\CreateUserRequest;
 use App\Http\Resources\V1\Admin\User\UserDetailResource;
-use App\Services\UserService;
+use App\Services\Interfaces\UserServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use Throwable;
 final class CreateUserController extends Controller
 {
     public function __construct(
-        private readonly UserService $userService
+        private readonly UserServiceInterface $userService
     ) {}
 
     /**

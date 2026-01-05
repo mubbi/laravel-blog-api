@@ -30,5 +30,6 @@ return [
     'keys' => [
         'tags:list' => env('CACHE_TTL_TAGS', 86400), // 24 hours
         'categories:list' => env('CACHE_TTL_CATEGORIES', 86400), // 24 hours
+        'article_by_slug' => env('CACHE_TTL_ARTICLE_BY_SLUG', 3600), // 1 hour
     ],
 ];

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\User\FollowUserRequest;
 use App\Models\User;
+use App\Services\Interfaces\UserServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,7 +17,7 @@ use Throwable;
 final class FollowUserController extends Controller
 {
     public function __construct(
-        private readonly \App\Services\UserService $userService
+        private readonly UserServiceInterface $userService
     ) {}
 
     /**

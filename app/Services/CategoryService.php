@@ -13,11 +13,12 @@ use App\Events\Category\CategoryDeletedEvent;
 use App\Events\Category\CategoryUpdatedEvent;
 use App\Models\Category;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
+use App\Services\Interfaces\CategoryServiceInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
-final class CategoryService
+final class CategoryService implements CategoryServiceInterface
 {
     public function __construct(
         private readonly CategoryRepositoryInterface $categoryRepository,

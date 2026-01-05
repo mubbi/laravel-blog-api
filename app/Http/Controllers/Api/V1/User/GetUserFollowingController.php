@@ -10,7 +10,7 @@ use App\Http\Requests\V1\User\GetUserFollowingRequest;
 use App\Http\Resources\MetaResource;
 use App\Http\Resources\V1\User\UserResource;
 use App\Models\User;
-use App\Services\UserService;
+use App\Services\Interfaces\UserServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
@@ -21,7 +21,7 @@ use Throwable;
 final class GetUserFollowingController extends Controller
 {
     public function __construct(
-        private readonly UserService $userService
+        private readonly UserServiceInterface $userService
     ) {}
 
     /**

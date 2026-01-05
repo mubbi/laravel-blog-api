@@ -12,11 +12,12 @@ use App\Events\Tag\TagDeletedEvent;
 use App\Events\Tag\TagUpdatedEvent;
 use App\Models\Tag;
 use App\Repositories\Contracts\TagRepositoryInterface;
+use App\Services\Interfaces\TagServiceInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
-final class TagService
+final class TagService implements TagServiceInterface
 {
     public function __construct(
         private readonly TagRepositoryInterface $tagRepository,
