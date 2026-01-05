@@ -3,12 +3,15 @@
 declare(strict_types=1);
 
 use App\Enums\ArticleReactionType;
+use App\Events\Article\ArticleDislikedEvent;
 use App\Models\Article;
 use App\Models\ArticleLike;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Article/DislikeArticleController', function () {
     it('can dislike an article as authenticated user', function () {
+        Event::fake([ArticleDislikedEvent::class]);
         $user = User::factory()->create();
         $article = Article::factory()
             ->for($user, 'author')
@@ -37,6 +40,11 @@ describe('API/V1/Article/DislikeArticleController', function () {
             ->where('type', ArticleReactionType::DISLIKE->value)
             ->whereNull('ip_address')
             ->exists())->toBeTrue();
+
+        // Verify event was dispatched
+        Event::assertDispatched(ArticleDislikedEvent::class, function ($event) use ($article) {
+            return $event->article->id === $article->id && $event->dislike->type === ArticleReactionType::DISLIKE;
+        });
     });
 
     it('can dislike an article as anonymous user', function () {

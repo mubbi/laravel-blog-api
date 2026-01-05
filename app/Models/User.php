@@ -41,6 +41,8 @@ use Throwable;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Article> $articles
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Comment> $comments
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ArticleLike> $articleLikes
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $following
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $followers
  *
  * @mixin \Eloquent
  *
@@ -312,6 +314,42 @@ final class User extends Authenticatable
     {
         /** @var HasMany<\App\Models\ArticleLike, User> $relation */
         $relation = $this->hasMany(\App\Models\ArticleLike::class, 'user_id');
+
+        return $relation;
+    }
+
+    /**
+     * Get the users that this user is following.
+     *
+     * @return BelongsToMany<User, User, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
+     */
+    public function following(): BelongsToMany
+    {
+        /** @var BelongsToMany<User, User, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
+        $relation = $this->belongsToMany(
+            User::class,
+            'user_followers',
+            'follower_id',
+            'following_id'
+        )->withTimestamps();
+
+        return $relation;
+    }
+
+    /**
+     * Get the users that are following this user.
+     *
+     * @return BelongsToMany<User, User, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
+     */
+    public function followers(): BelongsToMany
+    {
+        /** @var BelongsToMany<User, User, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
+        $relation = $this->belongsToMany(
+            User::class,
+            'user_followers',
+            'following_id',
+            'follower_id'
+        )->withTimestamps();
 
         return $relation;
     }

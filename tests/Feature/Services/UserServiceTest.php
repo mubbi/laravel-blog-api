@@ -328,4 +328,90 @@ describe('UserService', function () {
             expect($result->roles->pluck('id')->toArray())->toContain($role1->id, $role2->id);
         });
     });
+
+    describe('followUser', function () {
+        it('follows a user successfully and dispatches event', function () {
+            // Arrange
+            Event::fake();
+            $follower = User::factory()->create();
+            $userToFollow = User::factory()->create();
+
+            // Act
+            $result = $this->service->followUser($userToFollow, $follower);
+
+            // Assert
+            expect($result)->toBeTrue();
+            expect($follower->following()->where('following_id', $userToFollow->id)->exists())->toBeTrue();
+            Event::assertDispatched(\App\Events\User\UserFollowedEvent::class, function ($event) use ($follower, $userToFollow) {
+                return $event->follower->id === $follower->id && $event->followed->id === $userToFollow->id;
+            });
+        });
+
+        it('returns false when already following and does not dispatch event', function () {
+            // Arrange
+            Event::fake();
+            $follower = User::factory()->create();
+            $userToFollow = User::factory()->create();
+            $follower->following()->attach($userToFollow->id);
+
+            // Act
+            $result = $this->service->followUser($userToFollow, $follower);
+
+            // Assert
+            expect($result)->toBeFalse();
+            Event::assertNotDispatched(\App\Events\User\UserFollowedEvent::class);
+        });
+
+        it('prevents self-follow', function () {
+            // Arrange
+            $user = User::factory()->create();
+
+            // Act & Assert
+            expect(fn () => $this->service->followUser($user, $user))
+                ->toThrow(AuthorizationException::class);
+        });
+    });
+
+    describe('unfollowUser', function () {
+        it('unfollows a user successfully and dispatches event', function () {
+            // Arrange
+            Event::fake();
+            $follower = User::factory()->create();
+            $userToUnfollow = User::factory()->create();
+            $follower->following()->attach($userToUnfollow->id);
+
+            // Act
+            $result = $this->service->unfollowUser($userToUnfollow, $follower);
+
+            // Assert
+            expect($result)->toBeTrue();
+            expect($follower->following()->where('following_id', $userToUnfollow->id)->exists())->toBeFalse();
+            Event::assertDispatched(\App\Events\User\UserUnfollowedEvent::class, function ($event) use ($follower, $userToUnfollow) {
+                return $event->follower->id === $follower->id && $event->unfollowed->id === $userToUnfollow->id;
+            });
+        });
+
+        it('returns false when not following and does not dispatch event', function () {
+            // Arrange
+            Event::fake();
+            $follower = User::factory()->create();
+            $userToUnfollow = User::factory()->create();
+
+            // Act
+            $result = $this->service->unfollowUser($userToUnfollow, $follower);
+
+            // Assert
+            expect($result)->toBeFalse();
+            Event::assertNotDispatched(\App\Events\User\UserUnfollowedEvent::class);
+        });
+
+        it('prevents self-unfollow', function () {
+            // Arrange
+            $user = User::factory()->create();
+
+            // Act & Assert
+            expect(fn () => $this->service->unfollowUser($user, $user))
+                ->toThrow(AuthorizationException::class);
+        });
+    });
 });

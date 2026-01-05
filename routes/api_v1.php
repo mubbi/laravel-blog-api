@@ -19,6 +19,10 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
         Route::get('/me', \App\Http\Controllers\Api\V1\User\MeController::class)->name('api.v1.me');
         Route::put('/profile', \App\Http\Controllers\Api\V1\User\UpdateProfileController::class)->name('api.v1.user.profile.update');
 
+        // Social/Community Features
+        Route::post('/users/{user}/follow', \App\Http\Controllers\Api\V1\User\FollowUserController::class)->name('api.v1.users.follow');
+        Route::post('/users/{user}/unfollow', \App\Http\Controllers\Api\V1\User\UnfollowUserController::class)->name('api.v1.users.unfollow');
+
         Route::post('/auth/logout', \App\Http\Controllers\Api\V1\Auth\LogoutController::class)->name('api.v1.auth.logout');
 
         // Article Management (accessible by authenticated users - users can manage their own articles, admins can manage all)
@@ -124,6 +128,13 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
             Route::post('/unsubscribe', \App\Http\Controllers\Api\V1\Newsletter\UnsubscribeController::class)->name('api.v1.newsletter.unsubscribe');
             Route::post('/verify', \App\Http\Controllers\Api\V1\Newsletter\VerifySubscriptionController::class)->name('api.v1.newsletter.verify');
             Route::post('/verify-unsubscribe', \App\Http\Controllers\Api\V1\Newsletter\VerifyUnsubscriptionController::class)->name('api.v1.newsletter.verify-unsubscribe');
+        });
+
+        // Social/Community Features (Public)
+        Route::prefix('users')->group(function () {
+            Route::get('/{user}/followers', \App\Http\Controllers\Api\V1\User\GetUserFollowersController::class)->name('api.v1.users.followers');
+            Route::get('/{user}/following', \App\Http\Controllers\Api\V1\User\GetUserFollowingController::class)->name('api.v1.users.following');
+            Route::get('/{user}/profile', \App\Http\Controllers\Api\V1\User\ViewUserProfileController::class)->name('api.v1.users.profile');
         });
     });
 

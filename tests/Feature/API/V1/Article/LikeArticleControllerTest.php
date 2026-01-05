@@ -3,12 +3,15 @@
 declare(strict_types=1);
 
 use App\Enums\ArticleReactionType;
+use App\Events\Article\ArticleLikedEvent;
 use App\Models\Article;
 use App\Models\ArticleLike;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Article/LikeArticleController', function () {
     it('can like an article as authenticated user', function () {
+        Event::fake([ArticleLikedEvent::class]);
         $user = User::factory()->create();
         $article = Article::factory()
             ->for($user, 'author')
@@ -37,6 +40,11 @@ describe('API/V1/Article/LikeArticleController', function () {
             ->where('type', ArticleReactionType::LIKE->value)
             ->whereNull('ip_address')
             ->exists())->toBeTrue();
+
+        // Verify event was dispatched
+        Event::assertDispatched(ArticleLikedEvent::class, function ($event) use ($article) {
+            return $event->article->id === $article->id && $event->like->type === ArticleReactionType::LIKE;
+        });
     });
 
     it('can like an article as anonymous user', function () {

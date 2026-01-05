@@ -8,10 +8,14 @@ use App\Data\CreateCategoryDTO;
 use App\Data\DeleteCategoryDTO;
 use App\Data\UpdateCategoryDTO;
 use App\Enums\CacheKey;
+use App\Events\Category\CategoryCreatedEvent;
+use App\Events\Category\CategoryDeletedEvent;
+use App\Events\Category\CategoryUpdatedEvent;
 use App\Models\Category;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 
 final class CategoryService
 {
@@ -46,6 +50,8 @@ final class CategoryService
             $category = $this->categoryRepository->create($dto->toArray());
             $this->cacheService->forget(CacheKey::CATEGORIES);
 
+            Event::dispatch(new CategoryCreatedEvent($category));
+
             return $category;
         });
     }
@@ -63,6 +69,8 @@ final class CategoryService
             }
             $this->cacheService->forget(CacheKey::CATEGORIES);
 
+            Event::dispatch(new CategoryUpdatedEvent($category));
+
             return $category;
         });
     }
@@ -78,6 +86,8 @@ final class CategoryService
             } else {
                 $this->moveChildrenToParent($category);
             }
+
+            Event::dispatch(new CategoryDeletedEvent($category));
 
             $category->delete();
             $this->cacheService->forget(CacheKey::CATEGORIES);

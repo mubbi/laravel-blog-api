@@ -10,7 +10,6 @@ use App\Http\Resources\V1\Admin\User\UserDetailResource;
 use App\Models\User;
 use App\Services\UserService;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -56,15 +55,6 @@ final class BlockUserController extends Controller
                 new UserDetailResource($user),
                 __('common.user_blocked_successfully')
             );
-        } catch (AuthorizationException $e) {
-            /**
-             * Forbidden - Cannot block self
-             *
-             * @status 403
-             *
-             * @body array{status: false, message: string, data: null, error: null}
-             */
-            return $this->handleException($e, $request);
         } catch (Throwable $e) {
             /**
              * Internal server error

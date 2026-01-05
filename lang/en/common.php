@@ -35,6 +35,8 @@ return [
     'cannot_unban_self' => 'You cannot unban your own account.',
     'cannot_block_self' => 'You cannot block your own account.',
     'cannot_unblock_self' => 'You cannot unblock your own account.',
+    'cannot_follow_self' => 'You cannot follow yourself.',
+    'cannot_unfollow_self' => 'You cannot unfollow yourself.',
 
     // Article Management
     'article_not_found' => 'Article not found.',

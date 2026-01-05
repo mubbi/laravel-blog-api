@@ -7,10 +7,14 @@ namespace App\Services;
 use App\Data\CreateTagDTO;
 use App\Data\UpdateTagDTO;
 use App\Enums\CacheKey;
+use App\Events\Tag\TagCreatedEvent;
+use App\Events\Tag\TagDeletedEvent;
+use App\Events\Tag\TagUpdatedEvent;
 use App\Models\Tag;
 use App\Repositories\Contracts\TagRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 
 final class TagService
 {
@@ -44,6 +48,8 @@ final class TagService
             $tag = $this->tagRepository->create($dto->toArray());
             $this->cacheService->forget(CacheKey::TAGS);
 
+            Event::dispatch(new TagCreatedEvent($tag));
+
             return $tag;
         });
     }
@@ -61,6 +67,8 @@ final class TagService
             }
             $this->cacheService->forget(CacheKey::TAGS);
 
+            Event::dispatch(new TagUpdatedEvent($tag));
+
             return $tag;
         });
     }
@@ -71,6 +79,8 @@ final class TagService
     public function deleteTag(Tag $tag): void
     {
         DB::transaction(function () use ($tag): void {
+            Event::dispatch(new TagDeletedEvent($tag));
+
             // Delete the tag itself
             $tag->delete();
             $this->cacheService->forget(CacheKey::TAGS);

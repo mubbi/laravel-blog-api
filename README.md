@@ -424,7 +424,7 @@ Based on the codebase review, the following APIs and features are pending implem
   - Unfollow user endpoint
   - Get user followers endpoint
   - Get user following endpoint
-  - View user profile endpoint (public)
+  - View user profile endpoint
 
 - **General Improvements**
   - Ensure all permission checks are enforced in controllers/routes

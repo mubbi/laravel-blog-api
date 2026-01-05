@@ -199,7 +199,11 @@ final class ArticleManagementService
             }
 
             // Reload with relationships
-            return $this->getArticleWithRelationships($article->id);
+            $article = $this->getArticleWithRelationships($article->id);
+
+            \Illuminate\Support\Facades\Event::dispatch(new \App\Events\Article\ArticleCreatedEvent($article));
+
+            return $article;
         });
     }
 }

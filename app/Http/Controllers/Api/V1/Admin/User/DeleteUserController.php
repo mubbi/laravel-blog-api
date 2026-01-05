@@ -9,7 +9,6 @@ use App\Http\Requests\V1\Admin\User\DeleteUserRequest;
 use App\Models\User;
 use App\Services\UserService;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -54,15 +53,6 @@ final class DeleteUserController extends Controller
                 null,
                 __('common.user_deleted_successfully')
             );
-        } catch (AuthorizationException $e) {
-            /**
-             * Forbidden - Cannot delete self
-             *
-             * @status 403
-             *
-             * @body array{status: false, message: string, data: null, error: null}
-             */
-            return $this->handleException($e, $request);
         } catch (Throwable $e) {
             /**
              * Internal server error

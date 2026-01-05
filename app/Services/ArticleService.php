@@ -293,12 +293,22 @@ final class ArticleService
             $this->removeReaction($articleId, $oppositeType, $userId, $ipAddress);
 
             // Create the new reaction
-            return ArticleLike::create([
+            $reaction = ArticleLike::create([
                 'article_id' => $articleId,
                 'user_id' => $userId,
                 'ip_address' => $ipAddress,
                 'type' => $reactionType,
             ]);
+
+            // Dispatch appropriate event
+            $article = $this->articleRepository->findOrFail($articleId);
+            if ($reactionType === \App\Enums\ArticleReactionType::LIKE) {
+                \Illuminate\Support\Facades\Event::dispatch(new \App\Events\Article\ArticleLikedEvent($article, $reaction));
+            } else {
+                \Illuminate\Support\Facades\Event::dispatch(new \App\Events\Article\ArticleDislikedEvent($article, $reaction));
+            }
+
+            return $reaction;
         });
     }
 
