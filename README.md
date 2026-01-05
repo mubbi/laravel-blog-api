@@ -412,7 +412,7 @@ Based on the codebase review, the following APIs and features are pending implem
   - Hierarchical category/tag management (parent/child relationships)
 
 - **Media Management**
-  - Upload media endpoint (for admin/editor/author)
+  - Upload media endpoint
   - Delete media endpoint
   - List media library endpoint
   - Get media details endpoint
@@ -427,7 +427,7 @@ Based on the codebase review, the following APIs and features are pending implem
   - Get unread notifications count endpoint
 
 - **Analytics & Settings**
-  - View analytics dashboard endpoint (admin only)
+  - View analytics dashboard endpoint (user and admin)
   - Get site statistics endpoint
   - Manage site settings endpoints (CRUD)
   - Export data endpoint
@@ -440,7 +440,6 @@ Based on the codebase review, the following APIs and features are pending implem
   - Get user followers endpoint
   - Get user following endpoint
   - View user profile endpoint (public)
-  - Send messages endpoint (if implementing messaging)
 
 - **General Improvements**
   - Ensure all permission checks are enforced in controllers/routes

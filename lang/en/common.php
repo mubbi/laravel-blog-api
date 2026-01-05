@@ -64,6 +64,7 @@ return [
     'comment_rejected_successfully' => 'Comment rejected successfully.',
     'comment_reported_successfully' => 'Comment reported successfully.',
     'comment_reports_cleared_successfully' => 'Comment reports cleared successfully.',
+    'parent_comment_mismatch' => 'Parent comment must belong to the same article.',
     // Additional comment keys for consistency
     'comment_deleted' => 'Comment deleted successfully.',
     'comment_approved' => 'Comment approved successfully.',

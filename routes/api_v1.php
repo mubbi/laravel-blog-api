@@ -29,6 +29,17 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
             Route::post('/{article}/trash', \App\Http\Controllers\Api\V1\Admin\Article\TrashArticleController::class)->name('api.v1.articles.trash');
             Route::post('/{article}/restore-from-trash', \App\Http\Controllers\Api\V1\Admin\Article\RestoreFromTrashController::class)->name('api.v1.articles.restore-from-trash');
         });
+
+        // Comment Management (shared - users can manage their own comments, admins can manage any comment)
+        Route::prefix('articles')->group(function () {
+            Route::post('/{article}/comments', \App\Http\Controllers\Api\V1\Comment\CreateCommentController::class)->name('api.v1.comments.store');
+        });
+        Route::prefix('comments')->group(function () {
+            Route::get('/own', \App\Http\Controllers\Api\V1\Comment\GetOwnCommentsController::class)->name('api.v1.comments.own');
+            Route::put('/{comment}', \App\Http\Controllers\Api\V1\Comment\UpdateCommentController::class)->name('api.v1.comments.update');
+            Route::delete('/{comment}', \App\Http\Controllers\Api\V1\Comment\DeleteCommentController::class)->name('api.v1.comments.destroy');
+            Route::post('/{comment}/report', \App\Http\Controllers\Api\V1\Comment\ReportCommentController::class)->name('api.v1.comments.report');
+        });
     });
 
     // Admin Routes

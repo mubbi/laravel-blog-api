@@ -5,11 +5,18 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Data\ApproveCommentDTO;
+use App\Data\CreateCommentDTO;
 use App\Data\DeleteCommentDTO;
 use App\Data\FilterCommentDTO;
+use App\Data\ReportCommentDTO;
+use App\Data\UpdateCommentDTO;
 use App\Enums\CommentStatus;
 use App\Events\Comment\CommentApprovedEvent;
+use App\Events\Comment\CommentCreatedEvent;
 use App\Events\Comment\CommentDeletedEvent;
+use App\Events\Comment\CommentReportedEvent;
+use App\Events\Comment\CommentUpdatedEvent;
+use App\Models\Article;
 use App\Models\Comment;
 use App\Models\User;
 use App\Repositories\Contracts\CommentRepositoryInterface;
@@ -103,6 +110,84 @@ final class CommentService
         $this->applyFilters($query, $dto);
 
         return $query->orderBy($dto->sortBy, $dto->sortOrder)->paginate($dto->perPage);
+    }
+
+    /**
+     * Create a new comment
+     */
+    public function createComment(Article $article, CreateCommentDTO $dto, User $user): Comment
+    {
+        // If parent comment is provided, verify it exists and belongs to the same article
+        if ($dto->parentCommentId !== null) {
+            $parentComment = $this->commentRepository->findOrFail($dto->parentCommentId);
+            if ($parentComment->article_id !== $article->id) {
+                throw new \InvalidArgumentException(__('common.parent_comment_mismatch'));
+            }
+        }
+
+        $commentData = array_merge($dto->toArray(), [
+            'user_id' => $user->id,
+            'status' => CommentStatus::PENDING,
+        ]);
+
+        $comment = $this->commentRepository->create($commentData);
+
+        /** @var Comment $freshComment */
+        $freshComment = $comment->fresh(['user', 'article']);
+
+        Event::dispatch(new CommentCreatedEvent($freshComment));
+
+        return $freshComment;
+    }
+
+    /**
+     * Update a comment
+     */
+    public function updateComment(Comment $comment, UpdateCommentDTO $dto): Comment
+    {
+        $this->commentRepository->update($comment->id, $dto->toArray());
+
+        /** @var Comment $freshComment */
+        $freshComment = $comment->fresh(['user', 'article']);
+
+        Event::dispatch(new CommentUpdatedEvent($freshComment));
+
+        return $freshComment;
+    }
+
+    /**
+     * Report a comment
+     */
+    public function reportComment(Comment $comment, ReportCommentDTO $dto): Comment
+    {
+        $this->commentRepository->update($comment->id, [
+            'report_count' => $comment->report_count + 1,
+            'last_reported_at' => now(),
+            'report_reason' => $dto->getReason(),
+        ]);
+
+        $comment->refresh();
+
+        /** @var Comment $freshComment */
+        $freshComment = $comment->fresh(['user', 'article']);
+
+        Event::dispatch(new CommentReportedEvent($freshComment));
+
+        return $freshComment;
+    }
+
+    /**
+     * Get own comments for a user
+     *
+     * @return LengthAwarePaginator<int, Comment>
+     */
+    public function getOwnComments(User $user, int $page = 1, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->commentRepository->query()
+            ->where('user_id', $user->id)
+            ->with(['user:id,name,email', 'article:id,title,slug'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
     }
 
     /**
