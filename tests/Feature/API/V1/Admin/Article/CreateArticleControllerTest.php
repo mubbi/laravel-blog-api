@@ -346,8 +346,8 @@ describe('API/V1/Admin/Article/CreateArticleController', function () {
             'content_markdown' => '# Test Content',
         ];
 
-        // Mock service to throw exception
-        $this->mock(\App\Services\ArticleManagementService::class, function ($mock) {
+        // Mock service interface to throw exception
+        $this->mock(\App\Services\Interfaces\ArticleManagementServiceInterface::class, function ($mock) {
             $mock->shouldReceive('createArticle')
                 ->andThrow(new \Exception('Service error'));
         });

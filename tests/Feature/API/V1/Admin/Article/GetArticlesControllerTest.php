@@ -294,7 +294,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         attachRoleAndRefreshCache($admin, $adminRole);
 
         // Mock service to throw exception
-        $this->mock(\App\Services\ArticleManagementService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\ArticleManagementServiceInterface::class, function ($mock) {
             $mock->shouldReceive('getArticles')
                 ->andThrow(new \Exception('Service error'));
         });

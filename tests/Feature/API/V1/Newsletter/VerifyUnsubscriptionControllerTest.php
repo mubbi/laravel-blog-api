@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Events\Newsletter\NewsletterSubscriberUnsubscribedEvent;
 use App\Models\NewsletterSubscriber;
 use App\Models\User;
-use App\Services\NewsletterService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
@@ -303,7 +302,7 @@ describe('API/V1/Newsletter/VerifyUnsubscriptionController', function () {
 
     it('handles service exception and returns 500', function () {
         // Arrange
-        $this->mock(NewsletterService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\NewsletterServiceInterface::class, function ($mock) {
             $mock->shouldReceive('verifyUnsubscription')
                 ->andThrow(new \Exception('Database error'));
         });
@@ -326,7 +325,7 @@ describe('API/V1/Newsletter/VerifyUnsubscriptionController', function () {
 
     it('handles ModelNotFoundException and returns 404', function () {
         // Arrange
-        $this->mock(NewsletterService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\NewsletterServiceInterface::class, function ($mock) {
             $exception = new ModelNotFoundException;
             $exception->setModel(\App\Models\NewsletterSubscriber::class);
             $mock->shouldReceive('verifyUnsubscription')

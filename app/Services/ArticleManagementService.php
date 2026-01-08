@@ -105,13 +105,9 @@ final class ArticleManagementService implements ArticleManagementServiceInterfac
      */
     private function applyFilters(Builder $query, FilterArticleManagementDTO $dto): void
     {
-        // Search in title and content
+        // Search in title and content using scope
         if ($dto->search !== null) {
-            $query->where(function (Builder $q) use ($dto) {
-                $q->where('title', 'like', "%{$dto->search}%")
-                    ->orWhere('content_markdown', 'like', "%{$dto->search}%")
-                    ->orWhere('excerpt', 'like', "%{$dto->search}%");
-            });
+            $query->search($dto->search);
         }
 
         // Filter by status

@@ -253,7 +253,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         $article = Article::factory()->create();
 
         // Mock service to throw exception
-        $this->mock(\App\Services\ArticleManagementService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\ArticleManagementServiceInterface::class, function ($mock) {
             $mock->shouldReceive('loadArticleRelationshipsOnModel')
                 ->andThrow(new \Exception('Service error'));
         });

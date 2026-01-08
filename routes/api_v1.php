@@ -8,11 +8,13 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
         return 'Laravel Blog API V1 Root is working';
     })->name('api.v1.status');
 
-    // Auth Routes
-    Route::post('/auth/login', \App\Http\Controllers\Api\V1\Auth\LoginController::class)->name('api.v1.auth.login');
-    Route::post('/auth/refresh', \App\Http\Controllers\Api\V1\Auth\RefreshTokenController::class)->name('api.v1.auth.refresh');
-    Route::post('/auth/forgot-password', \App\Http\Controllers\Api\V1\Auth\ForgotPasswordController::class)->name('api.v1.auth.password.forgot');
-    Route::post('/auth/reset-password', \App\Http\Controllers\Api\V1\Auth\ResetPasswordController::class)->name('api.v1.auth.password.reset');
+    // Auth Routes (stricter rate limiting)
+    Route::middleware(['throttle:auth'])->group(function () {
+        Route::post('/auth/login', \App\Http\Controllers\Api\V1\Auth\LoginController::class)->name('api.v1.auth.login');
+        Route::post('/auth/refresh', \App\Http\Controllers\Api\V1\Auth\RefreshTokenController::class)->name('api.v1.auth.refresh');
+        Route::post('/auth/forgot-password', \App\Http\Controllers\Api\V1\Auth\ForgotPasswordController::class)->name('api.v1.auth.password.forgot');
+        Route::post('/auth/reset-password', \App\Http\Controllers\Api\V1\Auth\ResetPasswordController::class)->name('api.v1.auth.password.reset');
+    });
 
     // User Routes
     Route::middleware(['auth:sanctum', 'ability:access-api'])->group(function () {
@@ -38,7 +40,7 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
         Route::prefix('articles')->group(function () {
             Route::post('/{article}/comments', \App\Http\Controllers\Api\V1\Comment\CreateCommentController::class)->name('api.v1.comments.store');
         });
-        Route::prefix('comments')->group(function () {
+        Route::prefix('comments')->middleware(['throttle:sensitive'])->group(function () {
             Route::get('/own', \App\Http\Controllers\Api\V1\Comment\GetOwnCommentsController::class)->name('api.v1.comments.own');
             Route::put('/{comment}', \App\Http\Controllers\Api\V1\Comment\UpdateCommentController::class)->name('api.v1.comments.update');
             Route::delete('/{comment}', \App\Http\Controllers\Api\V1\Comment\DeleteCommentController::class)->name('api.v1.comments.destroy');
@@ -46,8 +48,8 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
         });
     });
 
-    // Admin Routes
-    Route::middleware(['auth:sanctum', 'ability:access-api'])->prefix('admin')->group(function () {
+    // Admin Routes (admin-specific rate limiting)
+    Route::middleware(['auth:sanctum', 'ability:access-api', 'throttle:admin'])->prefix('admin')->group(function () {
         // User Management
         Route::prefix('users')->group(function () {
             Route::get('/', \App\Http\Controllers\Api\V1\Admin\User\GetUsersController::class)->name('api.v1.admin.users.index');

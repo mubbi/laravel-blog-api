@@ -12,6 +12,7 @@ use App\Events\Article\ArticleUnpinnedEvent;
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use App\Services\Interfaces\ArticleFeatureServiceInterface;
+use App\Services\Interfaces\ArticleManagementServiceInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -21,7 +22,7 @@ final class ArticleFeatureService implements ArticleFeatureServiceInterface
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,
-        private readonly ArticleManagementService $articleManagementService
+        private readonly ArticleManagementServiceInterface $articleManagementService
     ) {}
 
     /**

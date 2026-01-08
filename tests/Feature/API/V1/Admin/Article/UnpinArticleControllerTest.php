@@ -200,7 +200,7 @@ describe('API/V1/Admin/Article/UnpinArticleController', function () {
         ]);
 
         // Mock service to throw exception
-        $this->mock(\App\Services\ArticleFeatureService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\ArticleFeatureServiceInterface::class, function ($mock) {
             $mock->shouldReceive('unpinArticle')
                 ->andThrow(new \Exception('Service error'));
         });

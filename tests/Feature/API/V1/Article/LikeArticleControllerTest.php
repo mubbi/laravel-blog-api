@@ -170,8 +170,8 @@ describe('API/V1/Article/LikeArticleController', function () {
             ->published()
             ->create();
 
-        // Mock ArticleService to throw an exception
-        $this->mock(\App\Services\ArticleService::class, function ($mock) {
+        // Mock ArticleServiceInterface to throw an exception
+        $this->mock(\App\Services\Interfaces\ArticleServiceInterface::class, function ($mock) {
             $mock->shouldReceive('likeArticle')
                 ->andThrow(new \Exception('Database connection failed'));
         });

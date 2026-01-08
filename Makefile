@@ -214,6 +214,11 @@ lint-dirty:
 # Run Static Analysis (PHPStan)
 analyze:
 	@echo "🔍 ANALYZE: Running PHPStan static analysis..."
+	@echo ">> Ensuring .env file exists with APP_KEY..."
+	@docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api bash -c "if [ ! -f .env ]; then if [ -f .env.docker.example ]; then cp .env.docker.example .env; else echo 'ERROR: .env file not found and .env.docker.example does not exist'; exit 1; fi; fi; if ! grep -q 'APP_KEY=base64:' .env 2>/dev/null; then php artisan key:generate --force 2>/dev/null || true; fi"
+	@echo ">> Clearing all caches..."
+	@docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api bash -c "rm -rf bootstrap/cache/*.php storage/framework/cache/* storage/framework/views/* 2>/dev/null || true"
+	@echo ">> Running PHPStan..."
 	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api ./vendor/bin/phpstan analyse --memory-limit=2G
 	@echo "SUCCESS: Static analysis completed!"
 

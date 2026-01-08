@@ -1,0 +1,42 @@
+; Production PHP Configuration
+; This file should be used in production environments
+; Copy this to php.ini or mount it in your production Docker container
+
+memory_limit = 256M
+upload_max_filesize = 10M
+post_max_size = 10M
+max_execution_time = 60
+max_input_vars = 1000
+
+; Error reporting - CRITICAL: Disable error display in production
+display_errors = Off
+display_startup_errors = Off
+error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
+log_errors = On
+error_log = /var/log/php_errors.log
+
+; Timezone
+date.timezone = UTC
+
+; Session
+session.gc_maxlifetime = 1440
+session.cookie_secure = 1
+session.cookie_httponly = 1
+session.cookie_samesite = "Lax"
+
+; Security
+expose_php = Off
+allow_url_fopen = Off
+allow_url_include = Off
+
+; File uploads
+file_uploads = On
+upload_tmp_dir = /tmp
+
+; Performance
+opcache.enable = 1
+opcache.memory_consumption = 128
+opcache.interned_strings_buffer = 8
+opcache.max_accelerated_files = 10000
+opcache.revalidate_freq = 2
+

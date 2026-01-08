@@ -71,6 +71,9 @@ final class ServiceServiceProvider extends ServiceProvider
             ArticleService::class
         );
 
+        // Article query builder and filter services (internal use)
+        // These are concrete classes that Laravel can auto-resolve, so no explicit binding needed
+
         $this->app->scoped(
             ArticleManagementServiceInterface::class,
             ArticleManagementService::class

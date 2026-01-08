@@ -7,7 +7,6 @@ use App\Events\Comment\CommentUpdatedEvent;
 use App\Models\Comment;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\CommentService;
 use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Comment/UpdateCommentController', function () {
@@ -191,8 +190,8 @@ describe('API/V1/Comment/UpdateCommentController', function () {
             'user_id' => $user->id,
         ]);
 
-        // Mock CommentService to throw exception
-        $this->mock(CommentService::class, function ($mock) {
+        // Mock CommentServiceInterface to throw exception
+        $this->mock(\App\Services\Interfaces\CommentServiceInterface::class, function ($mock) {
             $mock->shouldReceive('updateComment')
                 ->andThrow(new \Exception('Service error'));
         });

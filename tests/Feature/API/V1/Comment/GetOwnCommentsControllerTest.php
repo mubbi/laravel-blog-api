@@ -6,7 +6,6 @@ use App\Enums\CommentStatus;
 use App\Models\Article;
 use App\Models\Comment;
 use App\Models\User;
-use App\Services\CommentService;
 
 describe('API/V1/Comment/GetOwnCommentsController', function () {
     it('can get own comments successfully', function () {
@@ -261,8 +260,8 @@ describe('API/V1/Comment/GetOwnCommentsController', function () {
         $user = User::factory()->create();
         $token = $user->createToken('test-token', ['access-api']);
 
-        // Mock CommentService to throw exception
-        $this->mock(CommentService::class, function ($mock) {
+        // Mock CommentServiceInterface to throw exception
+        $this->mock(\App\Services\Interfaces\CommentServiceInterface::class, function ($mock) {
             $mock->shouldReceive('getOwnComments')
                 ->andThrow(new \Exception('Service error'));
         });

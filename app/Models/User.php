@@ -353,4 +353,65 @@ final class User extends Authenticatable
 
         return $relation;
     }
+
+    /**
+     * Scope a query to only include active (non-banned, non-blocked) users.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereNull('banned_at')
+            ->whereNull('blocked_at');
+    }
+
+    /**
+     * Scope a query to only include banned users.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
+    public function scopeBanned($query)
+    {
+        return $query->whereNotNull('banned_at');
+    }
+
+    /**
+     * Scope a query to only include blocked users.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
+    public function scopeBlocked($query)
+    {
+        return $query->whereNotNull('blocked_at');
+    }
+
+    /**
+     * Scope a query to filter users by role.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
+    public function scopeByRole($query, string $roleSlug)
+    {
+        return $query->whereHas('roles', function ($q) use ($roleSlug) {
+            $q->where('slug', $roleSlug);
+        });
+    }
+
+    /**
+     * Scope a query to search users by name or email.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
+    public function scopeSearch($query, string $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
+        });
+    }
 }

@@ -53,7 +53,45 @@ final class Article extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'slug',
+        'title',
+        'subtitle',
+        'excerpt',
+        'content_markdown',
+        'content_html',
+        'featured_image',
+        'status',
+        'published_at',
+        'meta_title',
+        'meta_description',
+        'is_featured',
+        'is_pinned',
+        'featured_at',
+        'pinned_at',
+    ];
+
+    /**
+     * The attributes that should be guarded from mass assignment.
+     *
+     * @var list<string>
+     */
+    protected $guarded = [
+        'id',
+        'created_by',
+        'approved_by',
+        'updated_by',
+        'report_count',
+        'last_reported_at',
+        'report_reason',
+        'created_at',
+        'updated_at',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -159,5 +197,128 @@ final class Article extends Model
         $relation = $this->hasMany(ArticleLike::class);
 
         return $relation;
+    }
+
+    /**
+     * Scope a query to only include published articles.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Article>
+     */
+    public function scopePublished($query)
+    {
+        return $query->where('status', ArticleStatus::PUBLISHED)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now());
+    }
+
+    /**
+     * Scope a query to only include draft articles.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Article>
+     */
+    public function scopeDraft($query)
+    {
+        return $query->where('status', ArticleStatus::DRAFT);
+    }
+
+    /**
+     * Scope a query to only include articles in review.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Article>
+     */
+    public function scopeInReview($query)
+    {
+        return $query->where('status', ArticleStatus::REVIEW);
+    }
+
+    /**
+     * Scope a query to only include archived articles.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Article>
+     */
+    public function scopeArchived($query)
+    {
+        return $query->where('status', ArticleStatus::ARCHIVED);
+    }
+
+    /**
+     * Scope a query to only include featured articles.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Article>
+     */
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
+    }
+
+    /**
+     * Scope a query to only include pinned articles.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Article>
+     */
+    public function scopePinned($query)
+    {
+        return $query->where('is_pinned', true);
+    }
+
+    /**
+     * Scope a query to filter articles by category slug.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Article>
+     */
+    public function scopeByCategory($query, string $slug)
+    {
+        return $query->whereHas('categories', function ($q) use ($slug) {
+            $q->where('slug', $slug);
+        });
+    }
+
+    /**
+     * Scope a query to filter articles by tag slug.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Article>
+     */
+    public function scopeByTag($query, string $slug)
+    {
+        return $query->whereHas('tags', function ($q) use ($slug) {
+            $q->where('slug', $slug);
+        });
+    }
+
+    /**
+     * Scope a query to filter articles by author ID.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Article>
+     */
+    public function scopeByAuthor($query, int $authorId)
+    {
+        return $query->whereHas('authors', function ($q) use ($authorId) {
+            $q->where('user_id', $authorId);
+        });
+    }
+
+    /**
+     * Scope a query to search articles by title, subtitle, excerpt, or content.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Article>
+     */
+    public function scopeSearch($query, string $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+                ->orWhere('subtitle', 'like', "%{$search}%")
+                ->orWhere('excerpt', 'like', "%{$search}%")
+                ->orWhere('content_markdown', 'like', "%{$search}%");
+        });
     }
 }

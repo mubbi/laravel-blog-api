@@ -7,7 +7,6 @@ use App\Events\Newsletter\NewsletterSubscriberDeletedEvent;
 use App\Models\NewsletterSubscriber;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\NewsletterService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -233,7 +232,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         ]);
 
         // Mock NewsletterService to throw exception
-        $this->mock(NewsletterService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\NewsletterServiceInterface::class, function ($mock) {
             $mock->shouldReceive('deleteSubscriber')
                 ->andThrow(new \Exception('Service error'));
         });
@@ -271,7 +270,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         ]);
 
         // Mock NewsletterService to throw ModelNotFoundException
-        $this->mock(NewsletterService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\NewsletterServiceInterface::class, function ($mock) {
             $exception = new ModelNotFoundException;
             $exception->setModel(\App\Models\NewsletterSubscriber::class);
             $mock->shouldReceive('deleteSubscriber')
@@ -388,7 +387,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         attachRoleAndRefreshCache($admin, $adminRole);
 
         // Mock NewsletterService to throw exception before deletion
-        $this->mock(NewsletterService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\NewsletterServiceInterface::class, function ($mock) {
             $exception = new ModelNotFoundException;
             $exception->setModel(\App\Models\NewsletterSubscriber::class);
             $mock->shouldReceive('deleteSubscriber')

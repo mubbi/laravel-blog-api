@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Events\Comment\CommentReportedEvent;
 use App\Models\Comment;
 use App\Models\User;
-use App\Services\CommentService;
 use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Comment/ReportCommentController', function () {
@@ -163,8 +162,8 @@ describe('API/V1/Comment/ReportCommentController', function () {
         $token = $user->createToken('test-token', ['access-api']);
         $comment = Comment::factory()->create();
 
-        // Mock CommentService to throw exception
-        $this->mock(CommentService::class, function ($mock) {
+        // Mock CommentServiceInterface to throw exception
+        $this->mock(\App\Services\Interfaces\CommentServiceInterface::class, function ($mock) {
             $mock->shouldReceive('reportComment')
                 ->andThrow(new \Exception('Service error'));
         });

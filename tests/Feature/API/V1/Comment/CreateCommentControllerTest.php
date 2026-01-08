@@ -7,7 +7,7 @@ use App\Events\Comment\CommentCreatedEvent;
 use App\Models\Article;
 use App\Models\Comment;
 use App\Models\User;
-use App\Services\CommentService;
+use App\Services\Interfaces\CommentServiceInterface;
 use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Comment/CreateCommentController', function () {
@@ -203,8 +203,8 @@ describe('API/V1/Comment/CreateCommentController', function () {
         $token = $user->createToken('test-token', ['access-api']);
         $article = Article::factory()->create();
 
-        // Mock CommentService to throw exception
-        $this->mock(CommentService::class, function ($mock) {
+        // Mock CommentServiceInterface to throw exception
+        $this->mock(CommentServiceInterface::class, function ($mock) {
             $mock->shouldReceive('createComment')
                 ->andThrow(new \Exception('Service error'));
         });

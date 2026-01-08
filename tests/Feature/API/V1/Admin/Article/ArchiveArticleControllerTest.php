@@ -230,7 +230,7 @@ describe('API/V1/Admin/Article/ArchiveArticleController', function () {
         ]);
 
         // Mock service to throw exception
-        $this->mock(\App\Services\ArticleStatusService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\ArticleStatusServiceInterface::class, function ($mock) {
             $mock->shouldReceive('archiveArticle')
                 ->andThrow(new \Exception('Service error'));
         });

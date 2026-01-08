@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Enums\CacheKey;
 use App\Models\Tag;
-use App\Services\TagService;
 use Illuminate\Support\Facades\Cache;
 
 describe('API/V1/Tag/GetTagsController', function () {
@@ -135,7 +134,7 @@ describe('API/V1/Tag/GetTagsController', function () {
     });
 
     it('returns error if service throws', function () {
-        $this->mock(TagService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\TagServiceInterface::class, function ($mock) {
             $mock->shouldReceive('getAllTags')
                 ->andThrow(new \Exception('fail'));
         });

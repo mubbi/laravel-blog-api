@@ -337,7 +337,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         ]);
 
         // Mock service to throw exception
-        $this->mock(\App\Services\ArticleReportService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\ArticleReportServiceInterface::class, function ($mock) {
             $mock->shouldReceive('reportArticle')
                 ->andThrow(new \Exception('Service error'));
         });

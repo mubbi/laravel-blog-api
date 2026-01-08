@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Enums\CacheKey;
 use App\Models\Category;
-use App\Services\CategoryService;
 use Illuminate\Support\Facades\Cache;
 
 describe('API/V1/Category/GetCategoriesController', function () {
@@ -135,7 +134,7 @@ describe('API/V1/Category/GetCategoriesController', function () {
     });
 
     it('returns error if service throws', function () {
-        $this->mock(CategoryService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\CategoryServiceInterface::class, function ($mock) {
             $mock->shouldReceive('getAllCategories')
                 ->andThrow(new \Exception('fail'));
         });

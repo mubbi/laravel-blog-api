@@ -10,10 +10,10 @@ use App\Enums\ArticleStatus;
 use App\Models\Article;
 use App\Models\ArticleLike;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
+use App\Services\Article\ArticleFilterService;
 use App\Services\Interfaces\ArticleServiceInterface;
 use App\Services\Interfaces\CommentServiceInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -22,7 +22,8 @@ final class ArticleService implements ArticleServiceInterface
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,
-        private readonly CommentServiceInterface $commentService
+        private readonly CommentServiceInterface $commentService,
+        private readonly ArticleFilterService $filterService
     ) {}
 
     /**
@@ -32,25 +33,7 @@ final class ArticleService implements ArticleServiceInterface
      */
     public function getArticles(FilterArticleDTO $dto): LengthAwarePaginator
     {
-        $query = $this->articleRepository->query()
-            ->with([
-                'author:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
-                'approver:id,name,email,avatar_url',
-                'updater:id,name,email,avatar_url',
-                'categories:id,name,slug',
-                'tags:id,name,slug',
-                'authors:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
-            ])
-            ->withCount('comments');
-
-        // Apply filters
-        $this->applyFilters($query, $dto);
-
-        // Apply sorting
-        $query->orderBy($dto->sortBy, $dto->sortDirection);
-
-        // Apply pagination
-        return $query->paginate($dto->perPage, ['*'], 'page', $dto->page);
+        return $this->filterService->getFilteredArticles($dto);
     }
 
     /**
@@ -85,71 +68,6 @@ final class ArticleService implements ArticleServiceInterface
         );
 
         return $article;
-    }
-
-    /**
-     * Apply filters to the query
-     *
-     * @param  Builder<Article>  $query
-     */
-    private function applyFilters(Builder $query, FilterArticleDTO $dto): void
-    {
-        // Search in title, subtitle, excerpt, and content
-        if ($dto->search !== null) {
-            $query->where(function (Builder $q) use ($dto) {
-                $q->where('title', 'like', "%{$dto->search}%")
-                    ->orWhere('subtitle', 'like', "%{$dto->search}%")
-                    ->orWhere('excerpt', 'like', "%{$dto->search}%")
-                    ->orWhere('content_markdown', 'like', "%{$dto->search}%");
-            });
-        }
-
-        // Filter by status
-        if ($dto->status !== null) {
-            $query->where('status', $dto->status->value);
-        }
-
-        // Filter by categories (support multiple categories)
-        if ($dto->categorySlugs !== null) {
-            $query->whereHas('categories', function (Builder $q) use ($dto) {
-                $q->whereIn('slug', $dto->categorySlugs);
-            });
-        }
-
-        // Filter by tags (support multiple tags)
-        if ($dto->tagSlugs !== null) {
-            $query->whereHas('tags', function (Builder $q) use ($dto) {
-                $q->whereIn('slug', $dto->tagSlugs);
-            });
-        }
-
-        // Filter by author (from article_authors table)
-        if ($dto->authorId !== null) {
-            $query->whereHas('authors', function (Builder $q) use ($dto) {
-                $q->where('user_id', $dto->authorId);
-            });
-        }
-
-        // Filter by creator
-        if ($dto->createdBy !== null) {
-            $query->where('created_by', $dto->createdBy);
-        }
-
-        // Filter by publication date range
-        if ($dto->publishedAfter !== null) {
-            $query->where('published_at', '>=', $dto->publishedAfter);
-        }
-
-        if ($dto->publishedBefore !== null) {
-            $query->where('published_at', '<=', $dto->publishedBefore);
-        }
-
-        // Only include published articles for public access (unless specifically querying other statuses)
-        if ($dto->status === null) {
-            $query->where('status', 'published')
-                ->whereNotNull('published_at')
-                ->where('published_at', '<=', now());
-        }
     }
 
     /**
