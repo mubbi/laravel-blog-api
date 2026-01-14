@@ -32,62 +32,80 @@ use Illuminate\Support\ServiceProvider;
  * Responsible for binding repository interfaces to their Eloquent implementations.
  * This follows the Dependency Inversion Principle by allowing services to depend
  * on abstractions (interfaces) rather than concrete implementations.
+ *
+ * All repositories are stateless (only readonly dependencies), so we use
+ * scoped() binding for optimal performance and safety:
+ * - One instance per request/queue job lifecycle (shared within scope)
+ * - Explicit isolation between requests/jobs (prevents state leakage)
+ * - Better than singleton() for queue jobs and long-running processes
+ * - Same performance as singleton() for HTTP requests
  */
 final class RepositoryServiceProvider extends ServiceProvider
 {
     /**
      * Register repository bindings.
+     *
+     * Using scoped() for all stateless repositories:
+     * - Reduces object creation overhead (reuses within scope)
+     * - Saves memory by reusing instances within request/job
+     * - Faster dependency resolution
+     * - Explicit per-request/job isolation (safe for queue jobs)
+     * - Future-proof: works correctly when repositories are used in queue jobs
      */
     public function register(): void
     {
-        $this->app->bind(
+        // User repositories
+        $this->app->scoped(
             UserRepositoryInterface::class,
             EloquentUserRepository::class
         );
 
-        $this->app->bind(
+        // Content repositories
+        $this->app->scoped(
             ArticleRepositoryInterface::class,
             EloquentArticleRepository::class
         );
 
-        $this->app->bind(
+        $this->app->scoped(
             CommentRepositoryInterface::class,
             EloquentCommentRepository::class
         );
 
-        $this->app->bind(
+        $this->app->scoped(
             CategoryRepositoryInterface::class,
             EloquentCategoryRepository::class
         );
 
-        $this->app->bind(
+        $this->app->scoped(
             TagRepositoryInterface::class,
             EloquentTagRepository::class
         );
 
-        $this->app->bind(
+        // Communication repositories
+        $this->app->scoped(
             NotificationRepositoryInterface::class,
             EloquentNotificationRepository::class
         );
 
-        $this->app->bind(
+        $this->app->scoped(
             NewsletterSubscriberRepositoryInterface::class,
             EloquentNewsletterSubscriberRepository::class
         );
 
-        $this->app->bind(
+        $this->app->scoped(
+            NotificationAudienceRepositoryInterface::class,
+            EloquentNotificationAudienceRepository::class
+        );
+
+        // Authorization repositories
+        $this->app->scoped(
             RoleRepositoryInterface::class,
             EloquentRoleRepository::class
         );
 
-        $this->app->bind(
+        $this->app->scoped(
             PermissionRepositoryInterface::class,
             EloquentPermissionRepository::class
-        );
-
-        $this->app->bind(
-            NotificationAudienceRepositoryInterface::class,
-            EloquentNotificationAudienceRepository::class
         );
     }
 }

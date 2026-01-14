@@ -50,13 +50,20 @@ final class ExceptionHandlerService
         // Determine error message
         $message = $customMessage ?? $this->determineErrorMessage($e, $statusCode);
 
-        // Handle ValidationException with errors
-        $errors = null;
+        // Handle ValidationException with errors - merge errors at top level for Pest compatibility
         if ($e instanceof ValidationException) {
             $errors = $e->errors();
+
+            return response()->json([
+                'status' => false,
+                'message' => $message,
+                'data' => null,
+                'error' => $errors,
+                'errors' => $errors, // Add at top level for Pest's assertJsonValidationErrors
+            ], $statusCode);
         }
 
-        return response()->apiError($message, $statusCode, null, $errors);
+        return response()->apiError($message, $statusCode);
     }
 
     /**

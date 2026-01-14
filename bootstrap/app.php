@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Add security headers to all responses
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
         $middleware->alias([
             'ability' => \App\Http\Middleware\CheckTokenAbility::class,
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,

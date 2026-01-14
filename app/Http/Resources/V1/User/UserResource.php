@@ -35,6 +35,22 @@ final class UserResource extends JsonResource
             'blocked_at' => $this->resource->blocked_at,
             'created_at' => $this->resource->created_at,
             'updated_at' => $this->resource->updated_at,
+            'articles_count' => $this->when(
+                isset($this->resource->articles_count),
+                fn () => $this->resource->articles_count
+            ),
+            'comments_count' => $this->when(
+                isset($this->resource->comments_count),
+                fn () => $this->resource->comments_count
+            ),
+            'followers_count' => $this->when(
+                isset($this->resource->followers_count),
+                fn () => $this->resource->followers_count
+            ),
+            'following_count' => $this->when(
+                isset($this->resource->following_count),
+                fn () => $this->resource->following_count
+            ),
             'roles' => $this->whenLoaded('roles', function () {
                 return $this->resource->roles->map(function ($role) {
                     return [

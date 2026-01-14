@@ -35,6 +35,8 @@ return [
     'cannot_unban_self' => 'You cannot unban your own account.',
     'cannot_block_self' => 'You cannot block your own account.',
     'cannot_unblock_self' => 'You cannot unblock your own account.',
+    'cannot_follow_self' => 'You cannot follow yourself.',
+    'cannot_unfollow_self' => 'You cannot unfollow yourself.',
 
     // Article Management
     'article_not_found' => 'Article not found.',
@@ -64,6 +66,7 @@ return [
     'comment_rejected_successfully' => 'Comment rejected successfully.',
     'comment_reported_successfully' => 'Comment reported successfully.',
     'comment_reports_cleared_successfully' => 'Comment reports cleared successfully.',
+    'parent_comment_mismatch' => 'Parent comment must belong to the same article.',
     // Additional comment keys for consistency
     'comment_deleted' => 'Comment deleted successfully.',
     'comment_approved' => 'Comment approved successfully.',

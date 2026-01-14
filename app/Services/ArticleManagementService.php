@@ -8,11 +8,12 @@ use App\Data\CreateArticleDTO;
 use App\Data\FilterArticleManagementDTO;
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
+use App\Services\Interfaces\ArticleManagementServiceInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
-final class ArticleManagementService
+final class ArticleManagementService implements ArticleManagementServiceInterface
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository
@@ -104,13 +105,9 @@ final class ArticleManagementService
      */
     private function applyFilters(Builder $query, FilterArticleManagementDTO $dto): void
     {
-        // Search in title and content
+        // Search in title and content using scope
         if ($dto->search !== null) {
-            $query->where(function (Builder $q) use ($dto) {
-                $q->where('title', 'like', "%{$dto->search}%")
-                    ->orWhere('content_markdown', 'like', "%{$dto->search}%")
-                    ->orWhere('excerpt', 'like', "%{$dto->search}%");
-            });
+            $query->search($dto->search);
         }
 
         // Filter by status
@@ -199,7 +196,11 @@ final class ArticleManagementService
             }
 
             // Reload with relationships
-            return $this->getArticleWithRelationships($article->id);
+            $article = $this->getArticleWithRelationships($article->id);
+
+            \Illuminate\Support\Facades\Event::dispatch(new \App\Events\Article\ArticleCreatedEvent($article));
+
+            return $article;
         });
     }
 }

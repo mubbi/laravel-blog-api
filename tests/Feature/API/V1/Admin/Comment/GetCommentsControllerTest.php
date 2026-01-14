@@ -411,8 +411,8 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
         attachRoleAndRefreshCache($admin, $adminRole);
 
-        // Mock service to throw exception
-        $this->mock(\App\Services\CommentService::class, function ($mock) {
+        // Mock service interface to throw exception
+        $this->mock(\App\Services\Interfaces\CommentServiceInterface::class, function ($mock) {
             $mock->shouldReceive('getComments')
                 ->andThrow(new \Exception('Service error'));
         });

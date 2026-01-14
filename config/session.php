@@ -169,7 +169,18 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    /*
+    |--------------------------------------------------------------------------
+    | HTTPS Only Cookies
+    |--------------------------------------------------------------------------
+    |
+    | When set to true, session cookies will only be sent over HTTPS connections.
+    | This is critical for production environments to prevent cookie theft.
+    | Set SESSION_SECURE_COOKIE=true in your .env file for production.
+    |
+    */
+
+    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production'),
 
     /*
     |--------------------------------------------------------------------------

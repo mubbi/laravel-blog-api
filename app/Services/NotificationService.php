@@ -13,13 +13,14 @@ use App\Models\Notification;
 use App\Repositories\Contracts\NotificationAudienceRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
+use App\Services\Interfaces\NotificationServiceInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
-final class NotificationService
+final class NotificationService implements NotificationServiceInterface
 {
     public function __construct(
         private readonly NotificationRepositoryInterface $notificationRepository,

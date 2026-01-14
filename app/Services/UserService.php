@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Constants\CacheKeys;
 use App\Data\CreateUserDTO;
 use App\Data\FilterUserDTO;
+use App\Data\FilterUserFollowersDTO;
 use App\Data\UpdateUserDTO;
 use App\Events\User\UserBannedEvent;
 use App\Events\User\UserBlockedEvent;
@@ -19,6 +20,7 @@ use App\Models\User;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\Interfaces\UserServiceInterface;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -27,7 +29,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 
-final class UserService
+final class UserService implements UserServiceInterface
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
@@ -295,6 +297,127 @@ final class UserService
         if ($id === $currentUserId) {
             throw new AuthorizationException(__("common.{$errorKey}"));
         }
+    }
+
+    /**
+     * Follow a user
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    public function followUser(User $userToFollow, User $currentUser): bool
+    {
+        $this->preventSelfAction($userToFollow->id, $currentUser->id, 'cannot_follow_self');
+
+        // Check if already following
+        if ($currentUser->following()->where('following_id', $userToFollow->id)->exists()) {
+            return false;
+        }
+
+        $currentUser->following()->attach($userToFollow->id);
+
+        Event::dispatch(new \App\Events\User\UserFollowedEvent($currentUser, $userToFollow));
+
+        return true;
+    }
+
+    /**
+     * Unfollow a user
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    public function unfollowUser(User $userToUnfollow, User $currentUser): bool
+    {
+        $this->preventSelfAction($userToUnfollow->id, $currentUser->id, 'cannot_unfollow_self');
+
+        // Check if not following
+        if (! $currentUser->following()->where('following_id', $userToUnfollow->id)->exists()) {
+            return false;
+        }
+
+        $currentUser->following()->detach($userToUnfollow->id);
+
+        Event::dispatch(new \App\Events\User\UserUnfollowedEvent($currentUser, $userToUnfollow));
+
+        return true;
+    }
+
+    /**
+     * Get followers of a user with pagination
+     *
+     * @return LengthAwarePaginator<int, User>
+     */
+    public function getFollowers(User $user, FilterUserFollowersDTO $dto): LengthAwarePaginator
+    {
+        $query = $user->followers()
+            ->with(['roles:id,name,slug'])
+            ->withCount(['articles', 'comments']);
+
+        // Apply sorting - use users table columns
+        $sortColumn = match ($dto->sortBy) {
+            'name' => 'users.name',
+            'created_at' => 'users.created_at',
+            'updated_at' => 'users.updated_at',
+            default => 'users.created_at',
+        };
+
+        $query->orderBy($sortColumn, $dto->sortDirection);
+
+        // Apply pagination
+        /** @var LengthAwarePaginator<int, User> $paginator */
+        $paginator = $query->paginate($dto->perPage, ['*'], 'page', $dto->page);
+
+        return $paginator;
+    }
+
+    /**
+     * Get users that a user is following with pagination
+     *
+     * @return LengthAwarePaginator<int, User>
+     */
+    public function getFollowing(User $user, FilterUserFollowersDTO $dto): LengthAwarePaginator
+    {
+        $query = $user->following()
+            ->with(['roles:id,name,slug'])
+            ->withCount(['articles', 'comments']);
+
+        // Apply sorting - use users table columns
+        $sortColumn = match ($dto->sortBy) {
+            'name' => 'users.name',
+            'created_at' => 'users.created_at',
+            'updated_at' => 'users.updated_at',
+            default => 'users.created_at',
+        };
+
+        $query->orderBy($sortColumn, $dto->sortDirection);
+
+        // Apply pagination
+        /** @var LengthAwarePaginator<int, User> $paginator */
+        $paginator = $query->paginate($dto->perPage, ['*'], 'page', $dto->page);
+
+        return $paginator;
+    }
+
+    /**
+     * Get user profile with relationships
+     */
+    public function getUserProfile(User $user): User
+    {
+        $user->load([
+            'roles:id,name,slug',
+            'roles.permissions:id,name,slug',
+        ]);
+        $user->loadCount([
+            'articles',
+            'comments',
+            'followers',
+            'following',
+        ]);
+
+        // Pre-warm cache for this user
+        $user->getCachedRoles();
+        $user->getCachedPermissions();
+
+        return $user;
     }
 
     /**

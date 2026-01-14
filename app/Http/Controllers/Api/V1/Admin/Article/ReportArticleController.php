@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Article\ReportArticleRequest;
 use App\Http\Resources\V1\Admin\Article\ArticleManagementResource;
 use App\Models\Article;
-use App\Services\ArticleReportService;
+use App\Services\Interfaces\ArticleReportServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +19,7 @@ use Throwable;
 final class ReportArticleController extends Controller
 {
     public function __construct(
-        private readonly ArticleReportService $articleReportService
+        private readonly ArticleReportServiceInterface $articleReportService
     ) {}
 
     /**

@@ -174,7 +174,7 @@ describe('API/V1/Admin/Article/RestoreFromTrashController', function () {
         ]);
 
         // Mock service to throw exception
-        $this->mock(\App\Services\ArticleStatusService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\ArticleStatusServiceInterface::class, function ($mock) {
             $mock->shouldReceive('restoreFromTrash')
                 ->andThrow(new \Exception('Service error'));
         });

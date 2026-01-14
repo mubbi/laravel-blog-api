@@ -45,10 +45,17 @@ final class AuthServiceProvider extends ServiceProvider
 
     /**
      * Register any authentication / authorization services.
+     *
+     * Using scoped() for stateless AuthService:
+     * - Reduces object creation overhead (reuses within scope)
+     * - Saves memory by reusing instances within request/job
+     * - Faster dependency resolution
+     * - Explicit per-request/job isolation (safe for queue jobs)
+     * - Future-proof: works correctly when AuthService is used in queue jobs
      */
     public function register(): void
     {
-        $this->app->bind(
+        $this->app->scoped(
             AuthServiceInterface::class,
             AuthService::class
         );

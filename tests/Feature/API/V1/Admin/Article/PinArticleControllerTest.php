@@ -198,7 +198,7 @@ describe('API/V1/Admin/Article/PinArticleController', function () {
         ]);
 
         // Mock service to throw exception
-        $this->mock(\App\Services\ArticleFeatureService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\ArticleFeatureServiceInterface::class, function ($mock) {
             $mock->shouldReceive('pinArticle')
                 ->andThrow(new \Exception('Service error'));
         });

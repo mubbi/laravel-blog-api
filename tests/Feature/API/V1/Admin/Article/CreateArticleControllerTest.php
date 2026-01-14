@@ -5,15 +5,18 @@ declare(strict_types=1);
 use App\Enums\ArticleAuthorRole;
 use App\Enums\ArticleStatus;
 use App\Enums\UserRole;
+use App\Events\Article\ArticleCreatedEvent;
 use App\Models\Article;
 use App\Models\Category;
 use App\Models\Role;
 use App\Models\Tag;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/Article/CreateArticleController', function () {
     it('can create a draft article', function () {
         // Arrange
+        Event::fake([ArticleCreatedEvent::class]);
         $admin = User::factory()->create();
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
         attachRoleAndRefreshCache($admin, $adminRole);
@@ -48,6 +51,11 @@ describe('API/V1/Admin/Article/CreateArticleController', function () {
             'title' => $articleData['title'],
             'status' => ArticleStatus::DRAFT->value,
         ]);
+
+        // Verify event was dispatched
+        Event::assertDispatched(ArticleCreatedEvent::class, function ($event) use ($articleData) {
+            return $event->article->slug === $articleData['slug'];
+        });
     });
 
     it('can create a published article with published_at in past', function () {
@@ -338,8 +346,8 @@ describe('API/V1/Admin/Article/CreateArticleController', function () {
             'content_markdown' => '# Test Content',
         ];
 
-        // Mock service to throw exception
-        $this->mock(\App\Services\ArticleManagementService::class, function ($mock) {
+        // Mock service interface to throw exception
+        $this->mock(\App\Services\Interfaces\ArticleManagementServiceInterface::class, function ($mock) {
             $mock->shouldReceive('createArticle')
                 ->andThrow(new \Exception('Service error'));
         });

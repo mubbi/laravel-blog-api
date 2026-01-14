@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Constants\CacheKeys;
 use App\Enums\ArticleStatus;
 use App\Events\Article\ArticleApprovedEvent;
 use App\Events\Article\ArticleArchivedEvent;
@@ -15,13 +16,16 @@ use App\Events\Article\ArticleTrashedEvent;
 use App\Models\Article;
 use App\Models\User;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
+use App\Services\Interfaces\ArticleManagementServiceInterface;
+use App\Services\Interfaces\ArticleStatusServiceInterface;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 
-final class ArticleStatusService
+final class ArticleStatusService implements ArticleStatusServiceInterface
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,
-        private readonly ArticleManagementService $articleManagementService
+        private readonly ArticleManagementServiceInterface $articleManagementService
     ) {}
 
     /**
@@ -37,6 +41,9 @@ final class ArticleStatusService
 
         $article->refresh();
         $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
+
+        // Invalidate article cache
+        $this->invalidateArticleCache($article);
 
         Event::dispatch(new ArticleApprovedEvent($updatedArticle));
 
@@ -59,6 +66,9 @@ final class ArticleStatusService
 
         $updatedArticle = $this->articleManagementService->getArticleWithRelationships($id);
 
+        // Invalidate article cache
+        $this->invalidateArticleCache($updatedArticle);
+
         Event::dispatch(new ArticleRejectedEvent($updatedArticle));
 
         return $updatedArticle;
@@ -75,6 +85,9 @@ final class ArticleStatusService
 
         $article->refresh();
         $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
+
+        // Invalidate article cache
+        $this->invalidateArticleCache($article);
 
         Event::dispatch(new ArticleArchivedEvent($updatedArticle));
 
@@ -93,6 +106,9 @@ final class ArticleStatusService
         $article->refresh();
         $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
+        // Invalidate article cache
+        $this->invalidateArticleCache($article);
+
         Event::dispatch(new ArticleRestoredEvent($updatedArticle));
 
         return $updatedArticle;
@@ -109,6 +125,9 @@ final class ArticleStatusService
 
         $article->refresh();
         $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
+
+        // Invalidate article cache
+        $this->invalidateArticleCache($article);
 
         Event::dispatch(new ArticleTrashedEvent($updatedArticle));
 
@@ -127,6 +146,9 @@ final class ArticleStatusService
         $article->refresh();
         $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
+        // Invalidate article cache
+        $this->invalidateArticleCache($article);
+
         Event::dispatch(new ArticleRestoredFromTrashEvent($updatedArticle));
 
         return $updatedArticle;
@@ -143,6 +165,9 @@ final class ArticleStatusService
             return false;
         }
 
+        // Invalidate article cache before deletion
+        $this->invalidateArticleCache($article);
+
         $deleted = $this->articleRepository->delete($id);
 
         if ($deleted) {
@@ -150,5 +175,14 @@ final class ArticleStatusService
         }
 
         return $deleted;
+    }
+
+    /**
+     * Invalidate article cache by slug and ID
+     */
+    private function invalidateArticleCache(Article $article): void
+    {
+        Cache::forget(CacheKeys::articleBySlug($article->slug));
+        Cache::forget(CacheKeys::articleById($article->id));
     }
 }

@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Article\GetArticlesRequest;
 use App\Http\Resources\MetaResource;
 use App\Http\Resources\V1\Article\ArticleResource;
-use App\Services\ArticleService;
+use App\Services\Interfaces\ArticleServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
@@ -20,7 +20,7 @@ use Throwable;
 final class GetArticlesController extends Controller
 {
     public function __construct(
-        private readonly ArticleService $articleService
+        private readonly ArticleServiceInterface $articleService
     ) {}
 
     /**

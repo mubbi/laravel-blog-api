@@ -103,7 +103,7 @@ describe('API/V1/Article/GetCommentsController', function () {
             'status' => \App\Enums\ArticleStatus::PUBLISHED->value,
         ]);
 
-        $this->mock(\App\Services\ArticleService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\ArticleServiceInterface::class, function ($mock) {
             $mock->shouldReceive('getArticleComments')
                 ->andThrow(new \Exception('Test Exception'));
         });

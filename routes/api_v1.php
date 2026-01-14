@@ -8,16 +8,22 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
         return 'Laravel Blog API V1 Root is working';
     })->name('api.v1.status');
 
-    // Auth Routes
-    Route::post('/auth/login', \App\Http\Controllers\Api\V1\Auth\LoginController::class)->name('api.v1.auth.login');
-    Route::post('/auth/refresh', \App\Http\Controllers\Api\V1\Auth\RefreshTokenController::class)->name('api.v1.auth.refresh');
-    Route::post('/auth/forgot-password', \App\Http\Controllers\Api\V1\Auth\ForgotPasswordController::class)->name('api.v1.auth.password.forgot');
-    Route::post('/auth/reset-password', \App\Http\Controllers\Api\V1\Auth\ResetPasswordController::class)->name('api.v1.auth.password.reset');
+    // Auth Routes (stricter rate limiting)
+    Route::middleware(['throttle:auth'])->group(function () {
+        Route::post('/auth/login', \App\Http\Controllers\Api\V1\Auth\LoginController::class)->name('api.v1.auth.login');
+        Route::post('/auth/refresh', \App\Http\Controllers\Api\V1\Auth\RefreshTokenController::class)->name('api.v1.auth.refresh');
+        Route::post('/auth/forgot-password', \App\Http\Controllers\Api\V1\Auth\ForgotPasswordController::class)->name('api.v1.auth.password.forgot');
+        Route::post('/auth/reset-password', \App\Http\Controllers\Api\V1\Auth\ResetPasswordController::class)->name('api.v1.auth.password.reset');
+    });
 
     // User Routes
     Route::middleware(['auth:sanctum', 'ability:access-api'])->group(function () {
         Route::get('/me', \App\Http\Controllers\Api\V1\User\MeController::class)->name('api.v1.me');
         Route::put('/profile', \App\Http\Controllers\Api\V1\User\UpdateProfileController::class)->name('api.v1.user.profile.update');
+
+        // Social/Community Features
+        Route::post('/users/{user}/follow', \App\Http\Controllers\Api\V1\User\FollowUserController::class)->name('api.v1.users.follow');
+        Route::post('/users/{user}/unfollow', \App\Http\Controllers\Api\V1\User\UnfollowUserController::class)->name('api.v1.users.unfollow');
 
         Route::post('/auth/logout', \App\Http\Controllers\Api\V1\Auth\LogoutController::class)->name('api.v1.auth.logout');
 
@@ -29,10 +35,21 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
             Route::post('/{article}/trash', \App\Http\Controllers\Api\V1\Admin\Article\TrashArticleController::class)->name('api.v1.articles.trash');
             Route::post('/{article}/restore-from-trash', \App\Http\Controllers\Api\V1\Admin\Article\RestoreFromTrashController::class)->name('api.v1.articles.restore-from-trash');
         });
+
+        // Comment Management (shared - users can manage their own comments, admins can manage any comment)
+        Route::prefix('articles')->group(function () {
+            Route::post('/{article}/comments', \App\Http\Controllers\Api\V1\Comment\CreateCommentController::class)->name('api.v1.comments.store');
+        });
+        Route::prefix('comments')->middleware(['throttle:sensitive'])->group(function () {
+            Route::get('/own', \App\Http\Controllers\Api\V1\Comment\GetOwnCommentsController::class)->name('api.v1.comments.own');
+            Route::put('/{comment}', \App\Http\Controllers\Api\V1\Comment\UpdateCommentController::class)->name('api.v1.comments.update');
+            Route::delete('/{comment}', \App\Http\Controllers\Api\V1\Comment\DeleteCommentController::class)->name('api.v1.comments.destroy');
+            Route::post('/{comment}/report', \App\Http\Controllers\Api\V1\Comment\ReportCommentController::class)->name('api.v1.comments.report');
+        });
     });
 
-    // Admin Routes
-    Route::middleware(['auth:sanctum', 'ability:access-api'])->prefix('admin')->group(function () {
+    // Admin Routes (admin-specific rate limiting)
+    Route::middleware(['auth:sanctum', 'ability:access-api', 'throttle:admin'])->prefix('admin')->group(function () {
         // User Management
         Route::prefix('users')->group(function () {
             Route::get('/', \App\Http\Controllers\Api\V1\Admin\User\GetUsersController::class)->name('api.v1.admin.users.index');
@@ -75,6 +92,19 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
             Route::get('/', \App\Http\Controllers\Api\V1\Admin\Notification\GetNotificationsController::class)->name('api.v1.admin.notifications.index');
             Route::post('/', \App\Http\Controllers\Api\V1\Admin\Notification\CreateNotificationController::class)->name('api.v1.admin.notifications.store');
         });
+
+        // Taxonomy Management (Admin/Editor)
+        Route::prefix('categories')->group(function () {
+            Route::post('/', \App\Http\Controllers\Api\V1\Admin\Category\CreateCategoryController::class)->name('api.v1.admin.categories.store');
+            Route::put('/{category}', \App\Http\Controllers\Api\V1\Admin\Category\UpdateCategoryController::class)->name('api.v1.admin.categories.update');
+            Route::delete('/{category}', \App\Http\Controllers\Api\V1\Admin\Category\DeleteCategoryController::class)->name('api.v1.admin.categories.destroy');
+        });
+
+        Route::prefix('tags')->group(function () {
+            Route::post('/', \App\Http\Controllers\Api\V1\Admin\Tag\CreateTagController::class)->name('api.v1.admin.tags.store');
+            Route::put('/{tag}', \App\Http\Controllers\Api\V1\Admin\Tag\UpdateTagController::class)->name('api.v1.admin.tags.update');
+            Route::delete('/{tag}', \App\Http\Controllers\Api\V1\Admin\Tag\DeleteTagController::class)->name('api.v1.admin.tags.destroy');
+        });
     });
 
     // Public Routes
@@ -84,6 +114,8 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
             Route::get('/', \App\Http\Controllers\Api\V1\Article\GetArticlesController::class)->name('api.v1.articles.index');
             Route::get('/{slug}', \App\Http\Controllers\Api\V1\Article\ShowArticleController::class)->name('api.v1.articles.show');
             Route::get('/{article:slug}/comments', \App\Http\Controllers\Api\V1\Article\GetCommentsController::class)->name('api.v1.articles.comments.index');
+            Route::post('/{article:slug}/like', \App\Http\Controllers\Api\V1\Article\LikeArticleController::class)->name('api.v1.articles.like');
+            Route::post('/{article:slug}/dislike', \App\Http\Controllers\Api\V1\Article\DislikeArticleController::class)->name('api.v1.articles.dislike');
         });
 
         // Category Routes
@@ -98,6 +130,13 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
             Route::post('/unsubscribe', \App\Http\Controllers\Api\V1\Newsletter\UnsubscribeController::class)->name('api.v1.newsletter.unsubscribe');
             Route::post('/verify', \App\Http\Controllers\Api\V1\Newsletter\VerifySubscriptionController::class)->name('api.v1.newsletter.verify');
             Route::post('/verify-unsubscribe', \App\Http\Controllers\Api\V1\Newsletter\VerifyUnsubscriptionController::class)->name('api.v1.newsletter.verify-unsubscribe');
+        });
+
+        // Social/Community Features (Public)
+        Route::prefix('users')->group(function () {
+            Route::get('/{user}/followers', \App\Http\Controllers\Api\V1\User\GetUserFollowersController::class)->name('api.v1.users.followers');
+            Route::get('/{user}/following', \App\Http\Controllers\Api\V1\User\GetUserFollowingController::class)->name('api.v1.users.following');
+            Route::get('/{user}/profile', \App\Http\Controllers\Api\V1\User\ViewUserProfileController::class)->name('api.v1.users.profile');
         });
     });
 

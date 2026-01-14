@@ -8,7 +8,7 @@ use App\Data\DeleteCommentDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Comment\DeleteCommentRequest;
 use App\Models\Comment;
-use App\Services\CommentService;
+use App\Services\Interfaces\CommentServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use Throwable;
 final class DeleteCommentController extends Controller
 {
     public function __construct(
-        private readonly CommentService $commentService
+        private readonly CommentServiceInterface $commentService
     ) {}
 
     /**

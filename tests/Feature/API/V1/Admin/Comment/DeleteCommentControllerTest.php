@@ -8,7 +8,6 @@ use App\Events\Comment\CommentDeletedEvent;
 use App\Models\Comment;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\CommentService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -232,7 +231,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         ]);
 
         // Mock CommentService to throw exception
-        $this->mock(CommentService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\CommentServiceInterface::class, function ($mock) {
             $mock->shouldReceive('deleteComment')
                 ->andThrow(new \Exception('Service error'));
         });
@@ -270,7 +269,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         ]);
 
         // Mock CommentService to throw ModelNotFoundException
-        $this->mock(CommentService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\CommentServiceInterface::class, function ($mock) {
             $exception = new ModelNotFoundException;
             $exception->setModel(\App\Models\Comment::class);
             $mock->shouldReceive('deleteComment')

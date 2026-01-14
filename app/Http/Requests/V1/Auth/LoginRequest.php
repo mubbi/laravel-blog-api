@@ -44,4 +44,14 @@ final class LoginRequest extends FormRequest
             ],
         ];
     }
+
+    /**
+     * Get the default values for missing parameters
+     *
+     * @return array<string, mixed>
+     */
+    public function withDefaults(): array
+    {
+        return $this->validated();
+    }
 }

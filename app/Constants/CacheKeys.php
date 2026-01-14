@@ -18,6 +18,11 @@ final class CacheKeys
 
     public const ALL_PERMISSIONS_CACHE_KEY = 'all_permissions';
 
+    // Article cache keys
+    public const ARTICLE_BY_SLUG_KEY = 'article:slug:';
+
+    public const ARTICLE_BY_ID_KEY = 'article:id:';
+
     /**
      * Get user roles cache key
      */
@@ -32,5 +37,21 @@ final class CacheKeys
     public static function userPermissions(int $userId): string
     {
         return self::USER_PERMISSIONS_CACHE_KEY.$userId;
+    }
+
+    /**
+     * Get article by slug cache key
+     */
+    public static function articleBySlug(string $slug): string
+    {
+        return self::ARTICLE_BY_SLUG_KEY.$slug;
+    }
+
+    /**
+     * Get article by ID cache key
+     */
+    public static function articleById(int $id): string
+    {
+        return self::ARTICLE_BY_ID_KEY.$id;
     }
 }

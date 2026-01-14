@@ -40,6 +40,9 @@ use Throwable;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Role> $roles
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Article> $articles
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Comment> $comments
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ArticleLike> $articleLikes
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $following
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $followers
  *
  * @mixin \Eloquent
  *
@@ -300,5 +303,115 @@ final class User extends Authenticatable
         $relation = $this->hasMany(Comment::class, 'user_id');
 
         return $relation;
+    }
+
+    /**
+     * Get the article likes/dislikes created by the user.
+     *
+     * @return HasMany<\App\Models\ArticleLike, User>
+     */
+    public function articleLikes(): HasMany
+    {
+        /** @var HasMany<\App\Models\ArticleLike, User> $relation */
+        $relation = $this->hasMany(\App\Models\ArticleLike::class, 'user_id');
+
+        return $relation;
+    }
+
+    /**
+     * Get the users that this user is following.
+     *
+     * @return BelongsToMany<User, User, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
+     */
+    public function following(): BelongsToMany
+    {
+        /** @var BelongsToMany<User, User, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
+        $relation = $this->belongsToMany(
+            User::class,
+            'user_followers',
+            'follower_id',
+            'following_id'
+        )->withTimestamps();
+
+        return $relation;
+    }
+
+    /**
+     * Get the users that are following this user.
+     *
+     * @return BelongsToMany<User, User, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
+     */
+    public function followers(): BelongsToMany
+    {
+        /** @var BelongsToMany<User, User, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
+        $relation = $this->belongsToMany(
+            User::class,
+            'user_followers',
+            'following_id',
+            'follower_id'
+        )->withTimestamps();
+
+        return $relation;
+    }
+
+    /**
+     * Scope a query to only include active (non-banned, non-blocked) users.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereNull('banned_at')
+            ->whereNull('blocked_at');
+    }
+
+    /**
+     * Scope a query to only include banned users.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
+    public function scopeBanned($query)
+    {
+        return $query->whereNotNull('banned_at');
+    }
+
+    /**
+     * Scope a query to only include blocked users.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
+    public function scopeBlocked($query)
+    {
+        return $query->whereNotNull('blocked_at');
+    }
+
+    /**
+     * Scope a query to filter users by role.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
+    public function scopeByRole($query, string $roleSlug)
+    {
+        return $query->whereHas('roles', function ($q) use ($roleSlug) {
+            $q->where('slug', $roleSlug);
+        });
+    }
+
+    /**
+     * Scope a query to search users by name or email.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
+    public function scopeSearch($query, string $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
+        });
     }
 }

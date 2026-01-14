@@ -8,7 +8,7 @@ use App\Data\CreateArticleDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Article\CreateArticleRequest;
 use App\Http\Resources\V1\Admin\Article\ArticleManagementResource;
-use App\Services\ArticleManagementService;
+use App\Services\Interfaces\ArticleManagementServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use Throwable;
 final class CreateArticleController extends Controller
 {
     public function __construct(
-        private readonly ArticleManagementService $articleManagementService
+        private readonly ArticleManagementServiceInterface $articleManagementService
     ) {}
 
     /**

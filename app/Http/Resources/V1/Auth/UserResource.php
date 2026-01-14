@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\V1\Auth;
 
 use App\Models\User;
@@ -31,18 +33,35 @@ class UserResource extends JsonResource
             'github' => $this->resource->github,
             'website' => $this->resource->website,
             'roles' => $this->whenLoaded('roles', function () {
-                return $this->resource->roles->pluck('slug');
+                return $this->resource->roles->pluck('slug')->toArray();
             }, function () {
-                // Fallback to cached roles if not loaded
-                return $this->resource->getCachedRoles();
+                // Fallback: load roles if not loaded
+                if (! $this->resource->relationLoaded('roles')) {
+                    $this->resource->load('roles');
+                }
+
+                return $this->resource->roles->pluck('slug')->toArray();
             }),
             'permissions' => $this->whenLoaded('roles', function () {
                 /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Role> $roles */
                 $roles = $this->resource->roles;
 
+                if ($roles->isEmpty()) {
+                    return [];
+                }
+
                 // Check if permissions are already loaded on roles to avoid N+1 queries
-                $firstRole = $roles->first();
-                if ($firstRole !== null && ! $firstRole->relationLoaded('permissions')) {
+                // After isEmpty() check, first() is guaranteed to return a Role or null
+                // but we check relationLoaded on the first role if it exists
+                $needsPermissionLoad = true;
+                foreach ($roles as $role) {
+                    if ($role->relationLoaded('permissions')) {
+                        $needsPermissionLoad = false;
+                        break;
+                    }
+                }
+
+                if ($needsPermissionLoad) {
                     // Load permissions for all roles in one query to prevent N+1
                     $roles->load('permissions:id,name,slug');
                 }
@@ -57,16 +76,34 @@ class UserResource extends JsonResource
 
                 return array_values(array_unique($permissionSlugs));
             }, function () {
-                // Fallback to cached permissions if not loaded
-                return $this->resource->getCachedPermissions();
+                // Fallback: load roles and permissions if not loaded
+                if (! $this->resource->relationLoaded('roles')) {
+                    $this->resource->load('roles.permissions');
+                }
+
+                /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Role> $roles */
+                $roles = $this->resource->roles;
+
+                if ($roles->isEmpty()) {
+                    return [];
+                }
+
+                $permissionSlugs = [];
+                foreach ($roles as $role) {
+                    foreach ($role->permissions as $permission) {
+                        $permissionSlugs[] = $permission->slug;
+                    }
+                }
+
+                return array_values(array_unique($permissionSlugs));
             }),
             $this->mergeWhen(
-                array_key_exists('access_token', $this->resource->getAttributes()),
+                isset($this->resource->access_token),
                 fn () => [
-                    'access_token' => $this->resource->getAttributes()['access_token'],
-                    'refresh_token' => $this->resource->getAttributes()['refresh_token'] ?? null,
-                    'access_token_expires_at' => $this->formatDateTime($this->resource->getAttributes()['access_token_expires_at'] ?? null),
-                    'refresh_token_expires_at' => $this->formatDateTime($this->resource->getAttributes()['refresh_token_expires_at'] ?? null),
+                    'access_token' => $this->resource->access_token,
+                    'refresh_token' => $this->resource->refresh_token ?? null,
+                    'access_token_expires_at' => $this->formatDateTime($this->resource->access_token_expires_at ?? null),
+                    'refresh_token_expires_at' => $this->formatDateTime($this->resource->refresh_token_expires_at ?? null),
                     'token_type' => 'Bearer',
                 ]
             ),

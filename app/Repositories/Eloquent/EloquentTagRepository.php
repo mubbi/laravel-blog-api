@@ -7,7 +7,6 @@ namespace App\Repositories\Eloquent;
 use App\Models\Tag;
 use App\Repositories\Contracts\TagRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Eloquent implementation of TagRepositoryInterface
@@ -64,31 +63,6 @@ final class EloquentTagRepository extends BaseEloquentRepository implements TagR
     }
 
     /**
-     * Find a tag by slug
-     */
-    public function findBySlug(string $slug): ?Tag
-    {
-        /** @var Tag|null $tag */
-        $tag = $this->query()->where('slug', $slug)->first();
-
-        return $tag;
-    }
-
-    /**
-     * Get all tags
-     *
-     * @param  array<string>|null  $columns
-     * @return Collection<int, Tag>
-     */
-    public function all(?array $columns = null): Collection
-    {
-        /** @var Collection<int, Tag> $collection */
-        $collection = parent::all($columns);
-
-        return $collection;
-    }
-
-    /**
      * Get a query builder instance
      *
      * @return Builder<Tag>
@@ -99,5 +73,16 @@ final class EloquentTagRepository extends BaseEloquentRepository implements TagR
         $builder = parent::query();
 
         return $builder;
+    }
+
+    /**
+     * Find a tag by slug
+     */
+    public function findBySlug(string $slug): ?Tag
+    {
+        /** @var Tag|null $tag */
+        $tag = $this->query()->where('slug', $slug)->first();
+
+        return $tag;
     }
 }

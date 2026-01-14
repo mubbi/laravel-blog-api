@@ -8,9 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\User\UnbanUserRequest;
 use App\Http\Resources\V1\Admin\User\UserDetailResource;
 use App\Models\User;
-use App\Services\UserService;
+use App\Services\Interfaces\UserServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -19,7 +18,7 @@ use Throwable;
 final class UnbanUserController extends Controller
 {
     public function __construct(
-        private readonly UserService $userService
+        private readonly UserServiceInterface $userService
     ) {}
 
     /**
@@ -55,15 +54,6 @@ final class UnbanUserController extends Controller
                 new UserDetailResource($user),
                 __('common.user_unbanned_successfully')
             );
-        } catch (AuthorizationException $e) {
-            /**
-             * Forbidden - Cannot unban self
-             *
-             * @status 403
-             *
-             * @body array{status: false, message: string, data: null, error: null}
-             */
-            return $this->handleException($e, $request);
         } catch (Throwable $e) {
             /**
              * Internal server error

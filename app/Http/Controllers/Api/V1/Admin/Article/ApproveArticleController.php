@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Article\ApproveArticleRequest;
 use App\Http\Resources\V1\Admin\Article\ArticleManagementResource;
 use App\Models\Article;
-use App\Services\ArticleStatusService;
+use App\Services\Interfaces\ArticleStatusServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use Throwable;
 final class ApproveArticleController extends Controller
 {
     public function __construct(
-        private readonly ArticleStatusService $articleStatusService
+        private readonly ArticleStatusServiceInterface $articleStatusService
     ) {}
 
     /**

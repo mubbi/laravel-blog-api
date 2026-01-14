@@ -26,14 +26,51 @@ final class RateLimitServiceProvider extends ServiceProvider
         // Disable rate limiting during testing
         if ($this->app->environment('testing')) {
             RateLimiter::for('api', fn () => Limit::none());
+            RateLimiter::for('auth', fn () => Limit::none());
+            RateLimiter::for('sensitive', fn () => Limit::none());
+            RateLimiter::for('admin', fn () => Limit::none());
         } else {
-            // Rate Limiting for API routes
+            // Default API rate limiting (IP-based or user-based)
             RateLimiter::for('api', function (Request $request) {
                 $rateLimit = config('rate-limiting.api.default_rate_limit');
                 $rateLimitInt = is_numeric($rateLimit) ? (int) $rateLimit : 60;
 
                 return Limit::perMinute($rateLimitInt)
                     ->by($request->user()?->id ?: Helper::getRealIpAddress($request));
+            });
+
+            // Stricter rate limiting for authentication endpoints (IP-based)
+            RateLimiter::for('auth', function (Request $request) {
+                $rateLimit = config('rate-limiting.api.auth_rate_limit');
+                $rateLimitInt = is_numeric($rateLimit) ? (int) $rateLimit : 5;
+
+                // Always use IP address for auth endpoints to prevent brute force
+                return Limit::perMinute($rateLimitInt)
+                    ->by(Helper::getRealIpAddress($request));
+            });
+
+            // Stricter rate limiting for sensitive operations (user or IP-based)
+            RateLimiter::for('sensitive', function (Request $request) {
+                $rateLimit = config('rate-limiting.api.sensitive_rate_limit');
+                $rateLimitInt = is_numeric($rateLimit) ? (int) $rateLimit : 10;
+
+                return Limit::perMinute($rateLimitInt)
+                    ->by($request->user()?->id ?: Helper::getRealIpAddress($request));
+            });
+
+            // Rate limiting for admin endpoints (user-based)
+            RateLimiter::for('admin', function (Request $request) {
+                $rateLimit = config('rate-limiting.api.admin_rate_limit');
+                $rateLimitInt = is_numeric($rateLimit) ? (int) $rateLimit : 30;
+
+                // Admin endpoints should be user-based
+                $key = $request->user()?->id;
+                if ($key === null) {
+                    // Fallback to IP if no user (shouldn't happen but safety first)
+                    $key = Helper::getRealIpAddress($request);
+                }
+
+                return Limit::perMinute($rateLimitInt)->by($key);
             });
         }
     }

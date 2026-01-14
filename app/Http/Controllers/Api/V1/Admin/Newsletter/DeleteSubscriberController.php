@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Api\V1\Admin\Newsletter;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Newsletter\DeleteSubscriberRequest;
 use App\Models\NewsletterSubscriber;
-use App\Services\NewsletterService;
+use App\Services\Interfaces\NewsletterServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +17,7 @@ use Throwable;
 final class DeleteSubscriberController extends Controller
 {
     public function __construct(
-        private readonly NewsletterService $newsletterService
+        private readonly NewsletterServiceInterface $newsletterService
     ) {}
 
     /**

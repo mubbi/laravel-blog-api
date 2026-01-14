@@ -7,6 +7,9 @@ return [
     // Repository bindings (needed early for dependency injection)
     App\Providers\RepositoryServiceProvider::class,
 
+    // Service bindings (needed early for dependency injection)
+    App\Providers\ServiceServiceProvider::class,
+
     // Authentication and authorization
     App\Providers\AuthServiceProvider::class,
 

@@ -34,6 +34,8 @@ return [
     'user_logged_in' => 'User logged in',
     'user_logged_out' => 'User logged out',
     'token_refreshed' => 'Token refreshed',
+    'user_followed' => 'User followed',
+    'user_unfollowed' => 'User unfollowed',
 
     // User Permission Errors
     'has_permission_error' => 'hasPermission error',
@@ -41,6 +43,7 @@ return [
     'has_all_permissions_error' => 'hasAllPermissions error',
 
     // Article Log Messages
+    'article_created' => 'Article created',
     'article_approved' => 'Article approved',
     'article_rejected' => 'Article rejected',
     'article_featured' => 'Article featured',
@@ -54,14 +57,29 @@ return [
     'article_deleted' => 'Article deleted',
     'article_reported' => 'Article reported',
     'article_reports_cleared' => 'Article reports cleared',
+    'article_liked' => 'Article liked',
+    'article_disliked' => 'Article disliked',
     'feature_article_error' => 'FeatureArticle error',
 
     // Comment Log Messages
+    'comment_created' => 'Comment created',
+    'comment_updated' => 'Comment updated',
     'comment_approved' => 'Comment approved',
     'comment_deleted' => 'Comment deleted',
+    'comment_reported' => 'Comment reported',
 
     // Newsletter Log Messages
     'newsletter_subscriber_deleted' => 'Newsletter subscriber deleted',
+
+    // Category Log Messages
+    'category_created' => 'Category created',
+    'category_updated' => 'Category updated',
+    'category_deleted' => 'Category deleted',
+
+    // Tag Log Messages
+    'tag_created' => 'Tag created',
+    'tag_updated' => 'Tag updated',
+    'tag_deleted' => 'Tag deleted',
 
     // Notification Log Messages
     'notification_created' => 'Notification created',
