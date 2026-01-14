@@ -55,7 +55,7 @@ class ApiLogger
             : $responseContent;
         $duration = round(($endTime - $startTime) * 1000, 2);
 
-        Log::info('API Request', [
+        Log::info(__('log.api_request'), [
             'request_id' => $requestId,
             'user_id' => $userId,
             'ip' => $ip,
@@ -105,20 +105,30 @@ class ApiLogger
     }
 
     /**
+     * Recursively mask sensitive fields in request/response body
+     *
      * @param  array<string, mixed>  $body
      * @return array<string, mixed>
      */
     protected function maskBody(array $body): array
     {
         $maskKeys = (array) config('api-logger.masked_body_keys', []);
-        foreach ($body as $key => &$value) {
-            if (in_array(strtolower($key), $maskKeys, true)) {
-                $value = '***MASKED***';
+        $masked = [];
+
+        foreach ($body as $key => $value) {
+            $lowerKey = strtolower((string) $key);
+            if (in_array($lowerKey, $maskKeys, true)) {
+                $masked[$key] = '***MASKED***';
+            } elseif (is_array($value)) {
+                /** @var array<string, mixed> $value */
+                $value = $this->castArrayKeysToString($value);
+                $masked[$key] = $this->maskBody($value);
+            } else {
+                $masked[$key] = $value;
             }
         }
-        unset($value);
 
-        return $body;
+        return $masked;
     }
 
     /**

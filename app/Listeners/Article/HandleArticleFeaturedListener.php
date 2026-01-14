@@ -18,7 +18,7 @@ final class HandleArticleFeaturedListener implements ShouldQueue
      */
     public function handle(ArticleFeaturedEvent $event): void
     {
-        Log::info('Article featured', [
+        Log::info(__('log.article_featured'), [
             'article_id' => $event->article->id,
             'title' => $event->article->title,
         ]);

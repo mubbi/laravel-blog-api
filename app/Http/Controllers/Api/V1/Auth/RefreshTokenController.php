@@ -12,6 +12,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\UnauthorizedException;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Authentication', weight: 0)]
 final class RefreshTokenController extends BaseController
@@ -63,7 +64,7 @@ final class RefreshTokenController extends BaseController
              * @body array{status: false, message: string, data: null, error: null}
              */
             return $this->handleException($e, $request);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

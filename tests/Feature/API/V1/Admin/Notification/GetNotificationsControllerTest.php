@@ -224,7 +224,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
         attachRoleAndRefreshCache($admin, $adminRole);
 
         // Mock NotificationService to throw exception
-        $this->mock(\App\Services\NotificationService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\NotificationServiceInterface::class, function ($mock) {
             $mock->shouldReceive('getNotifications')
                 ->andThrow(new \Exception('Database error'));
         });
@@ -244,7 +244,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Verify error was logged
         Log::shouldReceive('error')->with(
-            'Notifications retrieval failed',
+            'GetNotificationsController: Exception occurred',
             \Mockery::type('array')
         );
     });

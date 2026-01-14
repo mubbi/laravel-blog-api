@@ -50,4 +50,14 @@ final class CreateUserRequest extends FormRequest
             'role_id' => ['nullable', 'integer', 'exists:roles,id'],
         ];
     }
+
+    /**
+     * Get the default values for missing parameters
+     *
+     * @return array<string, mixed>
+     */
+    public function withDefaults(): array
+    {
+        return $this->validated();
+    }
 }

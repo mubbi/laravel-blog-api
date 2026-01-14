@@ -85,7 +85,7 @@ describe('API/V1/Article/ShowArticleController', function () {
 
     it('returns 500 when showing article fails with exception', function () {
         // Mock ArticleService to throw an exception
-        $this->mock(\App\Services\ArticleService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\ArticleServiceInterface::class, function ($mock) {
             $mock->shouldReceive('getArticleBySlug')
                 ->with('test-slug')
                 ->andThrow(new \Exception('Database connection failed'));

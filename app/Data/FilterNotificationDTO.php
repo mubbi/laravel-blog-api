@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Data;
 
 use App\Enums\NotificationType;
+use App\Http\Requests\V1\Admin\Notification\GetNotificationsRequest;
 
 /**
  * Data Transfer Object for filtering notifications
@@ -24,8 +25,9 @@ final class FilterNotificationDTO
     /**
      * Create DTO from request
      */
-    public static function fromRequest(\App\Http\Requests\V1\Admin\Notification\GetNotificationsRequest $request): self
+    public static function fromRequest(GetNotificationsRequest $request): self
     {
+        /** @var array<string, mixed> $defaults */
         $defaults = $request->withDefaults();
 
         return new self(

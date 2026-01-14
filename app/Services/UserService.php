@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Constants\CacheKeys;
 use App\Data\CreateUserDTO;
 use App\Data\FilterUserDTO;
+use App\Data\FilterUserFollowersDTO;
 use App\Data\UpdateUserDTO;
 use App\Events\User\UserBannedEvent;
 use App\Events\User\UserBlockedEvent;
@@ -15,10 +16,12 @@ use App\Events\User\UserDeletedEvent;
 use App\Events\User\UserUnbannedEvent;
 use App\Events\User\UserUnblockedEvent;
 use App\Events\User\UserUpdatedEvent;
-use App\Models\Permission;
-use App\Models\Role;
 use App\Models\User;
+use App\Repositories\Contracts\PermissionRepositoryInterface;
+use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\Interfaces\UserServiceInterface;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
@@ -26,10 +29,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 
-final class UserService
+final class UserService implements UserServiceInterface
 {
     public function __construct(
-        private readonly UserRepositoryInterface $userRepository
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly RoleRepositoryInterface $roleRepository,
+        private readonly PermissionRepositoryInterface $permissionRepository
     ) {}
 
     /**
@@ -71,11 +76,26 @@ final class UserService
     }
 
     /**
+     * Get user with relationships loaded (for route model binding)
+     */
+    public function getUserWithRelationships(User $user): User
+    {
+        $user->load(['roles:id,name,slug']);
+        $user->loadCount(['articles', 'comments']);
+
+        // Pre-warm cache for this user
+        $user->getCachedRoles();
+        $user->getCachedPermissions();
+
+        return $user;
+    }
+
+    /**
      * Create a new user
      */
     public function createUser(CreateUserDTO $dto): User
     {
-        return DB::transaction(function () use ($dto) {
+        $user = DB::transaction(function () use ($dto) {
             $userData = $dto->toArray();
             $userData['password'] = Hash::make($dto->password);
 
@@ -83,27 +103,26 @@ final class UserService
 
             // Assign default role if specified
             if ($dto->roleId !== null) {
-                /** @var Role $role */
-                $role = Role::findOrFail($dto->roleId);
+                $role = $this->roleRepository->findOrFail($dto->roleId);
                 $user->roles()->attach($role->id);
             }
 
             $user->load(['roles:id,name,slug']);
 
-            Event::dispatch(new UserCreatedEvent($user));
-
             return $user;
         });
+
+        Event::dispatch(new UserCreatedEvent($user));
+
+        return $user;
     }
 
     /**
-     * Update an existing user
+     * Update an existing user (using route model binding)
      */
-    public function updateUser(int $id, UpdateUserDTO $dto): User
+    public function updateUser(User $user, UpdateUserDTO $dto): User
     {
-        return DB::transaction(function () use ($id, $dto) {
-            $user = $this->userRepository->findOrFail($id);
-
+        $freshUser = DB::transaction(function () use ($user, $dto) {
             $updateData = $dto->toArray();
 
             // Update password if provided
@@ -111,7 +130,7 @@ final class UserService
                 $updateData['password'] = Hash::make($dto->password);
             }
 
-            $this->userRepository->update($id, $updateData);
+            $this->userRepository->update($user->id, $updateData);
 
             // Update roles if specified
             if ($dto->roleIds !== null) {
@@ -122,43 +141,45 @@ final class UserService
             $freshUser = $user->fresh(['roles:id,name,slug']);
             $freshUser->loadCount(['articles', 'comments']);
 
-            Event::dispatch(new UserUpdatedEvent($freshUser));
-
             return $freshUser;
         });
+
+        Event::dispatch(new UserUpdatedEvent($freshUser));
+
+        return $freshUser;
     }
 
     /**
-     * Delete a user
+     * Delete a user (using route model binding)
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function deleteUser(int $id): bool
+    public function deleteUser(User $user, User $currentUser): bool
     {
-        $this->preventSelfAction($id, 'cannot_delete_self');
+        $this->preventSelfAction($user->id, $currentUser->id, 'cannot_delete_self');
 
-        $user = $this->userRepository->findOrFail($id);
         $email = $user->email;
-        $deleted = $this->userRepository->delete($id);
+        $userId = $user->id;
+        $deleted = $this->userRepository->delete($user->id);
 
         if ($deleted) {
-            Event::dispatch(new UserDeletedEvent($id, $email));
+            Event::dispatch(new UserDeletedEvent($userId, $email));
         }
 
         return $deleted;
     }
 
     /**
-     * Ban a user
+     * Ban a user (using route model binding)
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function banUser(int $id): User
+    public function banUser(User $user, User $currentUser): User
     {
-        $this->preventSelfAction($id, 'cannot_ban_self');
+        $this->preventSelfAction($user->id, $currentUser->id, 'cannot_ban_self');
 
-        $this->userRepository->update($id, ['banned_at' => now()]);
-        $user = $this->userRepository->findOrFail($id);
+        $this->userRepository->update($user->id, ['banned_at' => now()]);
+        $user->refresh();
         $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
 
         Event::dispatch(new UserBannedEvent($user));
@@ -167,16 +188,16 @@ final class UserService
     }
 
     /**
-     * Unban a user
+     * Unban a user (using route model binding)
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function unbanUser(int $id): User
+    public function unbanUser(User $user, User $currentUser): User
     {
-        $this->preventSelfAction($id, 'cannot_unban_self');
+        $this->preventSelfAction($user->id, $currentUser->id, 'cannot_unban_self');
 
-        $this->userRepository->update($id, ['banned_at' => null]);
-        $user = $this->userRepository->findOrFail($id);
+        $this->userRepository->update($user->id, ['banned_at' => null]);
+        $user->refresh();
         $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
 
         Event::dispatch(new UserUnbannedEvent($user));
@@ -185,16 +206,16 @@ final class UserService
     }
 
     /**
-     * Block a user
+     * Block a user (using route model binding)
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function blockUser(int $id): User
+    public function blockUser(User $user, User $currentUser): User
     {
-        $this->preventSelfAction($id, 'cannot_block_self');
+        $this->preventSelfAction($user->id, $currentUser->id, 'cannot_block_self');
 
-        $this->userRepository->update($id, ['blocked_at' => now()]);
-        $user = $this->userRepository->findOrFail($id);
+        $this->userRepository->update($user->id, ['blocked_at' => now()]);
+        $user->refresh();
         $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
 
         Event::dispatch(new UserBlockedEvent($user));
@@ -203,16 +224,16 @@ final class UserService
     }
 
     /**
-     * Unblock a user
+     * Unblock a user (using route model binding)
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function unblockUser(int $id): User
+    public function unblockUser(User $user, User $currentUser): User
     {
-        $this->preventSelfAction($id, 'cannot_unblock_self');
+        $this->preventSelfAction($user->id, $currentUser->id, 'cannot_unblock_self');
 
-        $this->userRepository->update($id, ['blocked_at' => null]);
-        $user = $this->userRepository->findOrFail($id);
+        $this->userRepository->update($user->id, ['blocked_at' => null]);
+        $user->refresh();
         $user->load(['roles:id,name,slug'])->loadCount(['articles', 'comments']);
 
         Event::dispatch(new UserUnblockedEvent($user));
@@ -223,13 +244,13 @@ final class UserService
     /**
      * Get all roles with cached permissions
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Role>
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\Role>
      */
     public function getAllRoles(): \Illuminate\Database\Eloquent\Collection
     {
-        /** @var \Illuminate\Database\Eloquent\Collection<int, Role> $result */
+        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Role> $result */
         $result = Cache::remember(CacheKeys::ALL_ROLES_CACHE_KEY, CacheKeys::CACHE_TTL, function () {
-            return Role::query()->with(['permissions:id,name,slug'])->get();
+            return $this->roleRepository->getAllWithPermissions();
         });
 
         return $result;
@@ -238,13 +259,13 @@ final class UserService
     /**
      * Get all permissions with caching
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Permission>
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permission>
      */
     public function getAllPermissions(): \Illuminate\Database\Eloquent\Collection
     {
-        /** @var \Illuminate\Database\Eloquent\Collection<int, Permission> $result */
+        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permission> $result */
         $result = Cache::remember(CacheKeys::ALL_PERMISSIONS_CACHE_KEY, CacheKeys::CACHE_TTL, function () {
-            return Permission::query()->get();
+            return $this->permissionRepository->getAll();
         });
 
         return $result;
@@ -267,45 +288,136 @@ final class UserService
     }
 
     /**
-     * Get users with pre-warmed caches
+     * Prevent users from performing actions on themselves
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    private function preventSelfAction(int $id, int $currentUserId, string $errorKey): void
+    {
+        if ($id === $currentUserId) {
+            throw new AuthorizationException(__("common.{$errorKey}"));
+        }
+    }
+
+    /**
+     * Follow a user
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    public function followUser(User $userToFollow, User $currentUser): bool
+    {
+        $this->preventSelfAction($userToFollow->id, $currentUser->id, 'cannot_follow_self');
+
+        // Check if already following
+        if ($currentUser->following()->where('following_id', $userToFollow->id)->exists()) {
+            return false;
+        }
+
+        $currentUser->following()->attach($userToFollow->id);
+
+        Event::dispatch(new \App\Events\User\UserFollowedEvent($currentUser, $userToFollow));
+
+        return true;
+    }
+
+    /**
+     * Unfollow a user
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    public function unfollowUser(User $userToUnfollow, User $currentUser): bool
+    {
+        $this->preventSelfAction($userToUnfollow->id, $currentUser->id, 'cannot_unfollow_self');
+
+        // Check if not following
+        if (! $currentUser->following()->where('following_id', $userToUnfollow->id)->exists()) {
+            return false;
+        }
+
+        $currentUser->following()->detach($userToUnfollow->id);
+
+        Event::dispatch(new \App\Events\User\UserUnfollowedEvent($currentUser, $userToUnfollow));
+
+        return true;
+    }
+
+    /**
+     * Get followers of a user with pagination
      *
      * @return LengthAwarePaginator<int, User>
      */
-    public function getUsersWithWarmedCaches(FilterUserDTO $dto): LengthAwarePaginator
+    public function getFollowers(User $user, FilterUserFollowersDTO $dto): LengthAwarePaginator
     {
-        $paginator = $this->getUsers($dto);
+        $query = $user->followers()
+            ->with(['roles:id,name,slug'])
+            ->withCount(['articles', 'comments']);
 
-        // Pre-warm cache for users in the current page
-        foreach ($paginator->items() as $user) {
-            $user->getCachedRoles();
-            $user->getCachedPermissions();
-        }
+        // Apply sorting - use users table columns
+        $sortColumn = match ($dto->sortBy) {
+            'name' => 'users.name',
+            'created_at' => 'users.created_at',
+            'updated_at' => 'users.updated_at',
+            default => 'users.created_at',
+        };
+
+        $query->orderBy($sortColumn, $dto->sortDirection);
+
+        // Apply pagination
+        /** @var LengthAwarePaginator<int, User> $paginator */
+        $paginator = $query->paginate($dto->perPage, ['*'], 'page', $dto->page);
 
         return $paginator;
     }
 
     /**
-     * Increment cache version (for testing purposes)
+     * Get users that a user is following with pagination
+     *
+     * @return LengthAwarePaginator<int, User>
      */
-    public function incrementCacheVersion(): void
+    public function getFollowing(User $user, FilterUserFollowersDTO $dto): LengthAwarePaginator
     {
-        /** @var int $currentVersion */
-        $currentVersion = Cache::get('user_cache_version', 1);
-        Cache::put('user_cache_version', $currentVersion + 1, CacheKeys::CACHE_TTL);
+        $query = $user->following()
+            ->with(['roles:id,name,slug'])
+            ->withCount(['articles', 'comments']);
+
+        // Apply sorting - use users table columns
+        $sortColumn = match ($dto->sortBy) {
+            'name' => 'users.name',
+            'created_at' => 'users.created_at',
+            'updated_at' => 'users.updated_at',
+            default => 'users.created_at',
+        };
+
+        $query->orderBy($sortColumn, $dto->sortDirection);
+
+        // Apply pagination
+        /** @var LengthAwarePaginator<int, User> $paginator */
+        $paginator = $query->paginate($dto->perPage, ['*'], 'page', $dto->page);
+
+        return $paginator;
     }
 
     /**
-     * Prevent users from performing actions on themselves
-     *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * Get user profile with relationships
      */
-    private function preventSelfAction(int $id, string $errorKey): void
+    public function getUserProfile(User $user): User
     {
-        $currentUser = auth()->user();
+        $user->load([
+            'roles:id,name,slug',
+            'roles.permissions:id,name,slug',
+        ]);
+        $user->loadCount([
+            'articles',
+            'comments',
+            'followers',
+            'following',
+        ]);
 
-        if ($currentUser && $id === $currentUser->id) {
-            throw new \Illuminate\Auth\Access\AuthorizationException(__("common.{$errorKey}"));
-        }
+        // Pre-warm cache for this user
+        $user->getCachedRoles();
+        $user->getCachedPermissions();
+
+        return $user;
     }
 
     /**

@@ -9,15 +9,16 @@ use App\Http\Requests\V1\Article\GetCommentsRequest;
 use App\Http\Resources\MetaResource;
 use App\Http\Resources\V1\Comment\CommentResource;
 use App\Models\Article;
-use App\Services\ArticleService;
+use App\Services\Interfaces\ArticleServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Comments', weight: 2)]
 final class GetCommentsController extends Controller
 {
-    public function __construct(private readonly ArticleService $articleService) {}
+    public function __construct(private readonly ArticleServiceInterface $articleService) {}
 
     /**
      * Get Paginated Comments for an Article
@@ -66,7 +67,7 @@ final class GetCommentsController extends Controller
             $perPage = (int) $perPageParam;
             $page = (int) $pageParam;
             $commentsDataResponse = CommentResource::collection($this->articleService->getArticleComments(
-                $article->id,
+                $article,
                 $parentId,
                 $perPage,
                 $page
@@ -81,7 +82,7 @@ final class GetCommentsController extends Controller
                 ],
                 __('common.success')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

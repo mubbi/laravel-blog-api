@@ -94,10 +94,14 @@ final class EloquentUserRepository extends BaseEloquentRepository implements Use
     /**
      * Get all users
      *
+     * @param  array<string>|null  $columns
      * @return Collection<int, User>
      */
-    public function all(): Collection
+    public function all(?array $columns = null): Collection
     {
-        return User::all();
+        /** @var Collection<int, User> $collection */
+        $collection = parent::all($columns);
+
+        return $collection;
     }
 }

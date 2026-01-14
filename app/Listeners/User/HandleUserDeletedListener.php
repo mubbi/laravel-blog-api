@@ -18,7 +18,7 @@ final class HandleUserDeletedListener implements ShouldQueue
      */
     public function handle(UserDeletedEvent $event): void
     {
-        Log::info('User deleted', [
+        Log::info(__('log.user_deleted'), [
             'user_id' => $event->userId,
             'email' => $event->email,
         ]);

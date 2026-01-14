@@ -57,7 +57,7 @@ describe('API/V1/Auth/RefreshTokenController', function () {
             $mock->shouldReceive('refreshToken')
                 ->with('invalid-refresh-token')
                 ->once()
-                ->andThrow(new UnauthorizedException('Invalid or expired refresh token'));
+                ->andThrow(new UnauthorizedException(__('auth.invalid_refresh_token')));
         });
 
         // Attempt to refresh token with invalid token
@@ -69,7 +69,7 @@ describe('API/V1/Auth/RefreshTokenController', function () {
         $response->assertStatus(401)
             ->assertJson([
                 'status' => false,
-                'message' => 'Invalid or expired refresh token',
+                'message' => __('auth.invalid_refresh_token'),
                 'data' => null,
                 'error' => null,
             ]);
@@ -103,9 +103,15 @@ describe('API/V1/Auth/RefreshTokenController', function () {
         // Arrange
         Event::fake([TokenRefreshedEvent::class]);
 
+        // Create user with roles and permissions (like in service test)
+        $permission = \App\Models\Permission::factory()->create(['slug' => 'refresh-permission-'.uniqid()]);
+        $role = \App\Models\Role::factory()->create(['slug' => 'refresh-role-'.uniqid()]);
+        $role->permissions()->attach($permission->id);
+
         $user = User::factory()->create([
             'email' => 'test@example.com',
         ]);
+        $user->roles()->attach($role->id);
 
         // Create a real refresh token (don't mock the service to allow event dispatch)
         $refreshTokenExpiration = now()->addDays(30);

@@ -7,7 +7,6 @@ namespace App\Repositories\Eloquent;
 use App\Models\Category;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Eloquent implementation of CategoryRepositoryInterface
@@ -64,32 +63,6 @@ final class EloquentCategoryRepository extends BaseEloquentRepository implements
     }
 
     /**
-     * Find a category by slug
-     */
-    public function findBySlug(string $slug): ?Category
-    {
-        return Category::where('slug', $slug)->first();
-    }
-
-    /**
-     * Get all categories
-     *
-     * @param  array<string>|null  $columns
-     * @return Collection<int, Category>
-     */
-    public function all(?array $columns = null): Collection
-    {
-        if ($columns !== null) {
-            /** @var array<int, string> $columnArray */
-            $columnArray = array_values($columns);
-
-            return Category::query()->get($columnArray);
-        }
-
-        return Category::all();
-    }
-
-    /**
      * Get a query builder instance
      *
      * @return Builder<Category>
@@ -100,5 +73,16 @@ final class EloquentCategoryRepository extends BaseEloquentRepository implements
         $builder = parent::query();
 
         return $builder;
+    }
+
+    /**
+     * Find a category by slug
+     */
+    public function findBySlug(string $slug): ?Category
+    {
+        /** @var Category|null $category */
+        $category = $this->query()->where('slug', $slug)->first();
+
+        return $category;
     }
 }

@@ -17,16 +17,33 @@ class CommentPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasPermission('edit_comments');
+        // Any authenticated user can create comments
+        return true;
     }
 
     public function update(User $user, Comment $comment): bool
     {
-        return $user->hasPermission('edit_comments');
+        // Admin can update any comment, users can only update their own
+        if ($user->hasPermission('edit_comments')) {
+            return true;
+        }
+
+        return $user->id === $comment->user_id;
     }
 
     public function delete(User $user, Comment $comment): bool
     {
-        return $user->hasPermission('delete_comments');
+        // Admin can delete any comment, users can only delete their own
+        if ($user->hasPermission('delete_comments')) {
+            return true;
+        }
+
+        return $user->id === $comment->user_id;
+    }
+
+    public function report(User $user, Comment $comment): bool
+    {
+        // Any authenticated user can report comments
+        return true;
     }
 }

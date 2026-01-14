@@ -1,5 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Models\Role;
+use App\Models\User;
+
 // Enable bypass-finals to allow mocking final classes in tests
 DG\BypassFinals::enable();
 
@@ -47,7 +52,7 @@ expect()->extend('toBeOne', function () {
 /**
  * Attach a role to a user and clear their cache to ensure permissions are refreshed
  */
-function attachRoleAndRefreshCache(\App\Models\User $user, \App\Models\Role $role): void
+function attachRoleAndRefreshCache(User $user, Role $role): void
 {
     $user->roles()->attach($role->id);
     $user->refresh();

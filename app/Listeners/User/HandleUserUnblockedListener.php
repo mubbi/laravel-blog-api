@@ -18,7 +18,7 @@ final class HandleUserUnblockedListener implements ShouldQueue
      */
     public function handle(UserUnblockedEvent $event): void
     {
-        Log::info('User unblocked', [
+        Log::info(__('log.user_unblocked'), [
             'user_id' => $event->user->id,
             'email' => $event->user->email,
         ]);

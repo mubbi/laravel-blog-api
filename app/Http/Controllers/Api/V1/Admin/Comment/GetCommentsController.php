@@ -9,16 +9,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Comment\GetCommentsRequest;
 use App\Http\Resources\MetaResource;
 use App\Http\Resources\V1\Comment\CommentResource;
-use App\Services\CommentService;
+use App\Services\Interfaces\CommentServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Admin - Comments', weight: 2)]
 final class GetCommentsController extends Controller
 {
     public function __construct(
-        private readonly CommentService $commentService
+        private readonly CommentServiceInterface $commentService
     ) {}
 
     /**
@@ -73,7 +74,7 @@ final class GetCommentsController extends Controller
                 ],
                 __('common.success')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

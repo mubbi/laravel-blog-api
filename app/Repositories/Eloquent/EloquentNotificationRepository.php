@@ -95,7 +95,7 @@ final class EloquentNotificationRepository extends BaseEloquentRepository implem
      */
     public function count(): int
     {
-        return Notification::count();
+        return $this->query()->count();
     }
 
     /**
@@ -103,6 +103,6 @@ final class EloquentNotificationRepository extends BaseEloquentRepository implem
      */
     public function countByType(string $type): int
     {
-        return Notification::where('type', $type)->count();
+        return $this->query()->where('type', $type)->count();
     }
 }

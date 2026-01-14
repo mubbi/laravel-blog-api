@@ -18,7 +18,7 @@ final class HandleArticleRestoredListener implements ShouldQueue
      */
     public function handle(ArticleRestoredEvent $event): void
     {
-        Log::info('Article restored', [
+        Log::info(__('log.article_restored'), [
             'article_id' => $event->article->id,
             'title' => $event->article->title,
         ]);

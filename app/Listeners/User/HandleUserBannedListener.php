@@ -18,7 +18,7 @@ final class HandleUserBannedListener implements ShouldQueue
      */
     public function handle(UserBannedEvent $event): void
     {
-        Log::info('User banned', [
+        Log::info(__('log.user_banned'), [
             'user_id' => $event->user->id,
             'email' => $event->user->email,
             'banned_at' => $event->user->banned_at,

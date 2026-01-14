@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+/**
+ * Article status enumeration
+ *
+ * Defines the various states an article can be in throughout its lifecycle.
+ */
 enum ArticleStatus: string
 {
     case DRAFT = 'draft';
@@ -12,21 +17,6 @@ enum ArticleStatus: string
     case PUBLISHED = 'published';
     case ARCHIVED = 'archived';
     case TRASHED = 'trashed';
-
-    /**
-     * Get the display name for the status
-     */
-    public function displayName(): string
-    {
-        return match ($this) {
-            self::DRAFT => 'Draft',
-            self::REVIEW => 'Under Review',
-            self::SCHEDULED => 'Scheduled',
-            self::PUBLISHED => 'Published',
-            self::ARCHIVED => 'Archived',
-            self::TRASHED => 'Trashed',
-        };
-    }
 
     /**
      * Check if the status is a published state

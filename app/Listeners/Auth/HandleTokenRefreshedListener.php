@@ -18,7 +18,7 @@ final class HandleTokenRefreshedListener implements ShouldQueue
      */
     public function handle(TokenRefreshedEvent $event): void
     {
-        Log::info('Token refreshed', [
+        Log::info(__('log.token_refreshed'), [
             'user_id' => $event->user->id,
             'email' => $event->user->email,
         ]);

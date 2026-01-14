@@ -25,7 +25,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.users.show', $user->id));
+        ])->getJson(route('api.v1.admin.users.show', $user));
 
         // Assert
         $response->assertStatus(200)
@@ -70,7 +70,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.users.show', $bannedUser->id));
+        ])->getJson(route('api.v1.admin.users.show', $bannedUser));
 
         // Assert
         $response->assertStatus(200)
@@ -99,7 +99,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.users.show', $blockedUser->id));
+        ])->getJson(route('api.v1.admin.users.show', $blockedUser));
 
         // Assert
         $response->assertStatus(200)
@@ -128,7 +128,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.users.show', $user->id));
+        ])->getJson(route('api.v1.admin.users.show', $user));
 
         // Assert
         $response->assertStatus(200)
@@ -167,7 +167,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         $user = User::factory()->create();
 
         // Act
-        $response = $this->getJson(route('api.v1.admin.users.show', $user->id));
+        $response = $this->getJson(route('api.v1.admin.users.show', $user));
 
         // Assert
         $response->assertStatus(401);
@@ -185,7 +185,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.users.show', $targetUser->id));
+        ])->getJson(route('api.v1.admin.users.show', $targetUser));
 
         // Assert
         $response->assertStatus(403);
@@ -206,7 +206,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.users.show', $user->id));
+        ])->getJson(route('api.v1.admin.users.show', $user));
 
         // Assert
         $response->assertStatus(200)
@@ -248,7 +248,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.users.show', $user->id));
+        ])->getJson(route('api.v1.admin.users.show', $user));
 
         // Assert
         $response->assertStatus(200)
@@ -283,7 +283,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.users.show', $user->id));
+        ])->getJson(route('api.v1.admin.users.show', $user));
 
         // Assert
         $response->assertStatus(200)
@@ -316,7 +316,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.users.show', $verifiedUser->id));
+        ])->getJson(route('api.v1.admin.users.show', $verifiedUser));
 
         // Assert
         $response->assertStatus(200)
@@ -343,7 +343,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.users.show', $unverifiedUser->id));
+        ])->getJson(route('api.v1.admin.users.show', $unverifiedUser));
 
         // Assert
         $response->assertStatus(200)

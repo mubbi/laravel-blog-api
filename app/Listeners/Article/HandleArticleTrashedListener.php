@@ -18,7 +18,7 @@ final class HandleArticleTrashedListener implements ShouldQueue
      */
     public function handle(ArticleTrashedEvent $event): void
     {
-        Log::info('Article trashed', [
+        Log::info(__('log.article_trashed'), [
             'article_id' => $event->article->id,
             'title' => $event->article->title,
         ]);

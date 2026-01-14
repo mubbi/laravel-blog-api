@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Data;
 
+use App\Http\Requests\V1\Admin\User\CreateUserRequest;
+
 /**
  * Data Transfer Object for creating a user
  */
@@ -26,7 +28,7 @@ final class CreateUserDTO
     /**
      * Create DTO from request
      */
-    public static function fromRequest(\App\Http\Requests\V1\Admin\User\CreateUserRequest $request): self
+    public static function fromRequest(CreateUserRequest $request): self
     {
         $validated = $request->validated();
 

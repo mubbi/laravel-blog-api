@@ -18,7 +18,7 @@ final class HandleArticleUnfeaturedListener implements ShouldQueue
      */
     public function handle(ArticleUnfeaturedEvent $event): void
     {
-        Log::info('Article unfeatured', [
+        Log::info(__('log.article_unfeatured'), [
             'article_id' => $event->article->id,
             'title' => $event->article->title,
         ]);

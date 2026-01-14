@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Data;
 
+use App\Http\Requests\V1\Admin\Comment\ApproveCommentRequest;
+
 /**
  * Data Transfer Object for approving a comment
  */
@@ -16,12 +18,24 @@ final class ApproveCommentDTO
     /**
      * Create DTO from request
      */
-    public static function fromRequest(\App\Http\Requests\V1\Admin\Comment\ApproveCommentRequest $request): self
+    public static function fromRequest(ApproveCommentRequest $request): self
     {
         $validated = $request->validated();
 
         return new self(
             adminNote: isset($validated['admin_note']) ? (string) $validated['admin_note'] : null,
+        );
+    }
+
+    /**
+     * Create DTO from array
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            adminNote: isset($data['admin_note']) ? (string) $data['admin_note'] : null,
         );
     }
 

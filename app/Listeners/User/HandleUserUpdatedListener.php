@@ -18,7 +18,7 @@ final class HandleUserUpdatedListener implements ShouldQueue
      */
     public function handle(UserUpdatedEvent $event): void
     {
-        Log::info('User updated', [
+        Log::info(__('log.user_updated'), [
             'user_id' => $event->user->id,
             'email' => $event->user->email,
         ]);

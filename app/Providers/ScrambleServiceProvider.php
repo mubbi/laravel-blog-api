@@ -14,7 +14,13 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 
-class ScrambleServiceProvider extends ServiceProvider
+/**
+ * Scramble Service Provider
+ *
+ * Responsible for configuring API documentation generation using Scramble.
+ * Handles OpenAPI/Swagger documentation setup and access control.
+ */
+final class ScrambleServiceProvider extends ServiceProvider
 {
     /**
      * Register services.

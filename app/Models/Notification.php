@@ -25,7 +25,26 @@ final class Notification extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'type',
+        'message',
+    ];
+
+    /**
+     * The attributes that should be guarded from mass assignment.
+     *
+     * @var list<string>
+     */
+    protected $guarded = [
+        'id',
+        'created_at',
+        'updated_at',
+    ];
 
     /**
      * Get the attributes that should be cast.

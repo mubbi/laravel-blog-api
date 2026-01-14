@@ -18,7 +18,7 @@ final class HandleArticlePinnedListener implements ShouldQueue
      */
     public function handle(ArticlePinnedEvent $event): void
     {
-        Log::info('Article pinned', [
+        Log::info(__('log.article_pinned'), [
             'article_id' => $event->article->id,
             'title' => $event->article->title,
         ]);

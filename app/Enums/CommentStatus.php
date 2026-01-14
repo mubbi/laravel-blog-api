@@ -4,25 +4,17 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+/**
+ * Comment status enumeration
+ *
+ * Defines the various states a comment can be in during the moderation process.
+ */
 enum CommentStatus: string
 {
     case PENDING = 'pending';
     case APPROVED = 'approved';
     case REJECTED = 'rejected';
     case SPAM = 'spam';
-
-    /**
-     * Get the display name for the status
-     */
-    public function displayName(): string
-    {
-        return match ($this) {
-            self::PENDING => 'Pending',
-            self::APPROVED => 'Approved',
-            self::REJECTED => 'Rejected',
-            self::SPAM => 'Spam',
-        };
-    }
 
     /**
      * Check if the status is a published state

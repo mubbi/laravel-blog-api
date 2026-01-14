@@ -26,8 +26,10 @@ class NewsletterSubscriberResource extends JsonResource
             'user_id' => $this->resource->user_id,
             'is_verified' => $this->resource->is_verified,
             'subscribed_at' => $this->resource->subscribed_at->toISOString(),
+            'unsubscribed_at' => $this->resource->unsubscribed_at?->toISOString(),
             'created_at' => $this->resource->created_at->toISOString(),
             'updated_at' => $this->resource->updated_at->toISOString(),
+            // Note: verification_token is intentionally excluded for security reasons
         ];
     }
 }

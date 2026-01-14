@@ -42,7 +42,7 @@ final class UserDetailResource extends JsonResource
                         'id' => $role->id,
                         'name' => $role->name,
                         'slug' => $role->slug,
-                        'display_name' => \App\Enums\UserRole::from($role->name)->displayName(),
+                        'display_name' => __('enums.user_role.'.$role->name),
                     ];
                 });
             }),

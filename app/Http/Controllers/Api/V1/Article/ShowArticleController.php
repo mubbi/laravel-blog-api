@@ -6,18 +6,19 @@ namespace App\Http\Controllers\Api\V1\Article;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\Article\ArticleResource;
-use App\Services\ArticleService;
+use App\Services\Interfaces\ArticleServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Articles', weight: 1)]
 final class ShowArticleController extends Controller
 {
     public function __construct(
-        private readonly ArticleService $articleService
+        private readonly ArticleServiceInterface $articleService
     ) {}
 
     /**
@@ -62,7 +63,7 @@ final class ShowArticleController extends Controller
              * @body array{status: false, message: string, data: null, error: null}
              */
             return $this->handleException($e, $request);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *
