@@ -32,7 +32,7 @@ final class NotificationService
      */
     public function createNotification(CreateNotificationDTO $dto): Notification
     {
-        return DB::transaction(function () use ($dto) {
+        $notification = DB::transaction(function () use ($dto) {
             $notification = $this->notificationRepository->create($dto->toArray());
 
             // Create audience records
@@ -65,10 +65,12 @@ final class NotificationService
 
             $notification->load('audiences');
 
-            Event::dispatch(new NotificationCreatedEvent($notification));
-
             return $notification;
         });
+
+        Event::dispatch(new NotificationCreatedEvent($notification));
+
+        return $notification;
     }
 
     /**

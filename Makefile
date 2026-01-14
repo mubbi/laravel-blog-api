@@ -146,17 +146,24 @@ docker-restart: docker-down docker-up
 
 
 # Run tests (automated testing environment)
+# Usage: make test                    - Run all tests
+# Usage: make test filter='TestName'  - Run specific test by filter
 test:
 	@if docker-compose -f containers/docker-compose.test.yml ps | grep -q 'laravel_blog_api_test' && docker-compose -f containers/docker-compose.test.yml ps | grep 'Up'; then \
 		echo "🧪 TESTING: Test container already running. Skipping setup..."; \
 		echo ">> Clearing caches..."; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan route:clear; \
-		echo ">> Running tests..."; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure; \
+		if [ -n "$(filter)" ]; then \
+			echo ">> Running filtered test: $(filter)..."; \
+			docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --filter=$(filter); \
+		else \
+			echo ">> Running tests..."; \
+			docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure; \
+		fi; \
 		echo "✅ SUCCESS: Tests completed!"; \
 	else \
-		echo "🧪 TESTING: Running complete test suite..."; \
+		echo "🧪 TESTING: Running test suite..."; \
 		cd containers && docker-compose -f docker-compose.test.yml up -d; \
 		echo ">> Installing dependencies in test container..."; \
 		sleep 10; \
@@ -165,8 +172,13 @@ test:
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan route:clear; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force; \
-		echo ">> Running tests..."; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure; \
+		if [ -n "$(filter)" ]; then \
+			echo ">> Running filtered test: $(filter)..."; \
+			docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --filter=$(filter); \
+		else \
+			echo ">> Running tests..."; \
+			docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure; \
+		fi; \
 		echo "✅ SUCCESS: Tests completed!"; \
 	fi
 
@@ -406,6 +418,7 @@ help:
 	@echo "🔧 DEVELOPMENT WORKFLOW:"
 	@echo "  make commit              - Interactive semantic commit"
 	@echo "  make test                - Run all tests"
+	@echo "  make test filter='...'   - Run specific test by filter (e.g., filter='Auth')"
 	@echo "  make test-coverage       - Run tests with coverage report"
 	@echo "  make lint                - Run code linting (Pint)"
 	@echo "  make analyze             - Run static analysis (PHPStan)"

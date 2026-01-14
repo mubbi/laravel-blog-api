@@ -93,7 +93,7 @@ final class UserService
      */
     public function createUser(CreateUserDTO $dto): User
     {
-        return DB::transaction(function () use ($dto) {
+        $user = DB::transaction(function () use ($dto) {
             $userData = $dto->toArray();
             $userData['password'] = Hash::make($dto->password);
 
@@ -107,10 +107,12 @@ final class UserService
 
             $user->load(['roles:id,name,slug']);
 
-            Event::dispatch(new UserCreatedEvent($user));
-
             return $user;
         });
+
+        Event::dispatch(new UserCreatedEvent($user));
+
+        return $user;
     }
 
     /**
@@ -118,7 +120,7 @@ final class UserService
      */
     public function updateUser(User $user, UpdateUserDTO $dto): User
     {
-        return DB::transaction(function () use ($user, $dto) {
+        $freshUser = DB::transaction(function () use ($user, $dto) {
             $updateData = $dto->toArray();
 
             // Update password if provided
@@ -137,10 +139,12 @@ final class UserService
             $freshUser = $user->fresh(['roles:id,name,slug']);
             $freshUser->loadCount(['articles', 'comments']);
 
-            Event::dispatch(new UserUpdatedEvent($freshUser));
-
             return $freshUser;
         });
+
+        Event::dispatch(new UserUpdatedEvent($freshUser));
+
+        return $freshUser;
     }
 
     /**

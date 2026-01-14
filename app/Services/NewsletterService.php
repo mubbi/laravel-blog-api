@@ -128,21 +128,25 @@ final class NewsletterService
      */
     public function subscribe(SubscribeNewsletterDTO $dto): void
     {
-        DB::transaction(function () use ($dto): void {
+        $eventData = DB::transaction(function () use ($dto): array {
             $existingSubscriber = $this->newsletterSubscriberRepository->findByEmail($dto->email);
 
             if ($existingSubscriber !== null) {
-                $this->resubscribeExistingSubscriber($existingSubscriber, $dto);
+                return $this->resubscribeExistingSubscriber($existingSubscriber, $dto);
             } else {
-                $this->createNewSubscriber($dto);
+                return $this->createNewSubscriber($dto);
             }
         });
+
+        $this->dispatchSubscriberCreatedEvent($eventData['subscriber_id'], $eventData['email'], $eventData['token']);
     }
 
     /**
      * Handle resubscription for existing subscriber
+     *
+     * @return array{subscriber_id: int, email: string, token: string}
      */
-    private function resubscribeExistingSubscriber(NewsletterSubscriber $subscriber, SubscribeNewsletterDTO $dto): void
+    private function resubscribeExistingSubscriber(NewsletterSubscriber $subscriber, SubscribeNewsletterDTO $dto): array
     {
         $tokenData = $this->generateVerificationToken();
         $isVerifiedAndActive = $subscriber->is_verified && $subscriber->unsubscribed_at === null;
@@ -166,13 +170,20 @@ final class NewsletterService
         }
 
         $this->newsletterSubscriberRepository->update($subscriber->id, $updateData);
-        $this->dispatchSubscriberCreatedEvent($subscriber->id, $dto->email, $tokenData['token']);
+
+        return [
+            'subscriber_id' => $subscriber->id,
+            'email' => $dto->email,
+            'token' => $tokenData['token'],
+        ];
     }
 
     /**
      * Create a new newsletter subscriber
+     *
+     * @return array{subscriber_id: int, email: string, token: string}
      */
-    private function createNewSubscriber(SubscribeNewsletterDTO $dto): void
+    private function createNewSubscriber(SubscribeNewsletterDTO $dto): array
     {
         $tokenData = $this->generateVerificationToken();
 
@@ -184,7 +195,12 @@ final class NewsletterService
         ]);
 
         $subscriber = $this->newsletterSubscriberRepository->create($subscriberData);
-        $this->dispatchSubscriberCreatedEvent($subscriber->id, $dto->email, $tokenData['token']);
+
+        return [
+            'subscriber_id' => $subscriber->id,
+            'email' => $dto->email,
+            'token' => $tokenData['token'],
+        ];
     }
 
     /**
@@ -202,7 +218,7 @@ final class NewsletterService
      */
     public function verifySubscription(VerifySubscriptionDTO $dto): NewsletterSubscriber
     {
-        return DB::transaction(function () use ($dto): NewsletterSubscriber {
+        $subscriber = DB::transaction(function () use ($dto): NewsletterSubscriber {
             $subscriber = $this->newsletterSubscriberRepository->findByVerificationTokenAndEmail($dto->token, $dto->email);
 
             if ($subscriber === null) {
@@ -233,13 +249,15 @@ final class NewsletterService
             // Refresh the model to get updated data
             $subscriber->refresh();
 
-            Event::dispatch(new NewsletterSubscriberVerifiedEvent(
-                $subscriber->id,
-                $subscriber->email
-            ));
-
             return $subscriber;
         });
+
+        Event::dispatch(new NewsletterSubscriberVerifiedEvent(
+            $subscriber->id,
+            $subscriber->email
+        ));
+
+        return $subscriber;
     }
 
     /**
@@ -251,7 +269,7 @@ final class NewsletterService
      */
     public function unsubscribe(UnsubscribeNewsletterDTO $dto): void
     {
-        DB::transaction(function () use ($dto): void {
+        $eventData = DB::transaction(function () use ($dto): array {
             $subscriber = $this->newsletterSubscriberRepository->findByEmail($dto->email);
 
             if ($subscriber === null) {
@@ -281,8 +299,14 @@ final class NewsletterService
                 'verification_token_expires_at' => $tokenData['expires_at'],
             ]);
 
-            $this->dispatchUnsubscriptionRequestedEvent($subscriber->id, $dto->email, $tokenData['token']);
+            return [
+                'subscriber_id' => $subscriber->id,
+                'email' => $dto->email,
+                'token' => $tokenData['token'],
+            ];
         });
+
+        $this->dispatchUnsubscriptionRequestedEvent($eventData['subscriber_id'], $eventData['email'], $eventData['token']);
     }
 
     /**
@@ -300,7 +324,9 @@ final class NewsletterService
      */
     public function verifyUnsubscription(VerifyUnsubscriptionDTO $dto): NewsletterSubscriber
     {
-        return DB::transaction(function () use ($dto): NewsletterSubscriber {
+        $wasAlreadyUnsubscribed = false;
+
+        $subscriber = DB::transaction(function () use ($dto, &$wasAlreadyUnsubscribed): NewsletterSubscriber {
             $subscriber = $this->newsletterSubscriberRepository->findByVerificationTokenAndEmail($dto->token, $dto->email);
 
             if ($subscriber === null) {
@@ -318,6 +344,7 @@ final class NewsletterService
 
             // Already unsubscribed
             if ($subscriber->unsubscribed_at !== null) {
+                $wasAlreadyUnsubscribed = true;
                 // Clear token even if already unsubscribed
                 $this->newsletterSubscriberRepository->update($subscriber->id, [
                     'verification_token' => null,
@@ -339,12 +366,17 @@ final class NewsletterService
             // Refresh the model to get updated data
             $subscriber->refresh();
 
+            return $subscriber;
+        });
+
+        // Only dispatch event if subscriber was actually unsubscribed (not already unsubscribed)
+        if (! $wasAlreadyUnsubscribed) {
             Event::dispatch(new NewsletterSubscriberUnsubscribedEvent(
                 $subscriber->id,
                 $subscriber->email
             ));
+        }
 
-            return $subscriber;
-        });
+        return $subscriber;
     }
 }

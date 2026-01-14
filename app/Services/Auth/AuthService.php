@@ -11,6 +11,7 @@ use App\Mail\PasswordResetMail;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Interfaces\AuthServiceInterface;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -82,7 +83,7 @@ final class AuthService implements AuthServiceInterface
         }
 
         // Check if refresh token is expired
-        /** @var Carbon|null $tokenExpiresAt */
+        /** @var Carbon|CarbonImmutable|null $tokenExpiresAt */
         $tokenExpiresAt = $token->expires_at;
         if ($tokenExpiresAt && $tokenExpiresAt->isPast()) {
             $token->delete();
@@ -207,16 +208,16 @@ final class AuthService implements AuthServiceInterface
         User $user,
         \Laravel\Sanctum\NewAccessToken $accessToken,
         \Laravel\Sanctum\NewAccessToken|string $refreshToken,
-        ?Carbon $refreshTokenExpiresAt = null
+        Carbon|CarbonImmutable|null $refreshTokenExpiresAt = null
     ): void {
         $user->access_token = $accessToken->plainTextToken;
-        /** @var Carbon|null $accessTokenExpiresAt */
+        /** @var Carbon|CarbonImmutable|null $accessTokenExpiresAt */
         $accessTokenExpiresAt = $accessToken->accessToken->expires_at;
         $user->access_token_expires_at = $accessTokenExpiresAt;
 
         if ($refreshToken instanceof \Laravel\Sanctum\NewAccessToken) {
             $user->refresh_token = $refreshToken->plainTextToken;
-            /** @var Carbon|null $refreshTokenExpiresAtFromToken */
+            /** @var Carbon|CarbonImmutable|null $refreshTokenExpiresAtFromToken */
             $refreshTokenExpiresAtFromToken = $refreshToken->accessToken->expires_at;
             $user->refresh_token_expires_at = $refreshTokenExpiresAtFromToken;
         } else {
@@ -282,7 +283,8 @@ final class AuthService implements AuthServiceInterface
         $createdAtString = $tokenRecord->created_at;
         $createdAt = Carbon::parse($createdAtString);
 
-        if (now()->diffInMinutes($createdAt) > $this->getPasswordResetExpirationMinutes()) {
+        $expiresAt = $createdAt->copy()->addMinutes($this->getPasswordResetExpirationMinutes());
+        if ($expiresAt->isPast()) {
             DB::table($table)->where('email', $email)->delete();
 
             return false;
