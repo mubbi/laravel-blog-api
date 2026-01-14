@@ -4,43 +4,38 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Data\CreateArticleDTO;
 use App\Data\FilterArticleManagementDTO;
-use App\Data\ReportArticleDTO;
-use App\Enums\ArticleStatus;
-use App\Events\Article\ArticleApprovedEvent;
-use App\Events\Article\ArticleArchivedEvent;
-use App\Events\Article\ArticleDeletedEvent;
-use App\Events\Article\ArticleFeaturedEvent;
-use App\Events\Article\ArticlePinnedEvent;
-use App\Events\Article\ArticleRejectedEvent;
-use App\Events\Article\ArticleReportedEvent;
-use App\Events\Article\ArticleReportsClearedEvent;
-use App\Events\Article\ArticleRestoredEvent;
-use App\Events\Article\ArticleRestoredFromTrashEvent;
-use App\Events\Article\ArticleTrashedEvent;
-use App\Events\Article\ArticleUnfeaturedEvent;
-use App\Events\Article\ArticleUnpinnedEvent;
 use App\Models\Article;
+use App\Repositories\Contracts\ArticleRepositoryInterface;
+use App\Services\Interfaces\ArticleManagementServiceInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\DB;
 
-final class ArticleManagementService
+final class ArticleManagementService implements ArticleManagementServiceInterface
 {
     public function __construct(
-        private readonly \App\Repositories\Contracts\ArticleRepositoryInterface $articleRepository
+        private readonly ArticleRepositoryInterface $articleRepository
     ) {}
 
     /**
-     * Get articles with filters and pagination for admin management
+     * Get articles with filters and pagination for article management
+     * Non-admin users will only see their own articles
      *
+     * @param  int|null  $userIdForFiltering  If provided, filter articles to only those created by this user
      * @return LengthAwarePaginator<int, Article>
      */
-    public function getArticles(FilterArticleManagementDTO $dto): LengthAwarePaginator
+    public function getArticles(FilterArticleManagementDTO $dto, ?int $userIdForFiltering = null): LengthAwarePaginator
     {
         $query = $this->articleRepository->query()
             ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
             ->withCount(['comments', 'authors']);
+
+        // Filter by user if provided (non-admin users see only their own articles)
+        if ($userIdForFiltering !== null) {
+            $query->where('created_by', $userIdForFiltering);
+        }
 
         // Apply filters
         $this->applyFilters($query, $dto);
@@ -53,7 +48,8 @@ final class ArticleManagementService
     }
 
     /**
-     * Get a single article by ID for admin management
+     * Get a single article by ID for article management
+     * Non-admin users can only access their own articles (authorization should be checked in request/controller)
      */
     public function getArticleById(int $id): Article
     {
@@ -64,262 +60,40 @@ final class ArticleManagementService
     }
 
     /**
-     * Approve an article
+     * Load article relationships for management views
+     *
+     * @param  Builder<Article>  $query
+     * @return Builder<Article>
      */
-    public function approveArticle(int $id, int $approvedBy): Article
+    private function loadArticleRelationships(Builder $query): Builder
     {
-        $this->articleRepository->update($id, [
-            'status' => ArticleStatus::PUBLISHED,
-            'approved_by' => $approvedBy,
-            'published_at' => now(),
+        return $query->with([
+            'author:id,name,email',
+            'approver:id,name,email',
+            'updater:id,name,email',
+            'categories:id,name,slug',
+            'tags:id,name,slug',
         ]);
+    }
 
-        $article = $this->articleRepository->query()
-            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+    /**
+     * Get article with relationships loaded
+     * Made public for use by other services
+     */
+    public function getArticleWithRelationships(int $id): Article
+    {
+        return $this->loadArticleRelationships($this->articleRepository->query())
             ->findOrFail($id);
-
-        Event::dispatch(new ArticleApprovedEvent($article));
-
-        return $article;
     }
 
     /**
-     * Reject an article (set to draft)
+     * Load relationships on an existing article model (using route model binding)
+     * Made public for use by other services
      */
-    public function rejectArticle(int $id, int $rejectedBy): Article
+    public function loadArticleRelationshipsOnModel(Article $article): Article
     {
-        $this->articleRepository->update($id, [
-            'status' => ArticleStatus::DRAFT,
-            'approved_by' => $rejectedBy,
-        ]);
-
-        $article = $this->articleRepository->query()
-            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
-            ->findOrFail($id);
-
-        Event::dispatch(new ArticleRejectedEvent($article));
-
-        return $article;
-    }
-
-    /**
-     * Feature an article
-     */
-    public function featureArticle(int $id): Article
-    {
-        try {
-            $article = $this->articleRepository->findOrFail($id);
-            $newFeaturedStatus = ! $article->is_featured;
-
-            $this->articleRepository->update($id, [
-                'is_featured' => $newFeaturedStatus,
-                'featured_at' => $newFeaturedStatus ? now() : null,
-            ]);
-
-            /** @var Article $freshArticle */
-            $freshArticle = $this->articleRepository->query()
-                ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
-                ->findOrFail($id);
-
-            if ($newFeaturedStatus) {
-                Event::dispatch(new ArticleFeaturedEvent($freshArticle));
-            } else {
-                Event::dispatch(new ArticleUnfeaturedEvent($freshArticle));
-            }
-
-            return $freshArticle;
-        } catch (\Throwable $e) {
-            \Log::error('FeatureArticle error', [
-                'id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            throw $e;
-        }
-    }
-
-    /**
-     * Unfeature an article
-     */
-    public function unfeatureArticle(int $id): Article
-    {
-        $this->articleRepository->update($id, [
-            'is_featured' => false,
-            'featured_at' => null,
-        ]);
-
-        $article = $this->articleRepository->query()
-            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
-            ->findOrFail($id);
-
-        Event::dispatch(new ArticleUnfeaturedEvent($article));
-
-        return $article;
-    }
-
-    /**
-     * Pin an article
-     */
-    public function pinArticle(int $id): Article
-    {
-        $this->articleRepository->update($id, [
-            'is_pinned' => true,
-            'pinned_at' => now(),
-        ]);
-
-        $article = $this->articleRepository->query()
-            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
-            ->findOrFail($id);
-
-        Event::dispatch(new ArticlePinnedEvent($article));
-
-        return $article;
-    }
-
-    /**
-     * Unpin an article
-     */
-    public function unpinArticle(int $id): Article
-    {
-        $this->articleRepository->update($id, [
-            'is_pinned' => false,
-            'pinned_at' => null,
-        ]);
-
-        $article = $this->articleRepository->query()
-            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
-            ->findOrFail($id);
-
-        Event::dispatch(new ArticleUnpinnedEvent($article));
-
-        return $article;
-    }
-
-    /**
-     * Archive an article
-     */
-    public function archiveArticle(int $id): Article
-    {
-        $this->articleRepository->update($id, [
-            'status' => ArticleStatus::ARCHIVED,
-        ]);
-
-        $article = $this->articleRepository->query()
-            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
-            ->findOrFail($id);
-
-        Event::dispatch(new ArticleArchivedEvent($article));
-
-        return $article;
-    }
-
-    /**
-     * Restore an article from archive
-     */
-    public function restoreArticle(int $id): Article
-    {
-        $this->articleRepository->update($id, [
-            'status' => ArticleStatus::PUBLISHED,
-        ]);
-
-        $article = $this->articleRepository->query()
-            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
-            ->findOrFail($id);
-
-        Event::dispatch(new ArticleRestoredEvent($article));
-
-        return $article;
-    }
-
-    /**
-     * Trash an article
-     */
-    public function trashArticle(int $id): Article
-    {
-        $this->articleRepository->update($id, [
-            'status' => ArticleStatus::TRASHED,
-        ]);
-
-        $article = $this->articleRepository->query()
-            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
-            ->findOrFail($id);
-
-        Event::dispatch(new ArticleTrashedEvent($article));
-
-        return $article;
-    }
-
-    /**
-     * Restore an article from trash
-     */
-    public function restoreFromTrash(int $id): Article
-    {
-        $this->articleRepository->update($id, [
-            'status' => ArticleStatus::DRAFT,
-        ]);
-
-        $article = $this->articleRepository->query()
-            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
-            ->findOrFail($id);
-
-        Event::dispatch(new ArticleRestoredFromTrashEvent($article));
-
-        return $article;
-    }
-
-    /**
-     * Permanently delete an article
-     */
-    public function deleteArticle(int $id): bool
-    {
-        $article = $this->articleRepository->findOrFail($id);
-        $deleted = $this->articleRepository->delete($id);
-
-        if ($deleted) {
-            Event::dispatch(new ArticleDeletedEvent($article));
-        }
-
-        return $deleted;
-    }
-
-    /**
-     * Report an article
-     */
-    public function reportArticle(int $id, ReportArticleDTO $dto): Article
-    {
-        $article = $this->articleRepository->findOrFail($id);
-
-        $this->articleRepository->update($id, [
-            'report_count' => $article->report_count + 1,
-            'last_reported_at' => now(),
-            'report_reason' => $dto->getReason(),
-        ]);
-
-        $updatedArticle = $this->articleRepository->query()
-            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
-            ->findOrFail($id);
-
-        Event::dispatch(new ArticleReportedEvent($updatedArticle));
-
-        return $updatedArticle;
-    }
-
-    /**
-     * Clear article reports
-     */
-    public function clearArticleReports(int $id): Article
-    {
-        $this->articleRepository->update($id, [
-            'report_count' => 0,
-            'last_reported_at' => null,
-            'report_reason' => null,
-        ]);
-
-        $article = $this->articleRepository->query()
-            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
-            ->findOrFail($id);
-
-        Event::dispatch(new ArticleReportsClearedEvent($article));
+        $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article->loadCount(['comments', 'authors']);
 
         return $article;
     }
@@ -331,13 +105,9 @@ final class ArticleManagementService
      */
     private function applyFilters(Builder $query, FilterArticleManagementDTO $dto): void
     {
-        // Search in title and content
+        // Search in title and content using scope
         if ($dto->search !== null) {
-            $query->where(function (Builder $q) use ($dto) {
-                $q->where('title', 'like', "%{$dto->search}%")
-                    ->orWhere('content_markdown', 'like', "%{$dto->search}%")
-                    ->orWhere('excerpt', 'like', "%{$dto->search}%");
-            });
+            $query->search($dto->search);
         }
 
         // Filter by status
@@ -399,5 +169,38 @@ final class ArticleManagementService
         if ($dto->publishedBefore !== null) {
             $query->where('published_at', '<=', $dto->publishedBefore);
         }
+    }
+
+    /**
+     * Create a new article with relationships
+     */
+    public function createArticle(CreateArticleDTO $dto): Article
+    {
+        return DB::transaction(function () use ($dto) {
+            // Create the article
+            $article = $this->articleRepository->create($dto->toArray());
+
+            // Attach categories
+            if (! empty($dto->categoryIds)) {
+                $article->categories()->attach($dto->categoryIds);
+            }
+
+            // Attach tags
+            if (! empty($dto->tagIds)) {
+                $article->tags()->attach($dto->tagIds);
+            }
+
+            // Attach authors with roles (DTO always provides at least the creator as author)
+            foreach ($dto->authors as $author) {
+                $article->authors()->attach($author['user_id'], ['role' => $author['role']]);
+            }
+
+            // Reload with relationships
+            $article = $this->getArticleWithRelationships($article->id);
+
+            \Illuminate\Support\Facades\Event::dispatch(new \App\Events\Article\ArticleCreatedEvent($article));
+
+            return $article;
+        });
     }
 }

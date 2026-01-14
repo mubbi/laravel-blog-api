@@ -18,7 +18,7 @@ final class HandleArticleReportsClearedListener implements ShouldQueue
      */
     public function handle(ArticleReportsClearedEvent $event): void
     {
-        Log::info('Article reports cleared', [
+        Log::info(__('log.article_reports_cleared'), [
             'article_id' => $event->article->id,
             'title' => $event->article->title,
         ]);

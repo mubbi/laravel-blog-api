@@ -11,9 +11,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property int $id
  * @property string $email
+ * @property string|null $verification_token
+ * @property \Illuminate\Support\Carbon|null $verification_token_expires_at
  * @property int|null $user_id
  * @property bool $is_verified
  * @property \Illuminate\Support\Carbon $subscribed_at
+ * @property \Illuminate\Support\Carbon|null $unsubscribed_at
  * @property \Illuminate\Support\Carbon $created_at
  * @property \Illuminate\Support\Carbon $updated_at
  * @property-read User|null $user
@@ -26,7 +29,31 @@ final class NewsletterSubscriber extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'email',
+        'user_id',
+        'is_verified',
+        'subscribed_at',
+        'unsubscribed_at',
+    ];
+
+    /**
+     * The attributes that should be guarded from mass assignment.
+     *
+     * @var list<string>
+     */
+    protected $guarded = [
+        'id',
+        'verification_token',
+        'verification_token_expires_at',
+        'created_at',
+        'updated_at',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -38,6 +65,8 @@ final class NewsletterSubscriber extends Model
         return [
             'is_verified' => 'boolean',
             'subscribed_at' => 'datetime',
+            'unsubscribed_at' => 'datetime',
+            'verification_token_expires_at' => 'datetime',
         ];
     }
 

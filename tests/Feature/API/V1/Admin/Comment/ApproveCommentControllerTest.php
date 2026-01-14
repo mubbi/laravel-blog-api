@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Data\ApproveCommentDTO;
 use App\Enums\CommentStatus;
 use App\Enums\UserRole;
 use App\Events\Comment\CommentApprovedEvent;
+use App\Models\Article;
 use App\Models\Comment;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\CommentService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -26,7 +27,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved after review',
             ]);
 
@@ -76,7 +77,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id));
+            ->postJson(route('api.v1.admin.comments.approve', $comment));
 
         // Assert
         $response->assertStatus(200)
@@ -107,7 +108,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Re-approved',
             ]);
 
@@ -134,7 +135,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved after reconsideration',
             ]);
 
@@ -185,7 +186,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -200,7 +201,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         // Act
-        $response = $this->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+        $response = $this->postJson(route('api.v1.admin.comments.approve', $comment), [
             'admin_note' => 'Test note',
         ]);
 
@@ -220,7 +221,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => str_repeat('a', 501), // Exceeds max length
             ]);
 
@@ -247,15 +248,15 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         // Mock CommentService to throw exception
-        $this->mock(CommentService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\CommentServiceInterface::class, function ($mock) {
             $mock->shouldReceive('approveComment')
-                ->with(\Mockery::type('int'), \Mockery::type(\App\Data\ApproveCommentDTO::class))
+                ->with(\Mockery::type('int'), \Mockery::type(ApproveCommentDTO::class), \Mockery::type('int'))
                 ->andThrow(new \Exception('Service error'));
         });
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -270,7 +271,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Verify error was logged
         Log::shouldReceive('error')->with(
-            'Comment approval failed',
+            'ApproveCommentController: Exception occurred',
             \Mockery::type('array')
         );
     });
@@ -285,18 +286,18 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
             'status' => CommentStatus::PENDING->value,
         ]);
 
-        // Mock CommentService to throw ModelNotFoundException
-        $this->mock(CommentService::class, function ($mock) {
+        // Mock CommentServiceInterface to throw ModelNotFoundException
+        $this->mock(\App\Services\Interfaces\CommentServiceInterface::class, function ($mock) use ($comment) {
             $exception = new ModelNotFoundException;
-            $exception->setModel(\App\Models\Comment::class);
+            $exception->setModel(Comment::class);
             $mock->shouldReceive('approveComment')
-                ->with(\Mockery::type('int'), \Mockery::type(\App\Data\ApproveCommentDTO::class))
+                ->with(\Mockery::on(fn ($arg) => $arg instanceof Comment && $arg->id === $comment->id), \Mockery::type(ApproveCommentDTO::class), \Mockery::type(User::class))
                 ->andThrow($exception);
         });
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -325,7 +326,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
@@ -347,12 +348,12 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
             'status' => CommentStatus::PENDING->value,
             'content' => 'Original content',
             'user_id' => User::factory()->create()->id,
-            'article_id' => \App\Models\Article::factory()->create()->id,
+            'article_id' => Article::factory()->create()->id,
         ]);
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
@@ -380,7 +381,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment->id), [
+            ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 

@@ -15,7 +15,7 @@ Route::get('/health', function () {
         // Check database connection
         DB::connection()->getPdo();
         $database = 'healthy';
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         $database = 'unhealthy';
     }
 
@@ -24,7 +24,7 @@ Route::get('/health', function () {
         Cache::put('health_check', 'ok', 10);
         $cache_result = Cache::get('health_check');
         $cache = ($cache_result === 'ok') ? 'healthy' : 'unhealthy';
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         $cache = 'unhealthy';
     }
 

@@ -4,12 +4,29 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\Article;
+use App\Models\Category;
+use App\Models\Comment;
+use App\Models\NewsletterSubscriber;
+use App\Models\Notification;
+use App\Models\Permission;
+use App\Models\Tag;
 use App\Models\User;
+use App\Policies\ArticlePolicy;
+use App\Policies\CategoryPolicy;
+use App\Policies\CommentPolicy;
+use App\Policies\NewsletterSubscriberPolicy;
+use App\Policies\NotificationPolicy;
+use App\Policies\TagPolicy;
+use App\Policies\UserPolicy;
+use App\Services\Auth\AuthService;
+use App\Services\Interfaces\AuthServiceInterface;
+use Exception;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 
-class AuthServiceProvider extends ServiceProvider
+final class AuthServiceProvider extends ServiceProvider
 {
     /**
      * The policy mappings for the application.
@@ -17,23 +34,30 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        \App\Models\Article::class => \App\Policies\ArticlePolicy::class,
-        \App\Models\Comment::class => \App\Policies\CommentPolicy::class,
-        \App\Models\User::class => \App\Policies\UserPolicy::class,
-        \App\Models\Category::class => \App\Policies\CategoryPolicy::class,
-        \App\Models\Tag::class => \App\Policies\TagPolicy::class,
-        \App\Models\NewsletterSubscriber::class => \App\Policies\NewsletterSubscriberPolicy::class,
-        \App\Models\Notification::class => \App\Policies\NotificationPolicy::class,
+        Article::class => ArticlePolicy::class,
+        Comment::class => CommentPolicy::class,
+        User::class => UserPolicy::class,
+        Category::class => CategoryPolicy::class,
+        Tag::class => TagPolicy::class,
+        NewsletterSubscriber::class => NewsletterSubscriberPolicy::class,
+        Notification::class => NotificationPolicy::class,
     ];
 
     /**
      * Register any authentication / authorization services.
+     *
+     * Using scoped() for stateless AuthService:
+     * - Reduces object creation overhead (reuses within scope)
+     * - Saves memory by reusing instances within request/job
+     * - Faster dependency resolution
+     * - Explicit per-request/job isolation (safe for queue jobs)
+     * - Future-proof: works correctly when AuthService is used in queue jobs
      */
     public function register(): void
     {
-        $this->app->bind(
-            \App\Services\Interfaces\AuthServiceInterface::class,
-            \App\Services\Auth\AuthService::class
+        $this->app->scoped(
+            AuthServiceInterface::class,
+            AuthService::class
         );
     }
 
@@ -61,7 +85,7 @@ class AuthServiceProvider extends ServiceProvider
             if (Schema::hasTable('permissions')) {
                 // Cache permissions for 1 hour to avoid repeated DB hits
                 $permissions = cache()->remember('all_permissions', 3600, function () {
-                    return \App\Models\Permission::pluck('name')->toArray();
+                    return Permission::pluck('name')->toArray();
                 });
 
                 foreach ($permissions as $permission) {
@@ -89,7 +113,7 @@ class AuthServiceProvider extends ServiceProvider
                     });
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Database not ready or connection failed, skip permission gates
             // This can happen during initial setup or when database is not available
         }

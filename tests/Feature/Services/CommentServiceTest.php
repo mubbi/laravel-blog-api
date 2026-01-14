@@ -1,0 +1,556 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Data\ApproveCommentDTO;
+use App\Data\DeleteCommentDTO;
+use App\Data\FilterCommentDTO;
+use App\Enums\CommentStatus;
+use App\Events\Comment\CommentApprovedEvent;
+use App\Events\Comment\CommentDeletedEvent;
+use App\Models\Article;
+use App\Models\Comment;
+use App\Models\User;
+use App\Services\CommentService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
+
+uses(RefreshDatabase::class);
+
+describe('CommentService', function () {
+    beforeEach(function () {
+        $this->service = app(CommentService::class);
+    });
+
+    describe('getCommentById', function () {
+        it('can get comment by id with relationships', function () {
+            // Arrange
+            $user = User::factory()->create();
+            $article = Article::factory()->create();
+            $comment = Comment::factory()->create([
+                'user_id' => $user->id,
+                'article_id' => $article->id,
+            ]);
+
+            // Act
+            $result = $this->service->getCommentById($comment->id);
+
+            // Assert
+            expect($result->id)->toBe($comment->id);
+            expect($result->relationLoaded('user'))->toBeTrue();
+            expect($result->relationLoaded('article'))->toBeTrue();
+            expect($result->user->id)->toBe($user->id);
+            expect($result->article->id)->toBe($article->id);
+        });
+
+        it('throws ModelNotFoundException when comment does not exist', function () {
+            // Act & Assert
+            expect(fn () => $this->service->getCommentById(99999))
+                ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        });
+    });
+
+    describe('getComments', function () {
+        it('can get paginated comments', function () {
+            // Arrange
+            Comment::factory()->count(20)->create();
+
+            $dto = new FilterCommentDTO(
+                perPage: 10
+            );
+
+            // Act
+            $result = $this->service->getComments($dto);
+
+            // Assert
+            expect($result->count())->toBe(10);
+            expect($result->total())->toBe(20);
+        });
+
+        it('can filter comments by status', function () {
+            // Arrange
+            Comment::factory()->count(5)->create(['status' => CommentStatus::APPROVED]);
+            Comment::factory()->count(3)->create(['status' => CommentStatus::PENDING]);
+
+            $dto = new FilterCommentDTO(
+                status: CommentStatus::APPROVED
+            );
+
+            // Act
+            $result = $this->service->getComments($dto);
+
+            // Assert
+            expect($result->total())->toBe(5);
+            foreach ($result->items() as $comment) {
+                expect($comment->status)->toBe(CommentStatus::APPROVED);
+            }
+        });
+
+        it('can filter comments by user', function () {
+            // Arrange
+            $user1 = User::factory()->create();
+            $user2 = User::factory()->create();
+            Comment::factory()->count(3)->create(['user_id' => $user1->id]);
+            Comment::factory()->count(2)->create(['user_id' => $user2->id]);
+
+            $dto = new FilterCommentDTO(
+                userId: $user1->id
+            );
+
+            // Act
+            $result = $this->service->getComments($dto);
+
+            // Assert
+            expect($result->total())->toBe(3);
+        });
+
+        it('can filter comments by article', function () {
+            // Arrange
+            $article1 = Article::factory()->create();
+            $article2 = Article::factory()->create();
+            Comment::factory()->count(4)->create(['article_id' => $article1->id]);
+            Comment::factory()->count(2)->create(['article_id' => $article2->id]);
+
+            $dto = new FilterCommentDTO(
+                articleId: $article1->id
+            );
+
+            // Act
+            $result = $this->service->getComments($dto);
+
+            // Assert
+            expect($result->total())->toBe(4);
+        });
+
+        it('can search comments by content', function () {
+            // Arrange
+            Comment::factory()->create(['content' => 'This is a test comment']);
+            Comment::factory()->create(['content' => 'Another comment']);
+
+            $dto = new FilterCommentDTO(
+                search: 'test'
+            );
+
+            // Act
+            $result = $this->service->getComments($dto);
+
+            // Assert
+            expect($result->total())->toBe(1);
+            expect($result->items()[0]->content)->toContain('test');
+        });
+
+        it('can filter comments with reports', function () {
+            // Arrange
+            Comment::factory()->count(3)->create(['report_count' => 5]);
+            Comment::factory()->count(2)->create(['report_count' => 0]);
+
+            $dto = new FilterCommentDTO(
+                hasReports: true
+            );
+
+            // Act
+            $result = $this->service->getComments($dto);
+
+            // Assert
+            expect($result->total())->toBe(3);
+        });
+
+        it('can sort comments', function () {
+            // Arrange
+            $oldComment = Comment::factory()->create(['created_at' => now()->subDays(5)]);
+            $newComment = Comment::factory()->create(['created_at' => now()]);
+
+            $dto = new FilterCommentDTO(
+                sortBy: 'created_at',
+                sortOrder: 'desc'
+            );
+
+            // Act
+            $result = $this->service->getComments($dto);
+
+            // Assert
+            expect($result->items()[0]->id)->toBe($newComment->id);
+            expect($result->items()[1]->id)->toBe($oldComment->id);
+        });
+    });
+
+    describe('approveComment', function () {
+        it('approves a comment successfully', function () {
+            // Arrange
+            Event::fake();
+            $admin = User::factory()->create();
+            $comment = Comment::factory()->create([
+                'status' => CommentStatus::PENDING,
+            ]);
+            $dto = ApproveCommentDTO::fromArray(['admin_note' => 'Approved']);
+
+            // Act
+            $result = $this->service->approveComment($comment, $dto, $admin);
+
+            // Assert
+            expect($result->status)->toBe(CommentStatus::APPROVED);
+            expect($result->approved_by)->toBe($admin->id);
+            expect($result->approved_at)->not->toBeNull();
+            Event::assertDispatched(CommentApprovedEvent::class);
+        });
+    });
+
+    describe('deleteComment', function () {
+        it('deletes a comment successfully', function () {
+            // Arrange
+            Event::fake();
+            $admin = User::factory()->create();
+            $comment = Comment::factory()->create();
+            $dto = DeleteCommentDTO::fromArray(['reason' => 'Deleted']);
+
+            // Act
+            $this->service->deleteComment($comment, $dto, $admin);
+
+            // Assert
+            $this->assertDatabaseMissing('comments', ['id' => $comment->id]);
+            Event::assertDispatched(CommentDeletedEvent::class);
+        });
+
+        it('deletes a comment without reason', function () {
+            // Arrange
+            Event::fake();
+            $admin = User::factory()->create();
+            $comment = Comment::factory()->create();
+            $dto = DeleteCommentDTO::fromArray([]);
+
+            // Act
+            $this->service->deleteComment($comment, $dto, $admin);
+
+            // Assert
+            $this->assertDatabaseMissing('comments', ['id' => $comment->id]);
+            Event::assertDispatched(CommentDeletedEvent::class);
+        });
+    });
+
+    describe('createComment', function () {
+        it('creates a comment successfully', function () {
+            // Arrange
+            Event::fake();
+            $user = User::factory()->create();
+            $article = Article::factory()->create();
+            $dto = \App\Data\CreateCommentDTO::fromArray([
+                'article_id' => $article->id,
+                'content' => 'Test comment',
+            ]);
+
+            // Act
+            $result = $this->service->createComment($article, $dto, $user);
+
+            // Assert
+            expect($result->content)->toBe('Test comment');
+            expect($result->user_id)->toBe($user->id);
+            expect($result->article_id)->toBe($article->id);
+            expect($result->status)->toBe(CommentStatus::PENDING);
+            expect($result->relationLoaded('user'))->toBeTrue();
+            expect($result->relationLoaded('article'))->toBeTrue();
+            Event::assertDispatched(\App\Events\Comment\CommentCreatedEvent::class);
+        });
+
+        it('creates a reply comment successfully', function () {
+            // Arrange
+            Event::fake();
+            $user = User::factory()->create();
+            $article = Article::factory()->create();
+            $parentComment = Comment::factory()->create([
+                'article_id' => $article->id,
+                'user_id' => User::factory()->create()->id,
+            ]);
+            $dto = \App\Data\CreateCommentDTO::fromArray([
+                'article_id' => $article->id,
+                'content' => 'Reply comment',
+                'parent_comment_id' => $parentComment->id,
+            ]);
+
+            // Act
+            $result = $this->service->createComment($article, $dto, $user);
+
+            // Assert
+            expect($result->parent_comment_id)->toBe($parentComment->id);
+            expect($result->article_id)->toBe($article->id);
+            Event::assertDispatched(\App\Events\Comment\CommentCreatedEvent::class);
+        });
+
+        it('throws exception when parent comment belongs to different article', function () {
+            // Arrange
+            $user = User::factory()->create();
+            $article1 = Article::factory()->create();
+            $article2 = Article::factory()->create();
+            $parentComment = Comment::factory()->create([
+                'article_id' => $article1->id,
+            ]);
+            $dto = \App\Data\CreateCommentDTO::fromArray([
+                'article_id' => $article2->id,
+                'content' => 'Reply comment',
+                'parent_comment_id' => $parentComment->id,
+            ]);
+
+            // Act & Assert
+            expect(fn () => $this->service->createComment($article2, $dto, $user))
+                ->toThrow(\InvalidArgumentException::class);
+        });
+
+        it('throws exception when parent comment does not exist', function () {
+            // Arrange
+            $user = User::factory()->create();
+            $article = Article::factory()->create();
+            $dto = \App\Data\CreateCommentDTO::fromArray([
+                'article_id' => $article->id,
+                'content' => 'Reply comment',
+                'parent_comment_id' => 99999,
+            ]);
+
+            // Act & Assert
+            expect(fn () => $this->service->createComment($article, $dto, $user))
+                ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        });
+    });
+
+    describe('updateComment', function () {
+        it('updates a comment successfully', function () {
+            // Arrange
+            Event::fake();
+            $comment = Comment::factory()->create([
+                'content' => 'Original content',
+            ]);
+            $dto = \App\Data\UpdateCommentDTO::fromArray([
+                'content' => 'Updated content',
+            ]);
+
+            // Act
+            $result = $this->service->updateComment($comment, $dto);
+
+            // Assert
+            expect($result->content)->toBe('Updated content');
+            expect($result->relationLoaded('user'))->toBeTrue();
+            expect($result->relationLoaded('article'))->toBeTrue();
+            Event::assertDispatched(\App\Events\Comment\CommentUpdatedEvent::class);
+        });
+    });
+
+    describe('reportComment', function () {
+        it('reports a comment successfully with reason', function () {
+            // Arrange
+            Event::fake();
+            $comment = Comment::factory()->create([
+                'report_count' => 0,
+            ]);
+            $dto = new \App\Data\ReportCommentDTO(
+                reason: 'Inappropriate content'
+            );
+
+            // Act
+            $result = $this->service->reportComment($comment, $dto);
+
+            // Assert
+            $comment->refresh();
+            expect($comment->report_count)->toBe(1);
+            expect($comment->last_reported_at)->not->toBeNull();
+            expect($result->relationLoaded('user'))->toBeTrue();
+            expect($result->relationLoaded('article'))->toBeTrue();
+            Event::assertDispatched(\App\Events\Comment\CommentReportedEvent::class);
+        });
+
+        it('reports a comment without reason', function () {
+            // Arrange
+            Event::fake();
+            $comment = Comment::factory()->create([
+                'report_count' => 2,
+            ]);
+            $dto = new \App\Data\ReportCommentDTO(
+                reason: null
+            );
+
+            // Act
+            $result = $this->service->reportComment($comment, $dto);
+
+            // Assert
+            $comment->refresh();
+            expect($comment->report_count)->toBe(3);
+            Event::assertDispatched(\App\Events\Comment\CommentReportedEvent::class);
+        });
+    });
+
+    describe('getOwnComments', function () {
+        it('gets own comments with pagination', function () {
+            // Arrange
+            $user = User::factory()->create();
+            $otherUser = User::factory()->create();
+            $article = Article::factory()->create();
+
+            Comment::factory()->count(5)->create([
+                'user_id' => $user->id,
+                'article_id' => $article->id,
+            ]);
+            Comment::factory()->count(3)->create([
+                'user_id' => $otherUser->id,
+                'article_id' => $article->id,
+            ]);
+
+            // Act
+            $result = $this->service->getOwnComments($user, 1, 10);
+
+            // Assert
+            expect($result->total())->toBe(5);
+            expect($result->count())->toBe(5);
+            foreach ($result->items() as $comment) {
+                expect($comment->user_id)->toBe($user->id);
+            }
+        });
+
+        it('gets own comments ordered by created_at desc', function () {
+            // Arrange
+            $user = User::factory()->create();
+            $article = Article::factory()->create();
+
+            $oldComment = Comment::factory()->create([
+                'user_id' => $user->id,
+                'article_id' => $article->id,
+                'created_at' => now()->subDays(5),
+            ]);
+            $newComment = Comment::factory()->create([
+                'user_id' => $user->id,
+                'article_id' => $article->id,
+                'created_at' => now(),
+            ]);
+
+            // Act
+            $result = $this->service->getOwnComments($user, 1, 10);
+
+            // Assert
+            expect($result->items()[0]->id)->toBe($newComment->id);
+            expect($result->items()[1]->id)->toBe($oldComment->id);
+        });
+
+        it('gets own comments with custom pagination', function () {
+            // Arrange
+            $user = User::factory()->create();
+            $article = Article::factory()->create();
+
+            Comment::factory()->count(25)->create([
+                'user_id' => $user->id,
+                'article_id' => $article->id,
+            ]);
+
+            // Act
+            $result = $this->service->getOwnComments($user, 1, 10);
+
+            // Assert
+            expect($result->count())->toBe(10);
+            expect($result->total())->toBe(25);
+        });
+    });
+
+    describe('getComments filters', function () {
+        it('can filter comments by parent_comment_id', function () {
+            // Arrange
+            $parentComment = Comment::factory()->create();
+            Comment::factory()->count(3)->create([
+                'parent_comment_id' => $parentComment->id,
+            ]);
+            Comment::factory()->count(2)->create([
+                'parent_comment_id' => null,
+            ]);
+
+            $dto = new FilterCommentDTO(
+                parentCommentId: $parentComment->id
+            );
+
+            // Act
+            $result = $this->service->getComments($dto);
+
+            // Assert
+            expect($result->total())->toBe(3);
+        });
+
+        it('can filter comments by approved_by', function () {
+            // Arrange
+            $admin = User::factory()->create();
+            Comment::factory()->count(3)->create([
+                'approved_by' => $admin->id,
+            ]);
+            Comment::factory()->count(2)->create([
+                'approved_by' => null,
+            ]);
+
+            $dto = new FilterCommentDTO(
+                approvedBy: $admin->id
+            );
+
+            // Act
+            $result = $this->service->getComments($dto);
+
+            // Assert
+            expect($result->total())->toBe(3);
+        });
+
+        it('can filter comments without reports', function () {
+            // Arrange
+            Comment::factory()->count(3)->create(['report_count' => 0]);
+            Comment::factory()->count(2)->create(['report_count' => 5]);
+
+            $dto = new FilterCommentDTO(
+                hasReports: false
+            );
+
+            // Act
+            $result = $this->service->getComments($dto);
+
+            // Assert
+            expect($result->total())->toBe(3);
+        });
+
+        it('applies multiple filters together', function () {
+            // Arrange
+            $user = User::factory()->create();
+            $article = Article::factory()->create();
+            Comment::factory()->count(2)->create([
+                'user_id' => $user->id,
+                'article_id' => $article->id,
+                'status' => CommentStatus::APPROVED,
+            ]);
+            Comment::factory()->count(3)->create([
+                'user_id' => $user->id,
+                'article_id' => $article->id,
+                'status' => CommentStatus::PENDING,
+            ]);
+
+            $dto = new FilterCommentDTO(
+                userId: $user->id,
+                articleId: $article->id,
+                status: CommentStatus::APPROVED
+            );
+
+            // Act
+            $result = $this->service->getComments($dto);
+
+            // Assert
+            expect($result->total())->toBe(2);
+        });
+    });
+
+    describe('approveComment', function () {
+        it('approves a comment with empty DTO data', function () {
+            // Arrange
+            Event::fake();
+            $admin = User::factory()->create();
+            $comment = Comment::factory()->create([
+                'status' => CommentStatus::PENDING,
+            ]);
+            $dto = ApproveCommentDTO::fromArray([]);
+
+            // Act
+            $result = $this->service->approveComment($comment, $dto, $admin);
+
+            // Assert
+            expect($result->status)->toBe(CommentStatus::APPROVED);
+            expect($result->approved_by)->toBe($admin->id);
+            expect($result->approved_at)->not->toBeNull();
+            Event::assertDispatched(CommentApprovedEvent::class);
+        });
+    });
+});

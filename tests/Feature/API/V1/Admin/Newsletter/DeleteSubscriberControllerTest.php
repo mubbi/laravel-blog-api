@@ -7,7 +7,6 @@ use App\Events\Newsletter\NewsletterSubscriberDeletedEvent;
 use App\Models\NewsletterSubscriber;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\NewsletterService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +24,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Removed for spam',
             ]);
 
@@ -61,7 +60,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Removed verified subscriber',
             ]);
 
@@ -91,7 +90,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Removed unverified subscriber',
             ]);
 
@@ -120,7 +119,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id));
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber));
 
         // Assert
         $response->assertStatus(200)
@@ -171,7 +170,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $newsletterSubscriber->id), [
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $newsletterSubscriber), [
                 'reason' => 'Test note',
             ]);
 
@@ -186,7 +185,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         ]);
 
         // Act
-        $response = $this->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+        $response = $this->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
             'reason' => 'Test note',
         ]);
 
@@ -206,7 +205,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => str_repeat('a', 501), // Exceeds max length
             ]);
 
@@ -233,14 +232,14 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         ]);
 
         // Mock NewsletterService to throw exception
-        $this->mock(NewsletterService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\NewsletterServiceInterface::class, function ($mock) {
             $mock->shouldReceive('deleteSubscriber')
                 ->andThrow(new \Exception('Service error'));
         });
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -255,7 +254,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Verify error was logged
         Log::shouldReceive('error')->with(
-            'Newsletter subscriber deletion failed',
+            'DeleteSubscriberController: Exception occurred',
             \Mockery::type('array')
         );
     });
@@ -271,7 +270,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         ]);
 
         // Mock NewsletterService to throw ModelNotFoundException
-        $this->mock(NewsletterService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\NewsletterServiceInterface::class, function ($mock) {
             $exception = new ModelNotFoundException;
             $exception->setModel(\App\Models\NewsletterSubscriber::class);
             $mock->shouldReceive('deleteSubscriber')
@@ -280,7 +279,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Test note',
             ]);
 
@@ -309,7 +308,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Permanently deleted',
             ]);
 
@@ -340,7 +339,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Test deletion',
             ]);
 
@@ -368,7 +367,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id));
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber));
 
         // Assert
         $response->assertStatus(200);
@@ -388,7 +387,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         attachRoleAndRefreshCache($admin, $adminRole);
 
         // Mock NewsletterService to throw exception before deletion
-        $this->mock(NewsletterService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\NewsletterServiceInterface::class, function ($mock) {
             $exception = new ModelNotFoundException;
             $exception->setModel(\App\Models\NewsletterSubscriber::class);
             $mock->shouldReceive('deleteSubscriber')
@@ -422,7 +421,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Deleted with user relationship',
             ]);
 
@@ -454,7 +453,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Deleted guest subscriber',
             ]);
 
@@ -482,7 +481,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber->id), [
+            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Removed longtime subscriber',
             ]);
 

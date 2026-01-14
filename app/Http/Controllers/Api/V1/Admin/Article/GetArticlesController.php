@@ -4,32 +4,40 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Admin\Article;
 
+use App\Data\FilterArticleManagementDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Article\GetArticlesRequest;
 use App\Http\Resources\MetaResource;
 use App\Http\Resources\V1\Admin\Article\ArticleManagementResource;
-use App\Services\ArticleManagementService;
+use App\Services\Interfaces\ArticleManagementServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
-#[Group('Admin - Article Management', weight: 2)]
+#[Group('Article Management', weight: 2)]
 final class GetArticlesController extends Controller
 {
     public function __construct(
-        private readonly ArticleManagementService $articleManagementService
+        private readonly ArticleManagementServiceInterface $articleManagementService
     ) {}
 
     /**
-     * Get Paginated List of Articles (Admin)
+     * Get Paginated List of Articles
      *
-     * Retrieves a paginated list of all articles in the system with comprehensive admin filtering,
-     * sorting, and search capabilities. Unlike the public endpoint, this includes all article
-     * statuses (draft, review, published, archived) and provides additional management filters
-     * such as featured status, pinned status, and report counts.
+     * Retrieves a paginated list of articles with comprehensive filtering, sorting, and search
+     * capabilities. Unlike the public endpoint, this includes all article statuses (draft, review,
+     * published, archived) and provides additional management filters such as featured status,
+     * pinned status, and report counts.
+     *
+     * **Access Control:**
+     * - **Authenticated users**: Can view and manage their own articles
+     * - **Admin users** (with `edit_others_posts` permission): Can view and manage all articles in the system
      *
      * **Authentication & Authorization:**
      * Requires a valid Bearer token with `access-api` ability and `view_posts` permission.
+     * Non-admin users will automatically see only their own articles, while admins see all articles.
      *
      * **Query Parameters (all optional):**
      * - `page` (integer, min:1, default: 1): Page number for pagination
@@ -59,13 +67,14 @@ final class GetArticlesController extends Controller
     public function __invoke(GetArticlesRequest $request): JsonResponse
     {
         try {
-            $dto = \App\Data\FilterArticleManagementDTO::fromRequest($request);
-            $articles = $this->articleManagementService->getArticles($dto);
+            $dto = FilterArticleManagementDTO::fromRequest($request);
+            $userIdForFiltering = $request->getUserIdForFiltering();
+            $articles = $this->articleManagementService->getArticles($dto, $userIdForFiltering);
             $articleCollection = ArticleManagementResource::collection($articles);
             $articleCollectionData = $articleCollection->response()->getData(true);
 
             if (! is_array($articleCollectionData) || ! isset($articleCollectionData['data'], $articleCollectionData['meta'])) {
-                throw new \RuntimeException(__('common.unexpected_response_format'));
+                throw new RuntimeException(__('common.unexpected_response_format'));
             }
 
             return response()->apiSuccess(
@@ -75,7 +84,7 @@ final class GetArticlesController extends Controller
                 ],
                 __('common.success')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

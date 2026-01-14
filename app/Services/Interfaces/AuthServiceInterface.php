@@ -28,4 +28,18 @@ interface AuthServiceInterface
      * Logout user by revoking all tokens.
      */
     public function logout(User $user): void;
+
+    /**
+     * Send password reset link to user's email.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function forgotPassword(string $email): void;
+
+    /**
+     * Reset user's password using a reset token.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function resetPassword(string $email, string $token, string $password): void;
 }

@@ -63,7 +63,8 @@ interface UserRepositoryInterface
     /**
      * Get all users
      *
+     * @param  array<string>|null  $columns
      * @return Collection<int, User>
      */
-    public function all(): Collection;
+    public function all(?array $columns = null): Collection;
 }

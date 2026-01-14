@@ -146,22 +146,39 @@ docker-restart: docker-down docker-up
 
 
 # Run tests (automated testing environment)
+# Usage: make test                    - Run all tests
+# Usage: make test filter='TestName'  - Run specific test by filter
 test:
 	@if docker-compose -f containers/docker-compose.test.yml ps | grep -q 'laravel_blog_api_test' && docker-compose -f containers/docker-compose.test.yml ps | grep 'Up'; then \
 		echo "🧪 TESTING: Test container already running. Skipping setup..."; \
-		echo ">> Running tests..."; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure; \
+		echo ">> Clearing caches..."; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan route:clear; \
+		if [ -n "$(filter)" ]; then \
+			echo ">> Running filtered test: $(filter)..."; \
+			docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --filter=$(filter); \
+		else \
+			echo ">> Running tests..."; \
+			docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure; \
+		fi; \
 		echo "✅ SUCCESS: Tests completed!"; \
 	else \
-		echo "🧪 TESTING: Running complete test suite..."; \
+		echo "🧪 TESTING: Running test suite..."; \
 		cd containers && docker-compose -f docker-compose.test.yml up -d; \
 		echo ">> Installing dependencies in test container..."; \
 		sleep 10; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan route:clear; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force; \
-		echo ">> Running tests..."; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure; \
+		if [ -n "$(filter)" ]; then \
+			echo ">> Running filtered test: $(filter)..."; \
+			docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --filter=$(filter); \
+		else \
+			echo ">> Running tests..."; \
+			docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure; \
+		fi; \
 		echo "✅ SUCCESS: Tests completed!"; \
 	fi
 
@@ -170,6 +187,9 @@ test:
 test-coverage:
 	@if docker-compose -f containers/docker-compose.test.yml ps | grep -q 'laravel_blog_api_test' && docker-compose -f containers/docker-compose.test.yml ps | grep 'Up'; then \
 		echo "🧪 TESTING: Test container already running. Skipping setup..."; \
+		echo ">> Clearing caches..."; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan route:clear; \
 		echo ">> Running tests with coverage..."; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=70; \
 		echo "✅ SUCCESS: Tests with coverage completed!"; \
@@ -179,6 +199,8 @@ test-coverage:
 		sleep 10; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
+		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan route:clear; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force; \
 		echo ">> Running tests with coverage..."; \
 		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=70; \
@@ -204,6 +226,11 @@ lint-dirty:
 # Run Static Analysis (PHPStan)
 analyze:
 	@echo "🔍 ANALYZE: Running PHPStan static analysis..."
+	@echo ">> Ensuring .env file exists with APP_KEY..."
+	@docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api bash -c "if [ ! -f .env ]; then if [ -f .env.docker.example ]; then cp .env.docker.example .env; else echo 'ERROR: .env file not found and .env.docker.example does not exist'; exit 1; fi; fi; if ! grep -q 'APP_KEY=base64:' .env 2>/dev/null; then php artisan key:generate --force 2>/dev/null || true; fi"
+	@echo ">> Clearing all caches..."
+	@docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api bash -c "rm -rf bootstrap/cache/*.php storage/framework/cache/* storage/framework/views/* 2>/dev/null || true"
+	@echo ">> Running PHPStan..."
 	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api ./vendor/bin/phpstan analyse --memory-limit=2G
 	@echo "SUCCESS: Static analysis completed!"
 
@@ -396,6 +423,7 @@ help:
 	@echo "🔧 DEVELOPMENT WORKFLOW:"
 	@echo "  make commit              - Interactive semantic commit"
 	@echo "  make test                - Run all tests"
+	@echo "  make test filter='...'   - Run specific test by filter (e.g., filter='Auth')"
 	@echo "  make test-coverage       - Run tests with coverage report"
 	@echo "  make lint                - Run code linting (Pint)"
 	@echo "  make analyze             - Run static analysis (PHPStan)"

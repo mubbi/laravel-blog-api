@@ -28,7 +28,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+        ])->postJson(route('api.v1.admin.articles.feature', $article));
 
         // Assert
         $response->assertStatus(200)
@@ -63,7 +63,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+        ])->postJson(route('api.v1.admin.articles.feature', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -90,7 +90,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+        ])->postJson(route('api.v1.admin.articles.feature', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -117,7 +117,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+        ])->postJson(route('api.v1.admin.articles.feature', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -144,7 +144,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+        ])->postJson(route('api.v1.admin.articles.feature', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -181,7 +181,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         $article = Article::factory()->create();
 
         // Act
-        $response = $this->postJson(route('api.v1.admin.articles.feature', $article->id));
+        $response = $this->postJson(route('api.v1.admin.articles.feature', $article));
 
         // Assert
         $response->assertStatus(401);
@@ -200,7 +200,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+        ])->postJson(route('api.v1.admin.articles.feature', $article));
 
         // Assert
         $response->assertStatus(403);
@@ -222,7 +222,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         // Act - First call to feature
         $response1 = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+        ])->postJson(route('api.v1.admin.articles.feature', $article));
 
         // Assert - Should be featured now
         $response1->assertStatus(200);
@@ -234,7 +234,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         // Act - Second call to unfeature
         $response2 = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+        ])->postJson(route('api.v1.admin.articles.feature', $article));
 
         // Assert - Should be unfeatured now
         $response2->assertStatus(200);
@@ -268,7 +268,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+        ])->postJson(route('api.v1.admin.articles.feature', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -303,7 +303,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+        ])->postJson(route('api.v1.admin.articles.feature', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -332,7 +332,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.feature', $article->id));
+        ])->postJson(route('api.v1.admin.articles.feature', $article));
 
         // Assert
         $response->assertStatus(200);

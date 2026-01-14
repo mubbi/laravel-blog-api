@@ -18,7 +18,7 @@ final class HandleUserLoggedInListener implements ShouldQueue
      */
     public function handle(UserLoggedInEvent $event): void
     {
-        Log::info('User logged in', [
+        Log::info(__('log.user_logged_in'), [
             'user_id' => $event->user->id,
             'email' => $event->user->email,
         ]);

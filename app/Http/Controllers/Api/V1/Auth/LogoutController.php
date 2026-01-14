@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Controller as BaseController;
+use App\Models\User;
 use App\Services\Interfaces\AuthServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Authentication', weight: 0)]
 final class LogoutController extends BaseController
@@ -35,7 +37,7 @@ final class LogoutController extends BaseController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = $request->user();
 
             $this->authService->logout($user);
@@ -47,7 +49,7 @@ final class LogoutController extends BaseController
                 null,
                 __('auth.logout_success')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

@@ -6,9 +6,11 @@ namespace App\Http\Controllers\Api\V1\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\Auth\UserResource;
+use App\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Throwable;
 
 #[Group('User', weight: 0)]
 final class MeController extends Controller
@@ -37,15 +39,15 @@ final class MeController extends Controller
              * Successful response
              */
 
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = $request->user();
             $user->load(['roles.permissions']);
 
             return response()->apiSuccess(
-                new \App\Http\Resources\V1\Auth\UserResource($user),
+                new UserResource($user),
                 __('common.success')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

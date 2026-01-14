@@ -24,6 +24,21 @@ final class ArticleTag extends Model
 
     public $timestamps = false;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'article_id',
+        'tag_id',
+    ];
+
+    /**
+     * The attributes that should be guarded from mass assignment.
+     *
+     * @var list<string>
+     */
     protected $guarded = [];
 
     /**

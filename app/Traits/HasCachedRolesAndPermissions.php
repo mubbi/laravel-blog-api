@@ -41,7 +41,11 @@ trait HasCachedRolesAndPermissions
 
         /** @var array<int, string> $result */
         $result = Cache::remember($cacheKey, CacheKeys::CACHE_TTL, function () {
-            return $this->roles->pluck('name')->toArray();
+            if (! $this->relationLoaded('roles')) {
+                $this->load('roles');
+            }
+
+            return $this->roles->pluck('slug')->toArray();
         });
 
         return $result;

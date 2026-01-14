@@ -8,16 +8,17 @@ use App\Data\UpdateUserDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\User\UpdateProfileRequest;
 use App\Http\Resources\V1\User\UserResource;
-use App\Services\UserService;
+use App\Services\Interfaces\UserServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('User Profile', weight: 1)]
 final class UpdateProfileController extends Controller
 {
     public function __construct(
-        private readonly UserService $userService
+        private readonly UserServiceInterface $userService
     ) {}
 
     /**
@@ -80,13 +81,13 @@ final class UpdateProfileController extends Controller
                 providedFields: $providedFields,
             );
 
-            $user = $this->userService->updateUser($authenticatedUser->id, $dto);
+            $user = $this->userService->updateUser($authenticatedUser, $dto);
 
             return response()->apiSuccess(
                 new UserResource($user),
                 __('common.profile_updated_successfully')
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

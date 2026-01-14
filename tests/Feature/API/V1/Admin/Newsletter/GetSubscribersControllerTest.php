@@ -216,7 +216,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
         attachRoleAndRefreshCache($admin, $adminRole);
 
         // Mock NewsletterService to throw exception
-        $this->mock(\App\Services\NewsletterService::class, function ($mock) {
+        $this->mock(\App\Services\Interfaces\NewsletterServiceInterface::class, function ($mock) {
             $mock->shouldReceive('getSubscribers')
                 ->andThrow(new \Exception('Database error'));
         });
@@ -236,7 +236,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Verify error was logged
         Log::shouldReceive('error')->with(
-            'Newsletter subscribers retrieval failed',
+            'GetSubscribersController: Exception occurred',
             \Mockery::type('array')
         );
     });

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Data;
 
+use App\Http\Requests\V1\Admin\User\UpdateUserRequest;
+
 /**
  * Data Transfer Object for updating a user
  */
@@ -41,7 +43,7 @@ final class UpdateUserDTO
     /**
      * Create DTO from request
      */
-    public static function fromRequest(\App\Http\Requests\V1\Admin\User\UpdateUserRequest $request): self
+    public static function fromRequest(UpdateUserRequest $request): self
     {
         $validated = $request->validated();
 
@@ -57,6 +59,28 @@ final class UpdateUserDTO
             github: isset($validated['github']) ? (string) $validated['github'] : null,
             website: isset($validated['website']) ? (string) $validated['website'] : null,
             roleIds: isset($validated['role_ids']) && is_array($validated['role_ids']) ? array_map(fn ($id) => (int) $id, $validated['role_ids']) : null,
+        );
+    }
+
+    /**
+     * Create DTO from array
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            name: isset($data['name']) ? (string) $data['name'] : null,
+            email: isset($data['email']) ? (string) $data['email'] : null,
+            password: isset($data['password']) ? (string) $data['password'] : null,
+            avatarUrl: isset($data['avatar_url']) ? (string) $data['avatar_url'] : null,
+            bio: isset($data['bio']) ? (string) $data['bio'] : null,
+            twitter: isset($data['twitter']) ? (string) $data['twitter'] : null,
+            facebook: isset($data['facebook']) ? (string) $data['facebook'] : null,
+            linkedin: isset($data['linkedin']) ? (string) $data['linkedin'] : null,
+            github: isset($data['github']) ? (string) $data['github'] : null,
+            website: isset($data['website']) ? (string) $data['website'] : null,
+            roleIds: isset($data['role_ids']) && is_array($data['role_ids']) ? array_map(fn ($id) => (int) $id, $data['role_ids']) : null,
         );
     }
 

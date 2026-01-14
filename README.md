@@ -370,71 +370,39 @@ Based on the codebase review, the following APIs and features are pending implem
 
 ### ✅ Already Implemented
 
-- **Authentication**: Login, Logout, Refresh Token
+- **Authentication**: Login, Logout, Refresh Token, Forgot Password, Reset Password
 - **User Management (Admin)**: CRUD operations, Ban/Unban, Block/Unblock
 - **User Profile**: Get `/me`, Update profile
-- **Article Management (Admin)**: List, Show, Approve, Feature, Report
-- **Article Management (Public)**: List, Show by slug, Get comments
+- **Article Management (Admin)**: List, Show, Create, Approve, Feature, Report, Pin, Unpin, Archive, Restore from archive, Trash, Restore from trash
+- **Article Management (Public)**: List, Show by slug, Get comments, Like article, Dislike article
+  - Like/Dislike endpoints use `ArticleReactionType` enum for type safety
+  - Real IP address detection via `Helper::getRealIpAddress()` for accurate tracking
+  - Refactored service methods with reduced code duplication
 - **Comment Management (Admin)**: List, Approve, Delete
-- **Comment Management (Public)**: Get comments for article
+- **Comment Management (Public)**: Get comments for article, Create comment, Update own comment, Delete own comment, Report comment, Get own comments
 - **Newsletter Management (Admin)**: List subscribers, Delete subscriber
+- **Newsletter Management (Public)**: Subscribe, Unsubscribe, Verify subscription, Verify unsubscription
 - **Notification Management (Admin)**: List, Create
 - **Taxonomy (Public)**: Get categories, Get tags
+- **Taxonomy Management (Admin/Editor)**: Create category, Update category, Delete category, Create tag, Update tag, Delete tag
 
 ### ❌ Pending Implementation
 
 - **NextJS Client App**
   - Complete NextJS App to integrate all these APIs (separate REPO once APIs are complete)
 
-- **Authentication & User Registration**
-  - User registration endpoint (public) - Currently only admin can create users
-  - Email verification flow
-  - Password reset functionality
-
 - **Role & Permission Management**
-  - Assign roles to users endpoint
-  - Get all roles endpoint (service method exists but no endpoint)
-  - Get all permissions endpoint (service method exists but no endpoint)
-
-- **Article/Post Management**
-  - Admin - Create article to support Schedule article options 
-  - Admin - Pin article endpoint (service method exists: `pinArticle()`)
-  - Admin - Unpin article endpoint (service method exists: `unpinArticle()`)
-  - Admin - Archive article endpoint (service method exists: `archiveArticle()`)
-  - Admin - Restore article from archive endpoint (service method exists: `restoreArticle()`)
-  - Admin - Trash article endpoint (service method exists: `trashArticle()`)
-  - Admin - Restore from trash endpoint (service method exists: `restoreFromTrash()`)
-  - Like article endpoint
-  - Dislike article endpoint
-
-- **Comment Management**
-  - Create comment endpoint (for authenticated users)
-  - Update own comment endpoint
-  - Delete own comment endpoint
-  - Report comment endpoint (for users)
-  - Get own comments endpoint
-
-- **Taxonomy Management (Admin/Editor)**
-  - Create category (with parent/child support) endpoint
-  - Update category (with parent/child support) endpoint
-  - Delete category (ask for child categories deletion) endpoint
-  - Create tag (with parent/child support) endpoint
-  - Update tag (with parent/child support) endpoint
-  - Delete tag (ask for child tags deletion) endpoint
-  - Hierarchical category/tag management (parent/child relationships)
+  - Assign roles to users endpoint (service method exists: `assignRoles()` in `UserService`)
+  - Get all roles endpoint (service method exists: `getAllRoles()` in `UserService`)
+  - Get all permissions endpoint (service method exists: `getAllPermissions()` in `UserService`)
 
 - **Media Management**
-  - Upload media endpoint (for admin/editor/author)
+  - Upload media endpoint
   - Delete media endpoint
   - List media library endpoint
   - Get media details endpoint
   - Update media metadata endpoint
   - Image optimization and storage integration
-
-- **Newsletter Management (Public)**
-  - Subscribe to newsletter endpoint
-  - Unsubscribe from newsletter endpoint
-  - Verify subscription email endpoint
 
 - **User Notifications**
   - Get user's notifications endpoint
@@ -444,7 +412,7 @@ Based on the codebase review, the following APIs and features are pending implem
   - Get unread notifications count endpoint
 
 - **Analytics & Settings**
-  - View analytics dashboard endpoint (admin only)
+  - View analytics dashboard endpoint (user and admin)
   - Get site statistics endpoint
   - Manage site settings endpoints (CRUD)
   - Export data endpoint
@@ -456,8 +424,7 @@ Based on the codebase review, the following APIs and features are pending implem
   - Unfollow user endpoint
   - Get user followers endpoint
   - Get user following endpoint
-  - View user profile endpoint (public)
-  - Send messages endpoint (if implementing messaging)
+  - View user profile endpoint
 
 - **General Improvements**
   - Ensure all permission checks are enforced in controllers/routes
@@ -468,6 +435,7 @@ Based on the codebase review, the following APIs and features are pending implem
   - Add API versioning strategy documentation
   - Review and update API documentation (Scramble) for all endpoints
 
-> _Note: Some service methods exist (e.g., `pinArticle()`, `archiveArticle()`) but lack corresponding API endpoints. Review `app/Services/ArticleManagementService.php` and `app/Services/UserService.php` for available methods that need endpoints._
+> _Note: Service methods exist but lack corresponding API endpoints. Key services to review:_
+> - `app/Services/UserService.php` - `getAllRoles()`, `getAllPermissions()`, `assignRoles()`
 
 ---

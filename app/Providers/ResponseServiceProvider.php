@@ -9,9 +9,12 @@ use Illuminate\Support\ServiceProvider;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
- * Service provider for custom API response macros.
+ * Response Service Provider
+ *
+ * Responsible for registering custom API response macros.
+ * Provides standardized success and error response formats.
  */
-class ResponseServiceProvider extends ServiceProvider
+final class ResponseServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {

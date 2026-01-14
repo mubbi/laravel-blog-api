@@ -20,5 +20,12 @@ return [
     'token_refreshed_successfully' => 'Access token refreshed successfully.',
     'invalid_refresh_token' => 'The provided refresh token is invalid.',
     'refresh_token_expired' => 'The refresh token has expired. Please login again.',
+    'password_reset_email_subject' => 'Reset Your Password',
+    'password_reset_email_greeting' => 'Hello :name,',
+    'password_reset_email_intro' => 'You are receiving this email because we received a password reset request for your account.',
+    'password_reset_email_token_label' => 'Password Reset Token:',
+    'password_reset_email_token_usage' => 'Use this token to reset your password by making a POST request to: :url with the token, email, and new password in the request body.',
+    'password_reset_email_outro' => 'If you did not request a password reset, no further action is required.',
+    'password_reset_email_expires' => 'This password reset token will expire in :minutes minutes.',
 
 ];

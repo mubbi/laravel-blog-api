@@ -9,6 +9,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * Role Permission Seeder
@@ -193,7 +194,7 @@ final class RolePermissionSeeder extends Seeder
 
             DB::commit();
             $this->command->info("Successfully assigned {$assignedCount} permission-role relationships");
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             DB::rollBack();
             $this->command->error('Failed to assign role permissions: '.$e->getMessage());
             throw $e;

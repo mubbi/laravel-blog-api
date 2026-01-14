@@ -30,7 +30,7 @@ class ArticleResource extends JsonResource
             'content_markdown' => $this->content_markdown,
             'featured_image' => $this->featured_image,
             'status' => $this->status,
-            'status_display' => $this->status->displayName(),
+            'status_display' => __('enums.article_status.'.$this->status->value),
             'published_at' => ($this->published_at instanceof \DateTimeInterface ? $this->published_at->toISOString() : $this->published_at),
             'is_featured' => $this->is_featured,
             'is_pinned' => $this->is_pinned,

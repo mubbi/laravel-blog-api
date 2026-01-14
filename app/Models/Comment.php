@@ -8,6 +8,7 @@ use App\Enums\CommentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -45,7 +46,39 @@ final class Comment extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $guarded = [];
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'article_id',
+        'user_id',
+        'content',
+        'parent_comment_id',
+        'status',
+    ];
+
+    /**
+     * The attributes that should be guarded from mass assignment.
+     *
+     * @var list<string>
+     */
+    protected $guarded = [
+        'id',
+        'approved_at',
+        'approved_by',
+        'report_count',
+        'last_reported_at',
+        'report_reason',
+        'moderator_notes',
+        'admin_note',
+        'deleted_reason',
+        'deleted_by',
+        'deleted_at',
+        'created_at',
+        'updated_at',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -87,11 +120,11 @@ final class Comment extends Model
     /**
      * Get the replies (child comments) for this comment.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Comment, Comment>
+     * @return HasMany<Comment, Comment>
      */
-    public function replies(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function replies(): HasMany
     {
-        /** @var \Illuminate\Database\Eloquent\Relations\HasMany<Comment, Comment> $relation */
+        /** @var HasMany<Comment, Comment> $relation */
         $relation = $this->hasMany(Comment::class, 'parent_comment_id');
 
         return $relation;
@@ -117,5 +150,82 @@ final class Comment extends Model
         $relation = $this->belongsTo(User::class, 'deleted_by');
 
         return $relation;
+    }
+
+    /**
+     * Scope a query to only include approved comments.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Comment>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Comment>
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('status', CommentStatus::APPROVED);
+    }
+
+    /**
+     * Scope a query to only include pending comments.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Comment>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Comment>
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', CommentStatus::PENDING);
+    }
+
+    /**
+     * Scope a query to only include rejected comments.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Comment>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Comment>
+     */
+    public function scopeRejected($query)
+    {
+        return $query->where('status', CommentStatus::REJECTED);
+    }
+
+    /**
+     * Scope a query to only include top-level comments (no parent).
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Comment>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Comment>
+     */
+    public function scopeTopLevel($query)
+    {
+        return $query->whereNull('parent_comment_id');
+    }
+
+    /**
+     * Scope a query to only include replies (has parent).
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Comment>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Comment>
+     */
+    public function scopeReplies($query)
+    {
+        return $query->whereNotNull('parent_comment_id');
+    }
+
+    /**
+     * Scope a query to filter comments by article.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Comment>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Comment>
+     */
+    public function scopeByArticle($query, int $articleId)
+    {
+        return $query->where('article_id', $articleId);
+    }
+
+    /**
+     * Scope a query to filter comments by user.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Comment>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Comment>
+     */
+    public function scopeByUser($query, int $userId)
+    {
+        return $query->where('user_id', $userId);
     }
 }

@@ -18,6 +18,26 @@ final class GetArticlesRequest extends FormRequest
     }
 
     /**
+     * Get the current user ID for filtering (non-admin users see only their articles)
+     */
+    public function getUserIdForFiltering(): ?int
+    {
+        $user = $this->user();
+
+        if ($user === null) {
+            return null;
+        }
+
+        // Admin users (with edit_others_posts permission) can see all articles
+        if ($user->hasPermission('edit_others_posts')) {
+            return null;
+        }
+
+        // Regular users can only see their own articles
+        return $user->id;
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>

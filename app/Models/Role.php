@@ -26,7 +26,26 @@ final class Role extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'slug',
+    ];
+
+    /**
+     * The attributes that should be guarded from mass assignment.
+     *
+     * @var list<string>
+     */
+    protected $guarded = [
+        'id',
+        'created_at',
+        'updated_at',
+    ];
 
     /**
      * Boot the model and register event listeners
@@ -49,7 +68,7 @@ final class Role extends Model
     /**
      * Clear caches for all users who have this role
      */
-    private function clearUserCaches(): void
+    public function clearUserCaches(): void
     {
         // Instead of clearing individual user caches, increment the cache version
         // This will invalidate all user caches at once
@@ -63,7 +82,8 @@ final class Role extends Model
     {
         /** @var int $currentVersion */
         $currentVersion = \Illuminate\Support\Facades\Cache::get('user_cache_version', 1);
-        \Illuminate\Support\Facades\Cache::put('user_cache_version', $currentVersion + 1, CacheKeys::CACHE_TTL);
+        $newVersion = $currentVersion + 1;
+        \Illuminate\Support\Facades\Cache::put('user_cache_version', $newVersion, CacheKeys::CACHE_TTL);
     }
 
     /**

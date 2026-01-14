@@ -7,17 +7,18 @@ namespace App\Http\Controllers\Api\V1\Admin\Comment;
 use App\Data\DeleteCommentDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Admin\Comment\DeleteCommentRequest;
-use App\Services\CommentService;
+use App\Models\Comment;
+use App\Services\Interfaces\CommentServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 #[Group('Admin - Comments', weight: 2)]
 final class DeleteCommentController extends Controller
 {
     public function __construct(
-        private readonly CommentService $commentService
+        private readonly CommentServiceInterface $commentService
     ) {}
 
     /**
@@ -32,7 +33,7 @@ final class DeleteCommentController extends Controller
      * Requires a valid Bearer token with `access-api` ability and `delete_comments` permission.
      *
      * **Route Parameters:**
-     * - `id` (integer, required): The unique identifier of the comment to delete
+     * - `comment` (Comment, required): The comment model instance to delete
      *
      * **Request Body:**
      * - `reason` (optional, string, max:500): Optional reason for deleting the comment (for audit purposes)
@@ -46,26 +47,19 @@ final class DeleteCommentController extends Controller
      *
      * @response array{status: true, message: string, data: null}
      */
-    public function __invoke(DeleteCommentRequest $request, int $id): JsonResponse
+    public function __invoke(DeleteCommentRequest $request, Comment $comment): JsonResponse
     {
         try {
+            $user = $request->user();
+            assert($user !== null);
             $dto = DeleteCommentDTO::fromRequest($request);
-            $this->commentService->deleteComment($id, $dto);
+            $this->commentService->deleteComment($comment, $dto, $user);
 
             return response()->apiSuccess(
                 null,
                 __('common.comment_deleted')
             );
-        } catch (ModelNotFoundException $e) {
-            /**
-             * Comment not found
-             *
-             * @status 404
-             *
-             * @body array{status: false, message: string, data: null, error: null}
-             */
-            return $this->handleException($e, $request);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             /**
              * Internal server error
              *

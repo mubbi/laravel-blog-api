@@ -18,7 +18,7 @@ final class HandleArticleArchivedListener implements ShouldQueue
      */
     public function handle(ArticleArchivedEvent $event): void
     {
-        Log::info('Article archived', [
+        Log::info(__('log.article_archived'), [
             'article_id' => $event->article->id,
             'title' => $event->article->title,
         ]);

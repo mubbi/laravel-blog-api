@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+/**
+ * User role enumeration
+ *
+ * Defines the different permission levels users can have in the system.
+ */
 enum UserRole: string
 {
     case ADMINISTRATOR = 'administrator';

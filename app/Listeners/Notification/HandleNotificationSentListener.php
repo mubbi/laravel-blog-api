@@ -18,7 +18,7 @@ final class HandleNotificationSentListener implements ShouldQueue
      */
     public function handle(NotificationSentEvent $event): void
     {
-        Log::info('Notification sent', [
+        Log::info(__('log.notification_sent'), [
             'notification_id' => $event->notification->id,
             'type' => $event->notification->type->value,
         ]);

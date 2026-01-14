@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Models\Permission;
 use Illuminate\Database\Seeder;
+use Throwable;
 
 /**
  * Permission Seeder
@@ -154,7 +155,7 @@ final class PermissionSeeder extends Seeder
 
             $this->command->info("Permission seeding completed. Created: {$createdCount}, Existing: {$existingCount}");
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->command->error('Failed to create permissions: '.$e->getMessage());
             throw $e;
         }

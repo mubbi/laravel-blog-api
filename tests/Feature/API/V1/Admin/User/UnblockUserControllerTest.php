@@ -19,7 +19,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock->id));
+            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
 
         // Assert
         $response->assertStatus(200)
@@ -57,7 +57,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock->id));
+            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
 
         // Assert
         $response->assertStatus(200);
@@ -77,7 +77,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock->id));
+            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
 
         // Assert
         $response->assertStatus(200);
@@ -114,7 +114,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock->id));
+            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
 
         // Assert
         $response->assertStatus(403);
@@ -125,7 +125,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         $userToUnblock = User::factory()->create(['blocked_at' => now()]);
 
         // Act
-        $response = $this->postJson(route('api.v1.admin.users.unblock', $userToUnblock->id));
+        $response = $this->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
 
         // Assert
         $response->assertStatus(401);
@@ -139,7 +139,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $admin->id));
+            ->postJson(route('api.v1.admin.users.unblock', $admin));
 
         // Assert
         $response->assertStatus(403)
@@ -171,7 +171,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock->id));
+            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
 
         // Assert
         $response->assertStatus(200);
@@ -195,7 +195,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock->id));
+            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
 
         // Assert
         $response->assertStatus(200);
@@ -215,7 +215,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock->id));
+            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
 
         // Assert
         $response->assertStatus(200);
@@ -236,7 +236,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock->id));
+            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
 
         // Assert
         $response->assertStatus(200);
