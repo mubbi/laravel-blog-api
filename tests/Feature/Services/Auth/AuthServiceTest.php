@@ -312,4 +312,177 @@ describe('App\Services\Auth\AuthService tests', function () {
                 ->toThrow(\Illuminate\Validation\ValidationException::class);
         });
     });
+
+    describe('register', function () {
+        it('successfully registers a new user with default subscriber role and creates tokens', function () {
+            // Ensure subscriber role exists
+            $subscriberRole = \App\Models\Role::firstOrCreate(
+                ['name' => \App\Enums\UserRole::SUBSCRIBER->value],
+                ['slug' => 'subscriber']
+            );
+
+            $dto = new \App\Data\RegisterDTO(
+                name: 'John Doe',
+                email: 'john@example.com',
+                password: 'TestRegP@ss2024!',
+                bio: 'Test bio',
+                twitter: '@johndoe',
+            );
+
+            $result = $this->authService->register($dto);
+
+            expect($result)->toBeInstanceOf(User::class);
+            expect($result->name)->toBe('John Doe');
+            expect($result->email)->toBe('john@example.com');
+            expect($result->bio)->toBe('Test bio');
+            expect($result->twitter)->toBe('@johndoe');
+            expect($result->access_token)->toBeString();
+            expect($result->refresh_token)->toBeString();
+            expect($result->access_token_expires_at)->toBeInstanceOf(CarbonInterface::class);
+            expect($result->refresh_token_expires_at)->toBeInstanceOf(CarbonInterface::class);
+
+            // Verify user was created in database
+            $this->assertDatabaseHas('users', [
+                'email' => 'john@example.com',
+                'name' => 'John Doe',
+            ]);
+
+            // Verify password was hashed
+            $user = User::where('email', 'john@example.com')->first();
+            expect($user)->not->toBeNull();
+            expect(Hash::check('TestRegP@ss2024!', $user->password))->toBeTrue();
+
+            // Verify subscriber role was assigned
+            expect($user->roles->pluck('slug')->toArray())->toContain('subscriber');
+
+            // Verify relationships are loaded
+            expect($result->relationLoaded('roles'))->toBeTrue();
+            expect($result->roles->first()->relationLoaded('permissions'))->toBeTrue();
+
+            // Verify tokens were created
+            expect($user->fresh()->tokens()->count())->toBe(2); // access + refresh tokens
+        });
+
+        it('successfully registers user with all optional fields', function () {
+            // Ensure subscriber role exists
+            $subscriberRole = \App\Models\Role::firstOrCreate(
+                ['name' => \App\Enums\UserRole::SUBSCRIBER->value],
+                ['slug' => 'subscriber']
+            );
+
+            $dto = new \App\Data\RegisterDTO(
+                name: 'Jane Doe',
+                email: 'jane@example.com',
+                password: 'TestRegP@ss2024!',
+                avatarUrl: 'https://example.com/avatar.jpg',
+                bio: 'Software developer',
+                twitter: '@jane',
+                facebook: 'jane.doe',
+                linkedin: 'jane-doe',
+                github: 'jane-doe',
+                website: 'https://jane.example.com',
+            );
+
+            $result = $this->authService->register($dto);
+
+            expect($result)->toBeInstanceOf(User::class);
+            expect($result->avatar_url)->toBe('https://example.com/avatar.jpg');
+            expect($result->bio)->toBe('Software developer');
+            expect($result->twitter)->toBe('@jane');
+            expect($result->facebook)->toBe('jane.doe');
+            expect($result->linkedin)->toBe('jane-doe');
+            expect($result->github)->toBe('jane-doe');
+            expect($result->website)->toBe('https://jane.example.com');
+
+            // Verify all fields were saved
+            $this->assertDatabaseHas('users', [
+                'email' => 'jane@example.com',
+                'avatar_url' => 'https://example.com/avatar.jpg',
+                'bio' => 'Software developer',
+                'twitter' => '@jane',
+                'facebook' => 'jane.doe',
+                'linkedin' => 'jane-doe',
+                'github' => 'jane-doe',
+                'website' => 'https://jane.example.com',
+            ]);
+        });
+
+        it('successfully registers user even when subscriber role does not exist', function () {
+            // Don't create subscriber role - test graceful handling
+
+            $dto = new \App\Data\RegisterDTO(
+                name: 'Test User',
+                email: 'test@example.com',
+                password: 'TestRegP@ss2024!',
+            );
+
+            $result = $this->authService->register($dto);
+
+            expect($result)->toBeInstanceOf(User::class);
+            expect($result->email)->toBe('test@example.com');
+
+            // User should still be created even if role assignment fails
+            $this->assertDatabaseHas('users', [
+                'email' => 'test@example.com',
+            ]);
+        });
+
+        it('dispatches UserCreatedEvent and UserLoggedInEvent when user registers', function () {
+            \Illuminate\Support\Facades\Event::fake([\App\Events\User\UserCreatedEvent::class, \App\Events\Auth\UserLoggedInEvent::class]);
+
+            // Ensure subscriber role exists
+            $subscriberRole = \App\Models\Role::firstOrCreate(
+                ['name' => \App\Enums\UserRole::SUBSCRIBER->value],
+                ['slug' => 'subscriber']
+            );
+
+            $dto = new \App\Data\RegisterDTO(
+                name: 'John Doe',
+                email: 'john@example.com',
+                password: 'TestRegP@ss2024!',
+            );
+
+            $result = $this->authService->register($dto);
+
+            \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\User\UserCreatedEvent::class, function ($event) {
+                return $event->user->email === 'john@example.com';
+            });
+
+            \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\Auth\UserLoggedInEvent::class, function ($event) {
+                return $event->user->email === 'john@example.com';
+            });
+        });
+
+        it('creates tokens with correct abilities', function () {
+            // Ensure subscriber role exists
+            $subscriberRole = \App\Models\Role::firstOrCreate(
+                ['name' => \App\Enums\UserRole::SUBSCRIBER->value],
+                ['slug' => 'subscriber']
+            );
+
+            $dto = new \App\Data\RegisterDTO(
+                name: 'John Doe',
+                email: 'john@example.com',
+                password: 'TestRegP@ss2024!',
+            );
+
+            $result = $this->authService->register($dto);
+
+            $user = User::where('email', 'john@example.com')->first();
+            $tokens = $user->fresh()->tokens;
+
+            // Should have 2 tokens: access and refresh
+            expect($tokens->count())->toBe(2);
+
+            // Check access token has correct ability
+            $accessToken = $tokens->firstWhere('name', 'access_token');
+            expect($accessToken)->not->toBeNull();
+            expect($accessToken->abilities)->toContain('access-api');
+
+            // Check refresh token has correct ability
+            $refreshToken = $tokens->firstWhere('name', 'refresh_token');
+            expect($refreshToken)->not->toBeNull();
+            expect($refreshToken->abilities)->toContain('refresh-token');
+        });
+    });
 });

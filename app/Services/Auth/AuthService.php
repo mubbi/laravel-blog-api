@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services\Auth;
 
+use App\Data\RegisterDTO;
+use App\Enums\UserRole;
 use App\Events\Auth\TokenRefreshedEvent;
 use App\Events\Auth\UserLoggedInEvent;
 use App\Events\Auth\UserLoggedOutEvent;
+use App\Events\User\UserCreatedEvent;
 use App\Mail\PasswordResetMail;
 use App\Models\User;
+use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Interfaces\AuthServiceInterface;
 use Carbon\CarbonImmutable;
@@ -28,7 +32,8 @@ final class AuthService implements AuthServiceInterface
     private const DEFAULT_TOKEN_EXPIRY_MINUTES = 60;
 
     public function __construct(
-        private readonly UserRepositoryInterface $userRepository
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly RoleRepositoryInterface $roleRepository
     ) {}
 
     /**
@@ -178,6 +183,40 @@ final class AuthService implements AuthServiceInterface
             $user->save();
             DB::table($table)->where('email', $email)->delete();
             $user->tokens()->delete();
+        });
+    }
+
+    /**
+     * Register a new user and return the user with access and refresh tokens.
+     * The user object will have dynamically added 'access_token' and 'refresh_token' properties.
+     */
+    public function register(RegisterDTO $dto): User
+    {
+        return DB::transaction(function () use ($dto) {
+            $userData = $dto->toArray();
+            $userData['password'] = Hash::make($dto->password);
+
+            $user = $this->userRepository->create($userData);
+
+            // Assign default subscriber role
+            $subscriberRole = $this->roleRepository->findByName(UserRole::SUBSCRIBER->value);
+            if ($subscriberRole !== null) {
+                $user->roles()->attach($subscriberRole->id);
+            }
+
+            // Load roles and permissions for token generation
+            $user->load(['roles.permissions']);
+
+            // Generate tokens
+            $accessToken = $this->createAccessToken($user);
+            $refreshToken = $this->createRefreshToken($user);
+
+            $this->attachTokensToUser($user, $accessToken, $refreshToken);
+
+            Event::dispatch(new UserCreatedEvent($user));
+            Event::dispatch(new UserLoggedInEvent($user));
+
+            return $user;
         });
     }
 

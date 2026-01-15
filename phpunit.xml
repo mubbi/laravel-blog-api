@@ -19,6 +19,18 @@
         <include>
             <directory>app</directory>
         </include>
+        <exclude>
+            <directory>vendor</directory>
+            <directory>tests</directory>
+            <directory>storage</directory>
+            <directory>bootstrap</directory>
+            <directory>database</directory>
+            <directory>routes</directory>
+            <directory>resources</directory>
+            <directory>public</directory>
+            <directory>phpstan-stubs</directory>
+            <file>artisan</file>
+        </exclude>
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>

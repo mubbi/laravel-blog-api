@@ -42,4 +42,10 @@ interface AuthServiceInterface
      * @throws \Illuminate\Validation\ValidationException
      */
     public function resetPassword(string $email, string $token, string $password): void;
+
+    /**
+     * Register a new user and return the user with access and refresh tokens.
+     * The user object will have dynamically added 'access_token' and 'refresh_token' properties.
+     */
+    public function register(\App\Data\RegisterDTO $dto): User;
 }

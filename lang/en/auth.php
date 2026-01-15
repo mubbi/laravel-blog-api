@@ -16,6 +16,7 @@ return [
     'password' => 'The provided password is incorrect.',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
     'login_success' => 'Login successful.',
+    'register_success' => 'Registration successful. Welcome!',
     'logout_success' => 'Logout successful.',
     'token_refreshed_successfully' => 'Access token refreshed successfully.',
     'invalid_refresh_token' => 'The provided refresh token is invalid.',

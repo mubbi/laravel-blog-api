@@ -10,6 +10,7 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
 
     // Auth Routes (stricter rate limiting)
     Route::middleware(['throttle:auth'])->group(function () {
+        Route::post('/auth/register', \App\Http\Controllers\Api\V1\Auth\RegisterController::class)->name('api.v1.auth.register');
         Route::post('/auth/login', \App\Http\Controllers\Api\V1\Auth\LoginController::class)->name('api.v1.auth.login');
         Route::post('/auth/refresh', \App\Http\Controllers\Api\V1\Auth\RefreshTokenController::class)->name('api.v1.auth.refresh');
         Route::post('/auth/forgot-password', \App\Http\Controllers\Api\V1\Auth\ForgotPasswordController::class)->name('api.v1.auth.password.forgot');
