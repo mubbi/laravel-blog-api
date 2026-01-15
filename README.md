@@ -81,21 +81,24 @@ http://localhost:8081/docs/api
 make commit
 
 # Run tests
-make test
-
-# Run tests with coverage
-make test-coverage
+make test                # Run all tests
+make test filter='Auth'  # Run specific test by filter
+make test-coverage       # Run tests with coverage report
 
 # Code quality checks
 make lint                # Run Pint linter
+make lint-dirty          # Lint only changed files (faster)
 make analyze             # Run PHPStan static analysis
 
 # Container management
 make docker-up           # Start containers
 make docker-down         # Stop containers
+make docker-restart      # Restart containers
 make status              # Check container status
+make health              # Check application health
 make logs                # View logs
 make shell               # Access main container shell
+make test-shell          # Access test container shell
 ```
 
 ### Artisan Commands
@@ -117,6 +120,9 @@ This project uses **PEST** for testing with **automated Docker-based testing env
 ```bash
 # Run all tests with automated setup
 make test
+
+# Run specific test by filter
+make test filter='Auth'
 
 # Run tests with coverage report
 make test-coverage
@@ -143,13 +149,13 @@ The automated testing setup:
 ### Automated Code Quality Tools
 
 ```bash
-# Run linting with Laravel Pint
+# Run linting with Laravel Pint (all files)
 make lint
 
-# Lint only changed files (faster)
+# Lint only changed files (faster, recommended for quick checks)
 make lint-dirty
 
-# Run static analysis with PHPStan
+# Run static analysis with PHPStan (level 10)
 make analyze
 ```
 
@@ -210,6 +216,7 @@ make sonarqube-start      # Start SonarQube server
 make sonarqube-analyze    # Run complete analysis
 make sonarqube-dashboard  # Open dashboard
 make sonarqube-stop       # Stop SonarQube server
+make sonarqube-clean      # Clean SonarQube data (reset)
 ```
 
 ---
@@ -285,20 +292,31 @@ make local-setup
 
 # Daily development workflow
 make commit                      # Interactive semantic commit
-make test                        # Run tests
-make lint                        # Run code linting
+make test                        # Run all tests
+make test filter='Auth'          # Run specific test
+make test-coverage              # Run tests with coverage
+make lint                        # Run code linting (all files)
+make lint-dirty                  # Lint only changed files
 make analyze                     # Run static analysis
 
 # Container management
 make docker-up                   # Start containers
 make docker-down                 # Stop containers
+make docker-restart              # Restart containers
 make status                      # Check container status
+make health                      # Check application health
 make logs                        # View logs
-make shell                       # Access container shell
+make shell                       # Access main container shell
+make test-shell                  # Access test container shell
+
+# Utilities
+make artisan ARGS='migrate'     # Run artisan commands
+make check-ports                 # Check port availability
 
 # Optional SonarQube
 make sonarqube-setup            # Setup SonarQube
 make sonarqube-analyze          # Run quality analysis
+make sonarqube-clean            # Clean SonarQube data
 
 # Cleanup
 make docker-cleanup             # Clean up everything
@@ -347,8 +365,11 @@ make sonarqube-setup         # Optional SonarQube setup (after local-setup)
 ### Daily Development
 ```bash
 make commit                  # Interactive semantic commit
-make test                    # Run tests
-make lint                    # Code linting  
+make test                    # Run all tests
+make test filter='Auth'      # Run specific test
+make test-coverage           # Run tests with coverage
+make lint                    # Code linting (all files)
+make lint-dirty              # Lint only changed files
 make analyze                 # Static analysis
 ```
 
@@ -356,7 +377,10 @@ make analyze                 # Static analysis
 ```bash
 make docker-up               # Start containers
 make docker-down             # Stop containers
+make docker-restart          # Restart containers
 make docker-cleanup          # Clean up everything
+make shell                   # Access main container shell
+make test-shell              # Access test container shell
 ```
 
 ### Access Points
