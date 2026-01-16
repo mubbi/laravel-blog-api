@@ -107,7 +107,12 @@ make test-shell          # Access test container shell
 # Run any artisan command
 make artisan ARGS="migrate --seed"
 make artisan ARGS="make:controller ApiController"
+
+# Dump database schema and prune migrations
+make schema-dump
 ```
+
+**Note:** `schema-dump` creates a SQL schema dump file and removes old migration files, which helps keep your migration history clean and improves performance.
 
 ---
 
@@ -311,6 +316,7 @@ make test-shell                  # Access test container shell
 
 # Utilities
 make artisan ARGS='migrate'     # Run artisan commands
+make schema-dump                # Dump database schema and prune migrations
 make check-ports                 # Check port availability
 
 # Optional SonarQube
@@ -381,6 +387,12 @@ make docker-restart          # Restart containers
 make docker-cleanup          # Clean up everything
 make shell                   # Access main container shell
 make test-shell              # Access test container shell
+```
+
+### Database Utilities
+```bash
+make schema-dump             # Dump database schema and prune migrations
+make artisan ARGS='migrate'  # Run database migrations
 ```
 
 ### Access Points

@@ -258,6 +258,12 @@ artisan:
 	@echo "Usage: make artisan ARGS='migrate --seed'"
 	docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) php artisan $(ARGS)
 
+# Dump database schema and prune migrations
+schema-dump:
+	@echo "SCHEMA DUMP: Dumping database schema and pruning migrations..."
+	docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) php artisan schema:dump --prune
+	@echo "SUCCESS: Database schema dumped and pruned successfully!"
+
 # =============================================================================
 # Container Utilities
 # =============================================================================
@@ -439,6 +445,7 @@ help:
 	@echo ""
 	@echo "🛠️  UTILITIES:"
 	@echo "  make artisan ARGS='...' - Run artisan command (e.g., ARGS='migrate --seed')"
+	@echo "  make schema-dump        - Dump database schema and prune migrations"
 	@echo "  make check-ports         - Check port availability"
 	@echo "  make check-ports-standalone - Check ports (standalone, non-blocking)"
 	@echo ""
@@ -461,7 +468,7 @@ help:
 .PHONY: check-ports check-ports-standalone check-sonarqube-ports check-sonarqube-ports-standalone
 .PHONY: docker-cleanup docker-setup-env docker-verify-env docker-up docker-down docker-restart
 .PHONY: test test-coverage _test-container-running _test-setup _test-clear-cache
-.PHONY: lint lint-dirty analyze artisan shell test-shell logs status health
+.PHONY: lint lint-dirty analyze artisan schema-dump shell test-shell logs status health
 .PHONY: sonarqube-setup sonarqube-start sonarqube-stop sonarqube-setup-env sonarqube-setup-token
 .PHONY: sonarqube-analyze sonarqube-dashboard sonarqube-clean _sonarqube-setup-env
 .DEFAULT_GOAL := help
