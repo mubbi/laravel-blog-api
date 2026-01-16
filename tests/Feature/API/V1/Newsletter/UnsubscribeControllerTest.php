@@ -27,18 +27,9 @@ describe('API/V1/Newsletter/UnsubscribeController', function () {
             'email' => 'unsubscribe@example.com',
         ]);
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data',
-            ])
-            ->assertJson([
-                'status' => true,
-                'message' => __('newsletter.unsubscription_token_sent'),
-                'data' => null,
-            ]);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('message'))->toBe(__('newsletter.unsubscription_token_sent'))
+            ->and($response->json('data'))->toBeNull();
 
         // Verify token was generated
         $subscriber->refresh();

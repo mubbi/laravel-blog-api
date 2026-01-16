@@ -122,7 +122,7 @@ describe('SecurityHeaders Middleware', function () {
         $request = Request::create('/api/test-endpoint', 'GET');
         $request->server->set('HTTPS', false);
 
-        $middleware = new SecurityHeaders();
+        $middleware = new SecurityHeaders;
         $response = $middleware->handle($request, function ($req) {
             return response()->json(['success' => true]);
         });

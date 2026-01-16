@@ -52,7 +52,6 @@ describe('API/V1/Auth/RefreshTokenController', function () {
     });
 
     it('returns 401 when refresh token is invalid or expired', function () {
-        // Mock the AuthServiceInterface to throw UnauthorizedException
         $this->mock(AuthServiceInterface::class, function (MockInterface $mock) {
             $mock->shouldReceive('refreshToken')
                 ->with('invalid-refresh-token')
@@ -60,23 +59,15 @@ describe('API/V1/Auth/RefreshTokenController', function () {
                 ->andThrow(new UnauthorizedException(__('auth.invalid_refresh_token')));
         });
 
-        // Attempt to refresh token with invalid token
         $response = $this->postJson(route('api.v1.auth.refresh'), [
             'refresh_token' => 'invalid-refresh-token',
         ]);
 
-        // Check response
-        $response->assertStatus(401)
-            ->assertJson([
-                'status' => false,
-                'message' => __('auth.invalid_refresh_token'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(401)
+            ->and($response->json('message'))->toBe(__('auth.invalid_refresh_token'));
     });
 
     it('returns 500 when AuthService throws unexpected exception', function () {
-        // Mock the AuthServiceInterface to throw an unexpected exception
         $this->mock(AuthServiceInterface::class, function (MockInterface $mock) {
             $mock->shouldReceive('refreshToken')
                 ->with('some-refresh-token')
@@ -84,19 +75,12 @@ describe('API/V1/Auth/RefreshTokenController', function () {
                 ->andThrow(new \Exception(__('common.database_connection_failed')));
         });
 
-        // Attempt to refresh token which will trigger unexpected exception
         $response = $this->postJson(route('api.v1.auth.refresh'), [
             'refresh_token' => 'some-refresh-token',
         ]);
 
-        // Check response
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 
     it('dispatches TokenRefreshedEvent when token is refreshed successfully', function () {

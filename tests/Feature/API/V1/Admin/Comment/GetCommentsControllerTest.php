@@ -11,13 +11,7 @@ use App\Models\User;
 
 describe('API/V1/Admin/Comment/GetCommentsController', function () {
     it('can get paginated comments', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $user = User::factory()->create();
         $article = Article::factory()->create();
 
@@ -26,47 +20,27 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
             'article_id' => $article->id,
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->getJson(route('api.v1.admin.comments.index'));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'comments' => [
-                        '*' => [
-                            'id', 'content', 'status', 'status_display', 'is_approved',
-                            'approved_by', 'approved_at', 'report_count', 'created_at', 'updated_at',
-                            'user' => [
-                                'id', 'name', 'email',
-                            ],
-                            'article' => [
-                                'id', 'title', 'slug',
-                            ],
-                        ],
-                    ],
-                    'meta' => [
-                        'current_page', 'from', 'last_page', 'per_page', 'to', 'total',
-                    ],
+        expect($response)->toHaveApiSuccessStructure([
+            'comments' => [
+                '*' => [
+                    'id', 'content', 'status', 'status_display', 'is_approved',
+                    'approved_by', 'approved_at', 'report_count', 'created_at', 'updated_at',
+                    'user' => ['id', 'name', 'email'],
+                    'article' => ['id', 'title', 'slug'],
                 ],
-            ]);
-
-        $responseData = $response->json('data.comments');
-        $this->assertCount(15, $responseData);
+            ],
+            'meta' => [
+                'current_page', 'from', 'last_page', 'per_page', 'to', 'total',
+            ],
+        ])->and($response->json('data.comments'))->toHaveCount(15);
     });
 
     it('can filter comments by status', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $user = User::factory()->create();
         $article = Article::factory()->create();
 
@@ -82,30 +56,20 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
             'status' => CommentStatus::APPROVED,
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->getJson(route('api.v1.admin.comments.index', ['status' => CommentStatus::PENDING->value]));
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.comments');
-        $this->assertCount(5, $responseData);
-
+        expect($responseData)->toHaveCount(5);
         foreach ($responseData as $comment) {
-            $this->assertEquals(CommentStatus::PENDING->value, $comment['status']);
+            expect($comment['status'])->toBe(CommentStatus::PENDING->value);
         }
     });
 
     it('can filter comments by user', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
         $article = Article::factory()->create();
@@ -120,30 +84,20 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
             'article_id' => $article->id,
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->getJson(route('api.v1.admin.comments.index', ['user_id' => $user1->id]));
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.comments');
-        $this->assertCount(3, $responseData);
-
+        expect($responseData)->toHaveCount(3);
         foreach ($responseData as $comment) {
-            $this->assertEquals($user1->id, $comment['user']['id']);
+            expect($comment['user']['id'])->toBe($user1->id);
         }
     });
 
     it('can filter comments by article', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $user = User::factory()->create();
         $article1 = Article::factory()->create();
         $article2 = Article::factory()->create();
@@ -158,30 +112,20 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
             'article_id' => $article2->id,
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->getJson(route('api.v1.admin.comments.index', ['article_id' => $article1->id]));
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.comments');
-        $this->assertCount(4, $responseData);
-
+        expect($responseData)->toHaveCount(4);
         foreach ($responseData as $comment) {
-            $this->assertEquals($article1->id, $comment['article']['id']);
+            expect($comment['article']['id'])->toBe($article1->id);
         }
     });
 
     it('can search comments by content', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $user = User::factory()->create();
         $article = Article::factory()->create();
 
@@ -197,27 +141,18 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
             'content' => 'Another comment with different content',
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->getJson(route('api.v1.admin.comments.index', ['search' => 'specific']));
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.comments');
-        $this->assertCount(1, $responseData);
-        $this->assertStringContainsString('specific', $responseData[0]['content']);
+        expect($responseData)->toHaveCount(1)
+            ->and(str_contains($responseData[0]['content'], 'specific'))->toBeTrue();
     });
 
     it('can sort comments by created_at in descending order', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $user = User::factory()->create();
         $article = Article::factory()->create();
 
@@ -233,27 +168,18 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
             'created_at' => now(),
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->getJson(route('api.v1.admin.comments.index', ['sort_by' => 'created_at', 'sort_order' => 'desc']));
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.comments');
-        $this->assertEquals($newComment->id, $responseData[0]['id']);
-        $this->assertEquals($oldComment->id, $responseData[1]['id']);
+        expect($responseData[0]['id'])->toBe($newComment->id)
+            ->and($responseData[1]['id'])->toBe($oldComment->id);
     });
 
     it('can sort comments by created_at in ascending order', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $user = User::factory()->create();
         $article = Article::factory()->create();
 
@@ -269,17 +195,14 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
             'created_at' => now(),
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->getJson(route('api.v1.admin.comments.index', ['sort_by' => 'created_at', 'sort_order' => 'asc']));
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.comments');
-        $this->assertEquals($oldComment->id, $responseData[0]['id']);
-        $this->assertEquals($newComment->id, $responseData[1]['id']);
+        expect($responseData[0]['id'])->toBe($oldComment->id)
+            ->and($responseData[1]['id'])->toBe($newComment->id);
     });
 
     it('can paginate comments with custom per_page', function () {

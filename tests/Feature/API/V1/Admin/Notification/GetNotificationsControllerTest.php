@@ -11,42 +11,31 @@ use Illuminate\Support\Facades\Log;
 
 describe('API/V1/Admin/Notification/GetNotificationsController', function () {
     it('can get paginated list of notifications', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         Notification::factory()->count(5)->create();
 
-        // Act
         $response = $this->actingAs($admin)
             ->getJson(route('api.v1.admin.notifications.index'));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'notifications' => [
-                        '*' => [
-                            'id',
-                            'type',
-                            'message',
-                            'created_at',
-                            'updated_at',
-                        ],
-                    ],
-                    'meta' => [
-                        'current_page',
-                        'from',
-                        'last_page',
-                        'per_page',
-                        'to',
-                        'total',
-                    ],
+        expect($response)->toHaveApiSuccessStructure([
+            'notifications' => [
+                '*' => [
+                    'id',
+                    'type',
+                    'message',
+                    'created_at',
+                    'updated_at',
                 ],
-            ]);
+            ],
+            'meta' => [
+                'current_page',
+                'from',
+                'last_page',
+                'per_page',
+                'to',
+                'total',
+            ],
+        ]);
     });
 
     it('can filter notifications by type', function () {

@@ -11,15 +11,10 @@ use Mockery\MockInterface;
 
 describe('API/V1/Auth/LogoutController', function () {
     it('can logout successfully with valid authenticated user', function () {
-        // Create a test user
-        $user = User::factory()->create([
-            'email' => 'test@example.com',
-        ]);
+        $user = User::factory()->create(['email' => 'test@example.com']);
 
-        // Authenticate the user using Sanctum with required abilities
         Sanctum::actingAs($user, ['access-api']);
 
-        // Mock the AuthServiceInterface
         $this->mock(AuthServiceInterface::class, function (MockInterface $mock) use ($user) {
             $mock->shouldReceive('logout')
                 ->with($user)
@@ -27,28 +22,18 @@ describe('API/V1/Auth/LogoutController', function () {
                 ->andReturnNull();
         });
 
-        // Attempt logout
         $response = $this->postJson(route('api.v1.auth.logout'));
 
-        // Check response
-        $response->assertStatus(200)
-            ->assertJson([
-                'status' => true,
-                'message' => __('auth.logout_success'),
-                'data' => null,
-            ]);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('message'))->toBe(__('auth.logout_success'))
+            ->and($response->json('data'))->toBeNull();
     });
 
     it('returns 500 when AuthService throws unexpected exception', function () {
-        // Create a test user
-        $user = User::factory()->create([
-            'email' => 'test@example.com',
-        ]);
+        $user = User::factory()->create(['email' => 'test@example.com']);
 
-        // Authenticate the user using Sanctum with required abilities
         Sanctum::actingAs($user, ['access-api']);
 
-        // Mock the AuthServiceInterface to throw an exception
         $this->mock(AuthServiceInterface::class, function (MockInterface $mock) use ($user) {
             $mock->shouldReceive('logout')
                 ->with($user)
@@ -56,37 +41,21 @@ describe('API/V1/Auth/LogoutController', function () {
                 ->andThrow(new \Exception(__('common.database_connection_failed')));
         });
 
-        // Attempt logout which will trigger unexpected exception
         $response = $this->postJson(route('api.v1.auth.logout'));
 
-        // Check response
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 
     it('dispatches UserLoggedOutEvent when user logs out successfully', function () {
-        // Arrange
         Event::fake([UserLoggedOutEvent::class]);
-
-        $user = User::factory()->create([
-            'email' => 'test@example.com',
-        ]);
+        $user = User::factory()->create(['email' => 'test@example.com']);
 
         Sanctum::actingAs($user, ['access-api']);
 
-        // Act
         $response = $this->postJson(route('api.v1.auth.logout'));
 
-        // Assert
-        $response->assertStatus(200);
-
-        Event::assertDispatched(UserLoggedOutEvent::class, function ($event) use ($user) {
-            return $event->user->id === $user->id;
-        });
+        expect($response->getStatusCode())->toBe(200);
+        Event::assertDispatched(UserLoggedOutEvent::class, fn ($event) => $event->user->id === $user->id);
     });
 });

@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\CacheKey;
 use App\Services\CacheService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-
-uses(RefreshDatabase::class);
 
 describe('CacheService', function () {
     beforeEach(function () {

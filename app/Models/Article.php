@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $excerpt
  * @property string $content_markdown
  * @property string|null $content_html
- * @property string|null $featured_image
+ * @property int|null $featured_media_id
  * @property ArticleStatus $status
  * @property \Illuminate\Support\Carbon|null $published_at
  * @property string|null $meta_title
@@ -44,6 +44,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Tag> $tags
  * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $authors
  * @property-read \Illuminate\Database\Eloquent\Collection<int, ArticleLike> $likes
+ * @property-read Media|null $featuredMedia
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Media> $media
  *
  * @mixin \Eloquent
  *
@@ -65,7 +67,7 @@ final class Article extends Model
         'excerpt',
         'content_markdown',
         'content_html',
-        'featured_image',
+        'featured_media_id',
         'status',
         'published_at',
         'meta_title',
@@ -195,6 +197,35 @@ final class Article extends Model
     {
         /** @var HasMany<ArticleLike, Article> $relation */
         $relation = $this->hasMany(ArticleLike::class);
+
+        return $relation;
+    }
+
+    /**
+     * Get the featured media for the article.
+     *
+     * @return BelongsTo<Media, Article>
+     */
+    public function featuredMedia(): BelongsTo
+    {
+        /** @var BelongsTo<Media, Article> $relation */
+        $relation = $this->belongsTo(Media::class, 'featured_media_id');
+
+        return $relation;
+    }
+
+    /**
+     * Get the media attached to the article.
+     *
+     * @return BelongsToMany<Media, Article, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'>
+     */
+    public function media(): BelongsToMany
+    {
+        /** @var BelongsToMany<Media, Article, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
+        $relation = $this->belongsToMany(Media::class, 'article_media')
+            ->withPivot('usage_type', 'order')
+            ->withTimestamps()
+            ->orderByPivot('order');
 
         return $relation;
     }

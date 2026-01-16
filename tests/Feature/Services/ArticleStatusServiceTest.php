@@ -12,10 +12,7 @@ use App\Events\Article\ArticleTrashedEvent;
 use App\Models\Article;
 use App\Models\User;
 use App\Services\ArticleStatusService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 describe('ArticleStatusService', function () {
     beforeEach(function () {

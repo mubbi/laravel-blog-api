@@ -10,31 +10,16 @@ use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/User/DeleteUserController', function () {
     it('can delete a user successfully', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToDelete = User::factory()->create();
 
-        // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-            ])
-            ->assertJson([
-                'status' => true,
-                'message' => __('common.user_deleted_successfully'),
-            ]);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('message'))->toBe(__('common.user_deleted_successfully'));
 
-        $this->assertDatabaseMissing('users', [
-            'id' => $userToDelete->id,
-        ]);
+        $this->assertDatabaseMissing('users', ['id' => $userToDelete->id]);
     });
 
     it('can delete a banned user', function () {

@@ -9,95 +9,52 @@ use App\Models\User;
 
 describe('API/V1/Admin/Category/DeleteCategoryController', function () {
     it('can delete a category successfully', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $category = Category::factory()->create();
 
-        // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.categories.destroy', $category));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJson([
-                'status' => true,
-                'message' => __('common.category_deleted_successfully'),
-            ]);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('message'))->toBe(__('common.category_deleted_successfully'));
 
-        $this->assertDatabaseMissing('categories', [
-            'id' => $category->id,
-        ]);
+        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
     });
 
     it('moves children to parent when delete_children is false', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $parent = Category::factory()->create();
         $category = Category::factory()->create(['parent_id' => $parent->id]);
         $child1 = Category::factory()->create(['parent_id' => $category->id]);
         $child2 = Category::factory()->create(['parent_id' => $category->id]);
 
-        // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.categories.destroy', $category), [
                 'delete_children' => false,
             ]);
 
-        // Assert
-        $response->assertStatus(200);
-
-        $this->assertDatabaseMissing('categories', [
-            'id' => $category->id,
-        ]);
-
-        $this->assertDatabaseHas('categories', [
-            'id' => $child1->id,
-            'parent_id' => $parent->id,
-        ]);
-
-        $this->assertDatabaseHas('categories', [
-            'id' => $child2->id,
-            'parent_id' => $parent->id,
-        ]);
+        expect($response->getStatusCode())->toBe(200);
+        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
+        $this->assertDatabaseHas('categories', ['id' => $child1->id, 'parent_id' => $parent->id]);
+        $this->assertDatabaseHas('categories', ['id' => $child2->id, 'parent_id' => $parent->id]);
     });
 
     it('deletes children recursively when delete_children is true', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $category = Category::factory()->create();
         $child1 = Category::factory()->create(['parent_id' => $category->id]);
         $child2 = Category::factory()->create(['parent_id' => $category->id]);
         $grandchild = Category::factory()->create(['parent_id' => $child1->id]);
 
-        // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.categories.destroy', $category), [
                 'delete_children' => true,
             ]);
 
-        // Assert
-        $response->assertStatus(200);
-
-        $this->assertDatabaseMissing('categories', [
-            'id' => $category->id,
-        ]);
-
-        $this->assertDatabaseMissing('categories', [
-            'id' => $child1->id,
-        ]);
-
-        $this->assertDatabaseMissing('categories', [
-            'id' => $child2->id,
-        ]);
+        expect($response->getStatusCode())->toBe(200);
+        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
+        $this->assertDatabaseMissing('categories', ['id' => $child1->id]);
+        $this->assertDatabaseMissing('categories', ['id' => $child2->id]);
 
         $this->assertDatabaseMissing('categories', [
             'id' => $grandchild->id,

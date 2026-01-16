@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use App\Repositories\Contracts\CommentRepositoryInterface;
+use App\Repositories\Contracts\MediaRepositoryInterface;
 use App\Repositories\Contracts\NewsletterSubscriberRepositoryInterface;
 use App\Repositories\Contracts\NotificationAudienceRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
@@ -17,6 +18,7 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\EloquentArticleRepository;
 use App\Repositories\Eloquent\EloquentCategoryRepository;
 use App\Repositories\Eloquent\EloquentCommentRepository;
+use App\Repositories\Eloquent\EloquentMediaRepository;
 use App\Repositories\Eloquent\EloquentNewsletterSubscriberRepository;
 use App\Repositories\Eloquent\EloquentNotificationAudienceRepository;
 use App\Repositories\Eloquent\EloquentNotificationRepository;
@@ -79,6 +81,11 @@ final class RepositoryServiceProvider extends ServiceProvider
         $this->app->scoped(
             TagRepositoryInterface::class,
             EloquentTagRepository::class
+        );
+
+        $this->app->scoped(
+            MediaRepositoryInterface::class,
+            EloquentMediaRepository::class
         );
 
         // Communication repositories

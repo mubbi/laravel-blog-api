@@ -6,50 +6,34 @@ use App\Models\User;
 
 describe('API/V1/User/GetUserFollowersController', function () {
     it('can get paginated list of user followers', function () {
-        // Arrange
         $user = User::factory()->create();
         $followers = User::factory()->count(5)->create();
 
-        // Create follow relationships
         foreach ($followers as $follower) {
             $follower->following()->attach($user->id);
         }
 
-        // Act
         $response = $this->getJson(route('api.v1.users.followers', ['user' => $user->id]));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'followers' => [
-                        '*' => [
-                            'id',
-                            'name',
-                            'email',
-                            'avatar_url',
-                            'bio',
-                            'created_at',
-                            'updated_at',
-                        ],
-                    ],
-                    'meta' => [
-                        'current_page',
-                        'per_page',
-                        'total',
-                    ],
+        expect($response)->toHaveApiSuccessStructure([
+            'followers' => [
+                '*' => [
+                    'id',
+                    'name',
+                    'email',
+                    'avatar_url',
+                    'bio',
+                    'created_at',
+                    'updated_at',
                 ],
-            ])
-            ->assertJson([
-                'status' => true,
-                'message' => __('common.success'),
-            ]);
-
-        $responseData = $response->json('data');
-        expect($responseData['followers'])->toHaveCount(5);
-        expect($responseData['meta']['total'])->toBe(5);
+            ],
+            'meta' => [
+                'current_page',
+                'per_page',
+                'total',
+            ],
+        ])->and($response->json('data.followers'))->toHaveCount(5)
+            ->and($response->json('data.meta.total'))->toBe(5);
     });
 
     it('returns empty list when user has no followers', function () {

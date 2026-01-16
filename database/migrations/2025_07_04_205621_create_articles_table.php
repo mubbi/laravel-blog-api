@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('content_markdown');
             $table->longText('content_html')->nullable();
 
-            $table->string('featured_image')->nullable();
+            $table->unsignedBigInteger('featured_media_id')->nullable()->comment('FK to media (featured image)');
 
             $table->enum('status', ['draft', 'published', 'scheduled', 'archived'])->default('draft')->index();
             $table->timestamp('published_at')->nullable()->index();

@@ -42,7 +42,7 @@ final class CreateArticleController extends Controller
      * - `excerpt` (optional, string, max:500): Short description or excerpt
      * - `content_markdown` (required, string): Article content in Markdown format
      * - `content_html` (optional, string): Article content in HTML format
-     * - `featured_image` (optional, url, max:255): URL to featured image
+     * - `featured_media_id` (optional, integer, exists:media,id): ID of featured media
      * - `published_at` (optional, date, after_or_equal:now): Publication date (for scheduling)
      * - `meta_title` (optional, string, max:255): SEO meta title
      * - `meta_description` (optional, string, max:500): SEO meta description

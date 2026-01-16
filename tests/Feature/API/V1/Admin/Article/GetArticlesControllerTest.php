@@ -12,82 +12,56 @@ use App\Models\User;
 
 describe('API/V1/Admin/Article/GetArticlesController', function () {
     it('can get paginated list of articles', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
+        Article::factory()->count(5)->create();
 
-        $articles = Article::factory()->count(5)->create();
-
-        // Act
         $response = $this->actingAs($admin)
             ->getJson(route('api.v1.admin.articles.index'));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'articles' => [
-                        '*' => [
-                            'id', 'slug', 'title', 'subtitle', 'excerpt', 'content_markdown',
-                            'content_html', 'featured_image', 'status', 'status_display',
-                            'published_at', 'meta_title', 'meta_description', 'is_featured',
-                            'is_pinned', 'featured_at', 'pinned_at', 'report_count',
-                            'last_reported_at', 'report_reason', 'created_at', 'updated_at',
-                            'author', 'approver', 'updater', 'categories', 'tags',
-                            'comments_count', 'authors_count',
-                        ],
-                    ],
-                    'meta' => [
-                        'current_page', 'from', 'last_page', 'per_page', 'to', 'total',
-                    ],
+        expect($response)->toHaveApiSuccessStructure([
+            'articles' => [
+                '*' => [
+                    'id', 'slug', 'title', 'subtitle', 'excerpt', 'content_markdown',
+                    'content_html', 'featured_media', 'status', 'status_display',
+                    'published_at', 'meta_title', 'meta_description', 'is_featured',
+                    'is_pinned', 'featured_at', 'pinned_at', 'report_count',
+                    'last_reported_at', 'report_reason', 'created_at', 'updated_at',
+                    'author', 'approver', 'updater', 'categories', 'tags',
+                    'comments_count', 'authors_count',
                 ],
-            ]);
+            ],
+            'meta' => [
+                'current_page', 'from', 'last_page', 'per_page', 'to', 'total',
+            ],
+        ]);
     });
 
     it('can filter articles by status', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $publishedArticle = Article::factory()->create(['status' => ArticleStatus::PUBLISHED]);
-        $draftArticle = Article::factory()->create(['status' => ArticleStatus::DRAFT]);
+        Article::factory()->create(['status' => ArticleStatus::DRAFT]);
 
-        // Act
         $response = $this->actingAs($admin)
             ->getJson(route('api.v1.admin.articles.index', ['status' => ArticleStatus::PUBLISHED->value]));
 
-        // Assert
-        $response->assertStatus(200);
-        $responseData = $response->json('data.articles');
-        $this->assertCount(1, $responseData);
-        $this->assertEquals($publishedArticle->id, $responseData[0]['id']);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('data.articles'))->toHaveCount(1)
+            ->and($response->json('data.articles.0.id'))->toBe($publishedArticle->id);
     });
 
     it('can filter articles by author', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $author1 = User::factory()->create();
         $author2 = User::factory()->create();
-
         $article1 = Article::factory()->create(['created_by' => $author1->id]);
-        $article2 = Article::factory()->create(['created_by' => $author2->id]);
+        Article::factory()->create(['created_by' => $author2->id]);
 
-        // Act
         $response = $this->actingAs($admin)
             ->getJson(route('api.v1.admin.articles.index', ['author_id' => $author1->id]));
 
-        // Assert
-        $response->assertStatus(200);
-        $responseData = $response->json('data.articles');
-        $this->assertCount(1, $responseData);
-        $this->assertEquals($article1->id, $responseData[0]['id']);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('data.articles'))->toHaveCount(1)
+            ->and($response->json('data.articles.0.id'))->toBe($article1->id);
     });
 
     it('can filter articles by category', function () {

@@ -12,33 +12,20 @@ use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/Article/ReportArticleController', function () {
     it('can report an article successfully', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $article = Article::factory()->create([
             'status' => ArticleStatus::PUBLISHED,
             'report_count' => 0,
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.admin.articles.report', $article));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'id', 'slug', 'title', 'status', 'status_display', 'published_at',
-                    'is_featured', 'is_pinned', 'report_count', 'created_at', 'updated_at',
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure([
+            'id', 'slug', 'title', 'status', 'status_display', 'published_at',
+            'is_featured', 'is_pinned', 'report_count', 'created_at', 'updated_at',
+        ]);
 
         $this->assertDatabaseHas('articles', [
             'id' => $article->id,
@@ -47,26 +34,17 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
     });
 
     it('increments report count for multiple reports', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $article = Article::factory()->create([
             'status' => ArticleStatus::PUBLISHED,
             'report_count' => 5,
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.admin.articles.report', $article));
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response)->toHaveApiSuccessStructure();
         $this->assertDatabaseHas('articles', [
             'id' => $article->id,
             'report_count' => 6,

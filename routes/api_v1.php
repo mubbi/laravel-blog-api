@@ -106,6 +106,25 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
             Route::put('/{tag}', \App\Http\Controllers\Api\V1\Admin\Tag\UpdateTagController::class)->name('api.v1.admin.tags.update');
             Route::delete('/{tag}', \App\Http\Controllers\Api\V1\Admin\Tag\DeleteTagController::class)->name('api.v1.admin.tags.destroy');
         });
+
+        // Media Management
+        Route::prefix('media')->group(function () {
+            Route::get('/', \App\Http\Controllers\Api\V1\Media\GetMediaLibraryController::class)->name('api.v1.admin.media.index');
+            Route::get('/{media}', \App\Http\Controllers\Api\V1\Media\GetMediaDetailsController::class)->name('api.v1.admin.media.show');
+            Route::put('/{media}', \App\Http\Controllers\Api\V1\Media\UpdateMediaMetadataController::class)->name('api.v1.admin.media.update');
+            Route::delete('/{media}', \App\Http\Controllers\Api\V1\Media\DeleteMediaController::class)->name('api.v1.admin.media.destroy');
+        });
+    });
+
+    // Media Management (Authenticated Users)
+    Route::middleware(['auth:sanctum', 'ability:access-api'])->group(function () {
+        Route::prefix('media')->group(function () {
+            Route::post('/', \App\Http\Controllers\Api\V1\Media\UploadMediaController::class)->name('api.v1.media.store');
+            Route::get('/', \App\Http\Controllers\Api\V1\Media\GetMediaLibraryController::class)->name('api.v1.media.index');
+            Route::get('/{media}', \App\Http\Controllers\Api\V1\Media\GetMediaDetailsController::class)->name('api.v1.media.show');
+            Route::put('/{media}', \App\Http\Controllers\Api\V1\Media\UpdateMediaMetadataController::class)->name('api.v1.media.update');
+            Route::delete('/{media}', \App\Http\Controllers\Api\V1\Media\DeleteMediaController::class)->name('api.v1.media.destroy');
+        });
     });
 
     // Public Routes

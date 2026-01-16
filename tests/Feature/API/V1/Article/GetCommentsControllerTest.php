@@ -2,19 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Models\Article;
 use App\Models\Comment;
 use App\Models\User;
-use Illuminate\Testing\Fluent\AssertableJson;
 
 describe('API/V1/Article/GetCommentsController', function () {
     it('returns paginated top-level comments with one level of replies', function () {
         $user = User::factory()->create();
-        $article = Article::factory()
-            ->for($user, 'author')
-            ->for($user, 'approver')
-            ->published()
-            ->create();
+        $article = createPublishedArticle($user, $user);
 
         $topComments = Comment::factory()
             ->count(5)
@@ -36,72 +30,49 @@ describe('API/V1/Article/GetCommentsController', function () {
             'page' => 1,
         ]));
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'comments' => [
+        expect($response)->toHaveApiSuccessStructure([
+            'comments' => [
+                '*' => [
+                    'id',
+                    'user' => ['id', 'name', 'email'],
+                    'content',
+                    'created_at',
+                    'replies_count',
+                    'replies' => [
                         '*' => [
                             'id',
                             'user' => ['id', 'name', 'email'],
                             'content',
                             'created_at',
                             'replies_count',
-                            'replies' => [
-                                '*' => [
-                                    'id',
-                                    'user' => ['id', 'name', 'email'],
-                                    'content',
-                                    'created_at',
-                                    'replies_count',
-                                ],
-                            ],
                         ],
                     ],
-                    'meta' => [
-                        'current_page',
-                        'per_page',
-                        'total',
-                        // Optional keys if MetaResource includes them
-                        // 'last_page', 'from', 'to',
-                    ],
                 ],
-            ]);
-
-        expect($response->json('data.comments'))->toHaveCount(3);
-        expect($response->json('data.meta.total'))->toBe(5);
+            ],
+            'meta' => ['current_page', 'per_page', 'total'],
+        ])->and($response->json('data.comments'))->toHaveCount(3)
+            ->and($response->json('data.meta.total'))->toBe(5);
     });
 
     it('returns empty comment list if article has no comments', function () {
         $user = User::factory()->create();
-        $article = Article::factory()
-            ->for($user, 'author')
-            ->for($user, 'approver')
-            ->published()
-            ->create();
+        $article = createPublishedArticle($user, $user);
 
         $response = $this->getJson(route('api.v1.articles.comments.index', [
             'article' => $article->slug,
         ]));
 
-        $response->assertStatus(200)
-            ->assertJson(fn (AssertableJson $json) => $json->where('status', true)
-                ->where('message', __('common.success'))
-                ->where('data.comments', [])
-                ->where('data.meta.current_page', 1)
-                ->where('data.meta.per_page', 10)
-                ->where('data.meta.total', 0)
-                ->etc()
-            );
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('status'))->toBeTrue()
+            ->and($response->json('message'))->toBe(__('common.success'))
+            ->and($response->json('data.comments'))->toBe([])
+            ->and($response->json('data.meta.current_page'))->toBe(1)
+            ->and($response->json('data.meta.per_page'))->toBe(10)
+            ->and($response->json('data.meta.total'))->toBe(0);
     });
 
     it('returns 500 on service exception', function () {
-        // Create minimal article for route model binding (only needs slug)
-        $article = Article::factory()->create([
-            'slug' => 'test-article',
-            'status' => \App\Enums\ArticleStatus::PUBLISHED->value,
-        ]);
+        $article = createPublishedArticle(null, null, ['slug' => 'test-article']);
 
         $this->mock(\App\Services\Interfaces\ArticleServiceInterface::class, function ($mock) {
             $mock->shouldReceive('getArticleComments')
@@ -112,12 +83,7 @@ describe('API/V1/Article/GetCommentsController', function () {
             'article' => $article->slug,
         ]));
 
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 });

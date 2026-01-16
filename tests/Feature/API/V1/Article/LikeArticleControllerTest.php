@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Enums\ArticleReactionType;
 use App\Events\Article\ArticleLikedEvent;
-use App\Models\Article;
 use App\Models\ArticleLike;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
@@ -13,58 +12,33 @@ describe('API/V1/Article/LikeArticleController', function () {
     it('can like an article as authenticated user', function () {
         Event::fake([ArticleLikedEvent::class]);
         $user = User::factory()->create();
-        $article = Article::factory()
-            ->for($user, 'author')
-            ->for($user, 'approver')
-            ->published()
-            ->create();
+        $article = createPublishedArticle($user, $user);
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson(route('api.v1.articles.like', ['article' => $article->slug]));
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data',
-            ])
-            ->assertJson([
-                'status' => true,
-                'message' => __('article.liked_successfully'),
-                'data' => null,
-            ]);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('message'))->toBe(__('article.liked_successfully'))
+            ->and($response->json('data'))->toBeNull();
 
-        // Verify like was created
         expect(ArticleLike::where('article_id', $article->id)
             ->where('user_id', $user->id)
             ->where('type', ArticleReactionType::LIKE->value)
             ->whereNull('ip_address')
             ->exists())->toBeTrue();
 
-        // Verify event was dispatched
-        Event::assertDispatched(ArticleLikedEvent::class, function ($event) use ($article) {
-            return $event->article->id === $article->id && $event->like->type === ArticleReactionType::LIKE;
-        });
+        Event::assertDispatched(ArticleLikedEvent::class, fn ($event) => $event->article->id === $article->id && $event->like->type === ArticleReactionType::LIKE);
     });
 
     it('can like an article as anonymous user', function () {
         $user = User::factory()->create();
-        $article = Article::factory()
-            ->for($user, 'author')
-            ->for($user, 'approver')
-            ->published()
-            ->create();
+        $article = createPublishedArticle($user, $user);
 
         $response = $this->postJson(route('api.v1.articles.like', ['article' => $article->slug]));
 
-        $response->assertStatus(200)
-            ->assertJson([
-                'status' => true,
-                'message' => __('article.liked_successfully'),
-                'data' => null,
-            ]);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('message'))->toBe(__('article.liked_successfully'));
 
-        // Verify like was created with IP address
         expect(ArticleLike::where('article_id', $article->id)
             ->whereNull('user_id')
             ->where('type', ArticleReactionType::LIKE->value)
@@ -74,13 +48,8 @@ describe('API/V1/Article/LikeArticleController', function () {
 
     it('replaces dislike with like when user previously disliked', function () {
         $user = User::factory()->create();
-        $article = Article::factory()
-            ->for($user, 'author')
-            ->for($user, 'approver')
-            ->published()
-            ->create();
+        $article = createPublishedArticle($user, $user);
 
-        // Create a dislike first
         ArticleLike::create([
             'article_id' => $article->id,
             'user_id' => $user->id,
@@ -91,31 +60,22 @@ describe('API/V1/Article/LikeArticleController', function () {
         $response = $this->actingAs($user, 'sanctum')
             ->postJson(route('api.v1.articles.like', ['article' => $article->slug]));
 
-        $response->assertStatus(200);
-
-        // Verify dislike was removed
-        expect(ArticleLike::where('article_id', $article->id)
-            ->where('user_id', $user->id)
-            ->where('type', ArticleReactionType::DISLIKE->value)
-            ->exists())->toBeFalse();
-
-        // Verify like was created
-        expect(ArticleLike::where('article_id', $article->id)
-            ->where('user_id', $user->id)
-            ->where('type', ArticleReactionType::LIKE->value)
-            ->exists())->toBeTrue();
+        expect($response->getStatusCode())->toBe(200)
+            ->and(ArticleLike::where('article_id', $article->id)
+                ->where('user_id', $user->id)
+                ->where('type', ArticleReactionType::DISLIKE->value)
+                ->exists())->toBeFalse()
+            ->and(ArticleLike::where('article_id', $article->id)
+                ->where('user_id', $user->id)
+                ->where('type', ArticleReactionType::LIKE->value)
+                ->exists())->toBeTrue();
     });
 
     it('returns existing like if user already liked the article', function () {
         $user = User::factory()->create();
-        $article = Article::factory()
-            ->for($user, 'author')
-            ->for($user, 'approver')
-            ->published()
-            ->create();
+        $article = createPublishedArticle($user, $user);
 
-        // Create a like first
-        $existingLike = ArticleLike::create([
+        ArticleLike::create([
             'article_id' => $article->id,
             'user_id' => $user->id,
             'ip_address' => null,
@@ -125,13 +85,11 @@ describe('API/V1/Article/LikeArticleController', function () {
         $response = $this->actingAs($user, 'sanctum')
             ->postJson(route('api.v1.articles.like', ['article' => $article->slug]));
 
-        $response->assertStatus(200);
-
-        // Verify only one like exists
-        expect(ArticleLike::where('article_id', $article->id)
-            ->where('user_id', $user->id)
-            ->where('type', ArticleReactionType::LIKE->value)
-            ->count())->toBe(1);
+        expect($response->getStatusCode())->toBe(200)
+            ->and(ArticleLike::where('article_id', $article->id)
+                ->where('user_id', $user->id)
+                ->where('type', ArticleReactionType::LIKE->value)
+                ->count())->toBe(1);
     });
 
     it('returns 404 when article not found', function () {
@@ -145,32 +103,20 @@ describe('API/V1/Article/LikeArticleController', function () {
 
     it('returns 404 when article is not published', function () {
         $user = User::factory()->create();
-        $article = Article::factory()
-            ->for($user, 'author')
-            ->draft()
-            ->create();
+        $article = createDraftArticle($user);
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson(route('api.v1.articles.like', ['article' => $article->slug]));
 
-        $response->assertStatus(404)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.not_found'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response->getStatusCode())->toBe(404)
+            ->and($response->json('status'))->toBeFalse()
+            ->and($response->json('message'))->toBe(__('common.not_found'));
     });
 
     it('returns 500 when operation fails with exception', function () {
         $user = User::factory()->create();
-        $article = Article::factory()
-            ->for($user, 'author')
-            ->for($user, 'approver')
-            ->published()
-            ->create();
+        $article = createPublishedArticle($user, $user);
 
-        // Mock ArticleServiceInterface to throw an exception
         $this->mock(\App\Services\Interfaces\ArticleServiceInterface::class, function ($mock) {
             $mock->shouldReceive('likeArticle')
                 ->andThrow(new \Exception('Database connection failed'));
@@ -179,12 +125,7 @@ describe('API/V1/Article/LikeArticleController', function () {
         $response = $this->actingAs($user, 'sanctum')
             ->postJson(route('api.v1.articles.like', ['article' => $article->slug]));
 
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 });

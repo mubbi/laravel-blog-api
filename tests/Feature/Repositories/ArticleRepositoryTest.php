@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('ArticleRepository', function () {
     beforeEach(function () {

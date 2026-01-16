@@ -17,11 +17,8 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 describe('UserService', function () {
     beforeEach(function () {

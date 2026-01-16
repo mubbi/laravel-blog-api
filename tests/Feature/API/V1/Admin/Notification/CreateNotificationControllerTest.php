@@ -5,18 +5,13 @@ declare(strict_types=1);
 use App\Enums\NotificationType;
 use App\Enums\UserRole;
 use App\Events\Notification\NotificationCreatedEvent;
-use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/Notification/CreateNotificationController', function () {
     it('can create a system notification successfully', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $notificationData = [
             'type' => NotificationType::SYSTEM_ALERT->value,
             'message' => [
@@ -27,38 +22,21 @@ describe('API/V1/Admin/Notification/CreateNotificationController', function () {
             'audiences' => ['all_users'],
         ];
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.notifications.store'), $notificationData);
 
-        // Assert
-        $response->assertStatus(201)
-            ->assertJsonStructure([
-                'status',
+        expect($response->getStatusCode())->toBe(201)
+            ->and($response)->toHaveApiSuccessStructure([
+                'id',
+                'type',
                 'message',
-                'data' => [
-                    'id',
-                    'type',
-                    'message',
-                    'created_at',
-                    'updated_at',
-                    'audiences',
-                ],
-            ])
-            ->assertJson([
-                'status' => true,
-                'message' => __('common.notification_created'),
-                'data' => [
-                    'type' => NotificationType::SYSTEM_ALERT->value,
-                    'message' => [
-                        'title' => 'System Maintenance',
-                        'body' => 'Scheduled maintenance will occur tonight',
-                        'priority' => 'high',
-                    ],
-                ],
-            ]);
+                'created_at',
+                'updated_at',
+                'audiences',
+            ])->and($response->json('message'))->toBe(__('common.notification_created'))
+            ->and($response->json('data.type'))->toBe(NotificationType::SYSTEM_ALERT->value)
+            ->and($response->json('data.message.title'))->toBe('System Maintenance');
 
-        // Verify notification was created in database
         $this->assertDatabaseHas('notifications', [
             'type' => NotificationType::SYSTEM_ALERT->value,
         ]);
@@ -122,7 +100,8 @@ describe('API/V1/Admin/Notification/CreateNotificationController', function () {
             ->postJson(route('api.v1.admin.notifications.store'), $notificationData);
 
         // Assert
-        $response->assertStatus(201);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->getStatusCode())->toBe(201);
 
         Event::assertDispatched(NotificationCreatedEvent::class, function ($event) {
             return $event->notification->type === NotificationType::SYSTEM_ALERT

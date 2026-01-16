@@ -9,35 +9,22 @@ use App\Models\User;
 
 describe('API/V1/Admin/Category/UpdateCategoryController', function () {
     it('can update a category successfully', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $category = Category::factory()->create([
             'name' => 'Old Name',
             'slug' => 'old-slug',
         ]);
 
-        $updateData = [
-            'name' => 'New Name',
-            'slug' => 'new-slug',
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->putJson(route('api.v1.admin.categories.update', $category), $updateData);
-
-        // Assert
-        $response->assertStatus(200)
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'id' => $category->id,
-                    'name' => 'New Name',
-                    'slug' => 'new-slug',
-                ],
+            ->putJson(route('api.v1.admin.categories.update', $category), [
+                'name' => 'New Name',
+                'slug' => 'new-slug',
             ]);
+
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('data.id'))->toBe($category->id)
+            ->and($response->json('data.name'))->toBe('New Name')
+            ->and($response->json('data.slug'))->toBe('new-slug');
 
         $this->assertDatabaseHas('categories', [
             'id' => $category->id,
@@ -47,25 +34,16 @@ describe('API/V1/Admin/Category/UpdateCategoryController', function () {
     });
 
     it('can update category with parent', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $parentCategory = Category::factory()->create();
         $category = Category::factory()->create();
 
-        $updateData = [
-            'parent_id' => $parentCategory->id,
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->putJson(route('api.v1.admin.categories.update', $category), $updateData);
+            ->putJson(route('api.v1.admin.categories.update', $category), [
+                'parent_id' => $parentCategory->id,
+            ]);
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('categories', [
             'id' => $category->id,
             'parent_id' => $parentCategory->id,
@@ -73,25 +51,16 @@ describe('API/V1/Admin/Category/UpdateCategoryController', function () {
     });
 
     it('can remove parent by setting parent_id to null', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $parentCategory = Category::factory()->create();
         $category = Category::factory()->create(['parent_id' => $parentCategory->id]);
 
-        $updateData = [
-            'parent_id' => null,
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->putJson(route('api.v1.admin.categories.update', $category), $updateData);
+            ->putJson(route('api.v1.admin.categories.update', $category), [
+                'parent_id' => null,
+            ]);
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('categories', [
             'id' => $category->id,
             'parent_id' => null,

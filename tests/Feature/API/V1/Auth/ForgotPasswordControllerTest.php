@@ -99,12 +99,7 @@ describe('API/V1/Auth/ForgotPasswordController', function () {
             'email' => 'test@example.com',
         ]);
 
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 });

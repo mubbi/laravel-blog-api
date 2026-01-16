@@ -4,45 +4,27 @@ declare(strict_types=1);
 
 use App\Enums\UserRole;
 use App\Models\Category;
-use App\Models\Role;
-use App\Models\User;
 
 describe('API/V1/Admin/Category/CreateCategoryController', function () {
     it('can create a category with valid data', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $categoryData = [
             'name' => 'Technology',
             'slug' => 'technology',
         ];
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.categories.store'), $categoryData);
 
-        // Assert
-        $response->assertStatus(201)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'id',
-                    'name',
-                    'slug',
-                    'parent_id',
-                ],
-            ])
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'name' => 'Technology',
-                    'slug' => 'technology',
-                    'parent_id' => null,
-                ],
-            ]);
+        expect($response->getStatusCode())->toBe(201)
+            ->and($response)->toHaveApiSuccessStructure([
+                'id',
+                'name',
+                'slug',
+                'parent_id',
+            ])->and($response->json('data.name'))->toBe('Technology')
+            ->and($response->json('data.slug'))->toBe('technology')
+            ->and($response->json('data.parent_id'))->toBeNull();
 
         $this->assertDatabaseHas('categories', [
             'name' => 'Technology',
@@ -52,33 +34,18 @@ describe('API/V1/Admin/Category/CreateCategoryController', function () {
     });
 
     it('can create a category with parent', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $parentCategory = Category::factory()->create();
 
-        $categoryData = [
-            'name' => 'Web Development',
-            'slug' => 'web-development',
-            'parent_id' => $parentCategory->id,
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.categories.store'), $categoryData);
-
-        // Assert
-        $response->assertStatus(201)
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'name' => 'Web Development',
-                    'slug' => 'web-development',
-                    'parent_id' => $parentCategory->id,
-                ],
+            ->postJson(route('api.v1.admin.categories.store'), [
+                'name' => 'Web Development',
+                'slug' => 'web-development',
+                'parent_id' => $parentCategory->id,
             ]);
+
+        expect($response->getStatusCode())->toBe(201)
+            ->and($response->json('data.parent_id'))->toBe($parentCategory->id);
 
         $this->assertDatabaseHas('categories', [
             'name' => 'Web Development',
@@ -88,22 +55,14 @@ describe('API/V1/Admin/Category/CreateCategoryController', function () {
     });
 
     it('auto-generates slug from name if not provided', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
-        $categoryData = [
-            'name' => 'Mobile Development',
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.categories.store'), $categoryData);
+            ->postJson(route('api.v1.admin.categories.store'), [
+                'name' => 'Mobile Development',
+            ]);
 
-        // Assert
-        $response->assertStatus(201);
-
+        expect($response->getStatusCode())->toBe(201);
         $this->assertDatabaseHas('categories', [
             'name' => 'Mobile Development',
             'slug' => 'mobile-development',
@@ -111,92 +70,60 @@ describe('API/V1/Admin/Category/CreateCategoryController', function () {
     });
 
     it('requires authentication', function () {
-        $categoryData = [
+        $response = $this->postJson(route('api.v1.admin.categories.store'), [
             'name' => 'Technology',
-        ];
-
-        $response = $this->postJson(route('api.v1.admin.categories.store'), $categoryData);
+        ]);
 
         $response->assertStatus(401);
     });
 
     it('requires create_categories permission', function () {
-        // Arrange
-        $user = User::factory()->create();
-        $authorRole = Role::where('name', UserRole::AUTHOR->value)->first();
-        attachRoleAndRefreshCache($user, $authorRole);
+        $user = createUserWithRole(UserRole::AUTHOR->value);
 
-        $categoryData = [
-            'name' => 'Technology',
-        ];
-
-        // Act
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.categories.store'), $categoryData);
+            ->postJson(route('api.v1.admin.categories.store'), [
+                'name' => 'Technology',
+            ]);
 
-        // Assert
         $response->assertStatus(403);
     });
 
     it('validates unique name', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         Category::factory()->create(['name' => 'Technology']);
 
-        $categoryData = [
-            'name' => 'Technology',
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.categories.store'), $categoryData);
+            ->postJson(route('api.v1.admin.categories.store'), [
+                'name' => 'Technology',
+            ]);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['name']);
     });
 
     it('validates unique slug', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         Category::factory()->create(['slug' => 'technology']);
 
-        $categoryData = [
-            'name' => 'Tech',
-            'slug' => 'technology',
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.categories.store'), $categoryData);
+            ->postJson(route('api.v1.admin.categories.store'), [
+                'name' => 'Tech',
+                'slug' => 'technology',
+            ]);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['slug']);
     });
 
     it('validates parent_id exists', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
-        $categoryData = [
-            'name' => 'Child Category',
-            'parent_id' => 99999,
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.categories.store'), $categoryData);
+            ->postJson(route('api.v1.admin.categories.store'), [
+                'name' => 'Child Category',
+                'parent_id' => 99999,
+            ]);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['parent_id']);
     });

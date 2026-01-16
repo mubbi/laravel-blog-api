@@ -12,32 +12,19 @@ use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/Article/TrashArticleController', function () {
     it('can trash a published article', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $article = Article::factory()->create([
             'status' => ArticleStatus::PUBLISHED,
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.articles.trash', $article));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'id', 'slug', 'title', 'status', 'status_display', 'published_at',
-                    'is_featured', 'is_pinned', 'report_count', 'created_at', 'updated_at',
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure([
+            'id', 'slug', 'title', 'status', 'status_display', 'published_at',
+            'is_featured', 'is_pinned', 'report_count', 'created_at', 'updated_at',
+        ]);
 
         $this->assertDatabaseHas('articles', [
             'id' => $article->id,
@@ -63,7 +50,7 @@ describe('API/V1/Admin/Article/TrashArticleController', function () {
         ])->postJson(route('api.v1.articles.trash', $article));
 
         // Assert
-        $response->assertStatus(200);
+        expect($response)->toHaveApiSuccessStructure();
 
         $this->assertDatabaseHas('articles', [
             'id' => $article->id,
@@ -89,7 +76,7 @@ describe('API/V1/Admin/Article/TrashArticleController', function () {
         ])->postJson(route('api.v1.articles.trash', $article));
 
         // Assert
-        $response->assertStatus(200);
+        expect($response)->toHaveApiSuccessStructure();
 
         $this->assertDatabaseHas('articles', [
             'id' => $article->id,
@@ -115,7 +102,7 @@ describe('API/V1/Admin/Article/TrashArticleController', function () {
         ])->postJson(route('api.v1.articles.trash', $article));
 
         // Assert
-        $response->assertStatus(200);
+        expect($response)->toHaveApiSuccessStructure();
 
         $this->assertDatabaseHas('articles', [
             'id' => $article->id,
@@ -259,12 +246,7 @@ describe('API/V1/Admin/Article/TrashArticleController', function () {
         ])->postJson(route('api.v1.articles.trash', $article));
 
         // Assert
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 });

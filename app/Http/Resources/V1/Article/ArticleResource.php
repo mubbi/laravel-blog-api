@@ -28,7 +28,19 @@ class ArticleResource extends JsonResource
             'excerpt' => $this->excerpt,
             'content_html' => $this->content_html,
             'content_markdown' => $this->content_markdown,
-            'featured_image' => $this->featured_image,
+            'featured_media' => $this->whenLoaded('featuredMedia', function () {
+                $featuredMedia = $this->featuredMedia;
+                if ($featuredMedia === null) {
+                    return null;
+                }
+
+                return [
+                    'id' => $featuredMedia->id,
+                    'url' => $featuredMedia->url,
+                    'name' => $featuredMedia->name,
+                    'alt_text' => $featuredMedia->alt_text,
+                ];
+            }, null),
             'status' => $this->status,
             'status_display' => __('enums.article_status.'.$this->status->value),
             'published_at' => ($this->published_at instanceof \DateTimeInterface ? $this->published_at->toISOString() : $this->published_at),
