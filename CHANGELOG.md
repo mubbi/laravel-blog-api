@@ -1,5 +1,42 @@
 # Changelog
 
+## [2.3.0](https://github.com/mubbi/laravel-blog-api/compare/v2.2.0...v2.3.0) (2026-01-16)
+
+
+### Features
+
+* media management APIs ([6110758](https://github.com/mubbi/laravel-blog-api/commit/6110758cee08969ed24a17424ba0c7c5cdce8296))
+* register API ([a096de0](https://github.com/mubbi/laravel-blog-api/commit/a096de0f992892130752e057d74b05d1b9395b3e))
+
+## [2.2.0](https://github.com/mubbi/laravel-blog-api/compare/v2.1.0...v2.2.0) (2026-01-14)
+
+
+### Features
+
+* **apis:** refactored and new APIs ([548244f](https://github.com/mubbi/laravel-blog-api/commit/548244fcc5e924fcf32e5c572c46389f0a855ba0))
+* **cache service:** added cache service ([d4a0fd6](https://github.com/mubbi/laravel-blog-api/commit/d4a0fd6ddeee7ee0fc5bc07bce155d53c17d545a))
+* **comment apis:** added new comment APIs ([ca3b6b0](https://github.com/mubbi/laravel-blog-api/commit/ca3b6b0967f7e4a7540bcc9bacfe0efd64e74dff))
+* forgot pass API ([2dfcae2](https://github.com/mubbi/laravel-blog-api/commit/2dfcae2abc23a3f56e4c4d337dd2d97d9f81966c))
+* **forgot pass:** added forgot pass APIs ([103e1ad](https://github.com/mubbi/laravel-blog-api/commit/103e1adb015298874197c97792d7747187ba5425))
+* **like dislike apis:** added new like and dislike APIs ([1da2d8c](https://github.com/mubbi/laravel-blog-api/commit/1da2d8c8eb14fa19d2ef202d0f7f959c46d14887))
+* **newsletter:** added newsletter subscription APIs ([7950f4a](https://github.com/mubbi/laravel-blog-api/commit/7950f4a8d44925cd0c1c15da79ab3ea4e96584d6))
+* **optimizations:** updated codes ([017bae7](https://github.com/mubbi/laravel-blog-api/commit/017bae71c974a4e666b9370310bb7b9ea4ed56ee))
+* **refactor and apis:** added new APIs and refactored codes ([90997d9](https://github.com/mubbi/laravel-blog-api/commit/90997d9b3e51501a75ff560672f1b1fc8c69447c))
+* **social apis:** added apis for social interaction ([a73ba08](https://github.com/mubbi/laravel-blog-api/commit/a73ba08cceac5d55f576b5fdb15e755ca526346b))
+* **taxonomy management:** added apis to manage categories and tags ([c40cf6d](https://github.com/mubbi/laravel-blog-api/commit/c40cf6de034abe77f80d109539d2830917e53f53))
+
+## [2.1.0](https://github.com/mubbi/laravel-blog-api/compare/v2.0.0...v2.1.0) (2026-01-01)
+
+
+### Features
+
+* **events:** added events and listeners ([52d8fe1](https://github.com/mubbi/laravel-blog-api/commit/52d8fe1d26512b013915c09c67d1dc6aef886e27))
+
+
+### Bug Fixes
+
+* fixed N+1 query problem ([c62b357](https://github.com/mubbi/laravel-blog-api/commit/c62b3573b28c31f2898b8a99f5b60900d54fa9a3))
+
 ## [2.0.0](https://github.com/mubbi/laravel-blog-api/compare/v1.10.0...v2.0.0) (2025-12-31)
 
 
