@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Data\FilterUserNotificationDTO;
+use App\Data\User\FilterUserNotificationDTO;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Repositories\Contracts\UserNotificationRepositoryInterface;

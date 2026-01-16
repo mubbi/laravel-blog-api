@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 
-describe('API/V1/Admin/Comment/DeleteCommentController', function () {
+describe('API/V1/Comment/DeleteCommentController', function () {
     it('can delete a comment successfully', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $comment = Comment::factory()->create([
@@ -19,7 +19,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.comments.destroy', $comment), [
+            ->deleteJson(route('api.v1.comments.destroy', $comment), [
                 'reason' => 'Deleted for violation',
             ]);
 
@@ -37,7 +37,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.comments.destroy', $comment), [
+            ->deleteJson(route('api.v1.comments.destroy', $comment), [
                 'reason' => 'Deleted pending comment',
             ]);
 
@@ -54,7 +54,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.comments.destroy', $comment), [
+            ->deleteJson(route('api.v1.comments.destroy', $comment), [
                 'reason' => 'Deleted rejected comment',
             ]);
 
@@ -71,7 +71,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.comments.destroy', $comment));
+            ->deleteJson(route('api.v1.comments.destroy', $comment));
 
         expect($response->getStatusCode())->toBe(200)
             ->and($response->json('message'))->toBe(__('common.comment_deleted'));
@@ -83,7 +83,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.comments.destroy', 99999), [
+            ->deleteJson(route('api.v1.comments.destroy', 99999), [
                 'reason' => 'Test note',
             ]);
 
@@ -98,7 +98,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         ]);
 
         $response = $this->actingAs($user)
-            ->deleteJson(route('api.v1.admin.comments.destroy', $comment), [
+            ->deleteJson(route('api.v1.comments.destroy', $comment), [
                 'reason' => 'Test note',
             ]);
 
@@ -110,7 +110,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
             'status' => CommentStatus::APPROVED->value,
         ]);
 
-        $response = $this->deleteJson(route('api.v1.admin.comments.destroy', $comment), [
+        $response = $this->deleteJson(route('api.v1.comments.destroy', $comment), [
             'admin_note' => 'Test note',
         ]);
 
@@ -124,7 +124,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.comments.destroy', $comment), [
+            ->deleteJson(route('api.v1.comments.destroy', $comment), [
                 'reason' => str_repeat('a', 501),
             ]);
 
@@ -151,7 +151,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         });
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.comments.destroy', $comment), [
+            ->deleteJson(route('api.v1.comments.destroy', $comment), [
                 'reason' => 'Test note',
             ]);
 
@@ -178,7 +178,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         });
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.comments.destroy', $comment), [
+            ->deleteJson(route('api.v1.comments.destroy', $comment), [
                 'reason' => 'Test note',
             ]);
 
@@ -198,7 +198,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         $commentId = $comment->id;
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.comments.destroy', $comment), [
+            ->deleteJson(route('api.v1.comments.destroy', $comment), [
                 'reason' => 'Permanently deleted',
             ]);
 
@@ -221,7 +221,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.comments.destroy', $comment), [
+            ->deleteJson(route('api.v1.comments.destroy', $comment), [
                 'reason' => 'Deleted with relations',
             ]);
 
@@ -239,7 +239,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.comments.destroy', $comment), [
+            ->deleteJson(route('api.v1.comments.destroy', $comment), [
                 'reason' => 'Final deletion note',
             ]);
 
@@ -257,7 +257,7 @@ describe('API/V1/Admin/Comment/DeleteCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.comments.destroy', $comment), [
+            ->deleteJson(route('api.v1.comments.destroy', $comment), [
                 'reason' => 'Deleted for violation',
             ]);
 

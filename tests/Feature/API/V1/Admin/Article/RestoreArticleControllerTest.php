@@ -10,7 +10,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/Article/RestoreArticleController', function () {
+describe('API/V1/Article/RestoreArticleController', function () {
     it('can restore an archived article', function () {
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $article = Article::factory()->create([

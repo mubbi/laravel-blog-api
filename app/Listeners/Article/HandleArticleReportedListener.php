@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listeners\Article;
 
-use App\Data\CreateNotificationDTO;
+use App\Data\Notification\CreateNotificationDTO;
 use App\Enums\NotificationType;
 use App\Events\Article\ArticleReportedEvent;
 use App\Services\Interfaces\NotificationServiceInterface;

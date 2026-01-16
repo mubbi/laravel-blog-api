@@ -47,5 +47,5 @@ interface AuthServiceInterface
      * Register a new user and return the user with access and refresh tokens.
      * The user object will have dynamically added 'access_token' and 'refresh_token' properties.
      */
-    public function register(\App\Data\RegisterDTO $dto): User;
+    public function register(\App\Data\User\RegisterDTO $dto): User;
 }

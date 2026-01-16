@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
-use App\Data\CreateArticleDTO;
-use App\Data\FilterArticleManagementDTO;
+use App\Data\Article\CreateArticleDTO;
+use App\Data\Article\FilterArticleManagementDTO;
 use App\Models\Article;
 use Illuminate\Pagination\LengthAwarePaginator;
 

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Constants\CacheKeys;
-use App\Data\CreateUserDTO;
-use App\Data\FilterUserDTO;
-use App\Data\FilterUserFollowersDTO;
-use App\Data\UpdateUserDTO;
+use App\Data\User\CreateUserDTO;
+use App\Data\User\FilterUserDTO;
+use App\Data\User\FilterUserFollowersDTO;
+use App\Data\User\UpdateUserDTO;
 use App\Events\User\UserBannedEvent;
 use App\Events\User\UserBlockedEvent;
 use App\Events\User\UserCreatedEvent;

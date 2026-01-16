@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\User;
 
-use App\Data\UpdateUserDTO;
+use App\Data\User\UpdateUserDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\User\UpdateProfileRequest;
 use App\Http\Resources\V1\User\UserResource;

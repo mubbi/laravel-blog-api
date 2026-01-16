@@ -7,7 +7,7 @@ use App\Models\Category;
 use App\Models\Role;
 use App\Models\User;
 
-describe('API/V1/Admin/Category/UpdateCategoryController', function () {
+describe('API/V1/Category/UpdateCategoryController', function () {
     it('can update a category successfully', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $category = Category::factory()->create([
@@ -16,7 +16,7 @@ describe('API/V1/Admin/Category/UpdateCategoryController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->putJson(route('api.v1.admin.categories.update', $category), [
+            ->putJson(route('api.v1.categories.update', $category), [
                 'name' => 'New Name',
                 'slug' => 'new-slug',
             ]);
@@ -39,7 +39,7 @@ describe('API/V1/Admin/Category/UpdateCategoryController', function () {
         $category = Category::factory()->create();
 
         $response = $this->actingAs($admin)
-            ->putJson(route('api.v1.admin.categories.update', $category), [
+            ->putJson(route('api.v1.categories.update', $category), [
                 'parent_id' => $parentCategory->id,
             ]);
 
@@ -56,7 +56,7 @@ describe('API/V1/Admin/Category/UpdateCategoryController', function () {
         $category = Category::factory()->create(['parent_id' => $parentCategory->id]);
 
         $response = $this->actingAs($admin)
-            ->putJson(route('api.v1.admin.categories.update', $category), [
+            ->putJson(route('api.v1.categories.update', $category), [
                 'parent_id' => null,
             ]);
 
@@ -84,7 +84,7 @@ describe('API/V1/Admin/Category/UpdateCategoryController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->putJson(route('api.v1.admin.categories.update', $parent), $updateData);
+            ->putJson(route('api.v1.categories.update', $parent), $updateData);
 
         // Assert
         $response->assertStatus(422)
@@ -105,7 +105,7 @@ describe('API/V1/Admin/Category/UpdateCategoryController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->putJson(route('api.v1.admin.categories.update', $category), $updateData);
+            ->putJson(route('api.v1.categories.update', $category), $updateData);
 
         // Assert
         $response->assertStatus(422)
@@ -122,7 +122,7 @@ describe('API/V1/Admin/Category/UpdateCategoryController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->putJson(route('api.v1.admin.categories.update', $category), ['name' => 'New Name']);
+            ->putJson(route('api.v1.categories.update', $category), ['name' => 'New Name']);
 
         // Assert
         $response->assertStatus(403);

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Media;
 
-use App\Data\UpdateMediaMetadataDTO;
+use App\Data\Media\UpdateMediaMetadataDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Media\UpdateMediaMetadataRequest;
 use App\Http\Resources\V1\Media\MediaResource;
@@ -15,7 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-#[Group('Media Management', weight: 3)]
+#[Group('Media Management', weight: 4)]
 final class UpdateMediaMetadataController extends Controller
 {
     public function __construct(
@@ -23,16 +23,15 @@ final class UpdateMediaMetadataController extends Controller
     ) {}
 
     /**
-     * Update Media Metadata
+     * Update Media Metadata (Admin)
      *
-     * Updates metadata for a media file such as name, alt text, caption, and description.
-     * This does not modify the actual file, only its metadata in the database. Users can
-     * update their own media metadata, while users with `manage_media` permission can update
-     * any media metadata.
+     * Updates metadata for any media file in the system such as name, alt text, caption, and description.
+     * This admin endpoint allows administrators to update metadata for any media file, regardless of
+     * who uploaded it. This does not modify the actual file, only its metadata in the database.
      *
      * **Authentication & Authorization:**
-     * Requires a valid Bearer token with `access-api` ability. Users with `edit_media` permission
-     * can update their own media, while users with `manage_media` permission can update any media.
+     * Requires a valid Bearer token with `access-api` ability and `manage_media` permission.
+     * Administrators can update metadata for any media file.
      *
      * **Route Parameters:**
      * - `media` (Media, required): The media model instance to update (route model binding)
@@ -46,8 +45,8 @@ final class UpdateMediaMetadataController extends Controller
      * **Response:**
      * Returns the updated media object with all details including the modified metadata.
      *
-     * **Note:** Regular users can only update their own media. Users with `manage_media` permission
-     * can update any media. For admin access, use the admin media endpoints.
+     * **Note:** This admin endpoint allows updating any media file. For user-specific media
+     * updates with ownership checks, use the user media endpoints.
      *
      * @response array{status: true, message: string, data: MediaResource}
      */

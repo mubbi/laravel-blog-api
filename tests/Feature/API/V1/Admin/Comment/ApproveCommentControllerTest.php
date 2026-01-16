@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Data\ApproveCommentDTO;
+use App\Data\Comment\ApproveCommentDTO;
 use App\Enums\CommentStatus;
 use App\Enums\NotificationType;
 use App\Enums\UserRole;
@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 
-describe('API/V1/Admin/Comment/ApproveCommentController', function () {
+describe('API/V1/Comment/ApproveCommentController', function () {
     it('can approve a pending comment successfully', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $comment = Comment::factory()->create([
@@ -25,7 +25,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Approved after review',
             ]);
 
@@ -57,7 +57,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment));
+            ->postJson(route('api.v1.comments.approve', $comment));
 
         expect($response)->toHaveApiSuccessStructure()
             ->and($response->json('data.id'))->toBe($comment->id)
@@ -76,7 +76,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Re-approved',
             ]);
 
@@ -92,7 +92,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Approved after reconsideration',
             ]);
 
@@ -111,7 +111,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $nonExistentId), [
+            ->postJson(route('api.v1.comments.approve', $nonExistentId), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -137,7 +137,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -152,7 +152,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         // Act
-        $response = $this->postJson(route('api.v1.admin.comments.approve', $comment), [
+        $response = $this->postJson(route('api.v1.comments.approve', $comment), [
             'admin_note' => 'Test note',
         ]);
 
@@ -172,7 +172,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => str_repeat('a', 501), // Exceeds max length
             ]);
 
@@ -201,7 +201,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         });
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -229,7 +229,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         });
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -247,7 +247,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         $originalUpdatedAt = $comment->updated_at;
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
@@ -269,7 +269,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
@@ -288,7 +288,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
@@ -314,7 +314,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
@@ -349,7 +349,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         $notificationCountBefore = Notification::count();
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 

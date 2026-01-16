@@ -8,7 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/User/UpdateUserController', function () {
+describe('API/V1/User/UpdateUserController', function () {
     it('can update a user successfully', function () {
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToUpdate = User::factory()->create([
@@ -18,7 +18,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+        ])->putJson(route('api.v1.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'new@example.com',
         ]);
@@ -51,7 +51,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+        ])->putJson(route('api.v1.users.update', $userToUpdate), [
             'name' => 'New Name',
         ]);
 
@@ -72,7 +72,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+        ])->putJson(route('api.v1.users.update', $userToUpdate), [
             'email' => 'new@example.com',
         ]);
 
@@ -89,7 +89,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->putJson(route('api.v1.admin.users.update', 99999), [
+        ])->putJson(route('api.v1.users.update', 99999), [
             'name' => 'New Name',
             'email' => 'new@example.com',
         ]);
@@ -102,7 +102,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
     it('returns 401 when user is not authenticated', function () {
         $userToUpdate = User::factory()->create();
 
-        $response = $this->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+        $response = $this->putJson(route('api.v1.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'new@example.com',
         ]);
@@ -116,7 +116,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+        ])->putJson(route('api.v1.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'new@example.com',
         ]);
@@ -130,7 +130,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+        ])->putJson(route('api.v1.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'invalid-email',
         ]);
@@ -151,7 +151,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+        ])->putJson(route('api.v1.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'existing@example.com',
         ]);
@@ -174,7 +174,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+        ])->putJson(route('api.v1.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'test@example.com',
         ]);
@@ -193,7 +193,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+        ])->putJson(route('api.v1.users.update', $userToUpdate), [
             'name' => '',
             'email' => 'new@example.com',
         ]);
@@ -213,7 +213,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+        ])->putJson(route('api.v1.users.update', $userToUpdate), [
             'name' => str_repeat('a', 256),
             'email' => 'new@example.com',
         ]);
@@ -238,7 +238,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+        ])->putJson(route('api.v1.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'new@example.com',
         ]);
@@ -263,7 +263,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $admin), [
+        ])->putJson(route('api.v1.users.update', $admin), [
             'name' => 'New Admin Name',
             'email' => 'newadmin@example.com',
         ]);
@@ -286,7 +286,7 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+        ])->putJson(route('api.v1.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'new@example.com',
         ]);

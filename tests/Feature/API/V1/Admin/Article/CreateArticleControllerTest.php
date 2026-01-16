@@ -13,7 +13,7 @@ use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/Article/CreateArticleController', function () {
+describe('API/V1/Article/CreateArticleController', function () {
     it('can create a draft article', function () {
         Event::fake([ArticleCreatedEvent::class]);
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);

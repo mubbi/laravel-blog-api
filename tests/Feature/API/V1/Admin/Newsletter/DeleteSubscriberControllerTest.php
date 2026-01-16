@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 
-describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
+describe('API/V1/Newsletter/DeleteSubscriberController', function () {
     it('can delete a newsletter subscriber successfully', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $subscriber = NewsletterSubscriber::factory()->create([
@@ -19,7 +19,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Removed for spam',
             ]);
 
@@ -43,7 +43,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Removed verified subscriber',
             ]);
 
@@ -73,7 +73,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Removed unverified subscriber',
             ]);
 
@@ -102,7 +102,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber));
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber));
 
         // Assert
         $response->assertStatus(200)
@@ -127,7 +127,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $nonExistentId), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $nonExistentId), [
                 'reason' => 'Test note',
             ]);
 
@@ -153,7 +153,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $newsletterSubscriber), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $newsletterSubscriber), [
                 'reason' => 'Test note',
             ]);
 
@@ -168,7 +168,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
         ]);
 
         // Act
-        $response = $this->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
+        $response = $this->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber), [
             'reason' => 'Test note',
         ]);
 
@@ -188,7 +188,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => str_repeat('a', 501), // Exceeds max length
             ]);
 
@@ -222,7 +222,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -262,7 +262,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Test note',
             ]);
 
@@ -291,7 +291,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Permanently deleted',
             ]);
 
@@ -322,7 +322,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Test deletion',
             ]);
 
@@ -350,7 +350,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber));
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber));
 
         // Assert
         $response->assertStatus(200);
@@ -379,7 +379,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', 99999), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', 99999), [
                 'reason' => 'Test note',
             ]);
 
@@ -404,7 +404,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Deleted with user relationship',
             ]);
 
@@ -436,7 +436,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Deleted guest subscriber',
             ]);
 
@@ -464,7 +464,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Removed longtime subscriber',
             ]);
 
@@ -491,7 +491,7 @@ describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $nonExistentId), [
+            ->deleteJson(route('api.v1.newsletter.subscribers.destroy', $nonExistentId), [
                 'reason' => 'Attempting to delete non-existent subscriber',
             ]);
 

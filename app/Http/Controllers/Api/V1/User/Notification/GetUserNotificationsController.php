@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\User\Notification;
 
-use App\Data\FilterUserNotificationDTO;
+use App\Data\User\FilterUserNotificationDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\User\Notification\GetUserNotificationsRequest;
 use App\Http\Resources\MetaResource;

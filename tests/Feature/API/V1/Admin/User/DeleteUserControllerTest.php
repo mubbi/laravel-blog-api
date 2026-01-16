@@ -8,13 +8,13 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/User/DeleteUserController', function () {
+describe('API/V1/User/DeleteUserController', function () {
     it('can delete a user successfully', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToDelete = User::factory()->create();
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         expect($response)->toHaveApiSuccessStructure()
             ->and($response->json('message'))->toBe(__('common.user_deleted_successfully'));
@@ -32,7 +32,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(200);
@@ -52,7 +52,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(200);
@@ -75,7 +75,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(200);
@@ -93,7 +93,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', 99999));
+            ->deleteJson(route('api.v1.users.destroy', 99999));
 
         // Assert
         $response->assertStatus(404)
@@ -113,7 +113,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(403);
@@ -124,7 +124,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
         $userToDelete = User::factory()->create();
 
         // Act
-        $response = $this->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+        $response = $this->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(401);
@@ -138,7 +138,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $admin));
+            ->deleteJson(route('api.v1.users.destroy', $admin));
 
         // Assert
         $response->assertStatus(403)
@@ -160,7 +160,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(200);
@@ -182,7 +182,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(200);
@@ -204,7 +204,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(200);
@@ -227,7 +227,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(200);
@@ -247,7 +247,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(200);
@@ -271,7 +271,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(200);
@@ -297,7 +297,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(200);
@@ -324,7 +324,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $userToDelete));
+            ->deleteJson(route('api.v1.users.destroy', $userToDelete));
 
         // Assert
         $response->assertStatus(200);
@@ -345,7 +345,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act - Try to delete self (should be prevented)
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', $admin));
+            ->deleteJson(route('api.v1.users.destroy', $admin));
 
         // Assert
         $response->assertStatus(403);
@@ -363,7 +363,7 @@ describe('API/V1/Admin/User/DeleteUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.users.destroy', 99999));
+            ->deleteJson(route('api.v1.users.destroy', 99999));
 
         // Assert
         $response->assertStatus(404);

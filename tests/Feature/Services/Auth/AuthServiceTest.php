@@ -321,7 +321,7 @@ describe('App\Services\Auth\AuthService tests', function () {
                 ['slug' => 'subscriber']
             );
 
-            $dto = new \App\Data\RegisterDTO(
+            $dto = new \App\Data\User\RegisterDTO(
                 name: 'John Doe',
                 email: 'john@example.com',
                 password: 'TestRegP@ss2024!',
@@ -370,7 +370,7 @@ describe('App\Services\Auth\AuthService tests', function () {
                 ['slug' => 'subscriber']
             );
 
-            $dto = new \App\Data\RegisterDTO(
+            $dto = new \App\Data\User\RegisterDTO(
                 name: 'Jane Doe',
                 email: 'jane@example.com',
                 password: 'TestRegP@ss2024!',
@@ -410,7 +410,7 @@ describe('App\Services\Auth\AuthService tests', function () {
         it('successfully registers user even when subscriber role does not exist', function () {
             // Don't create subscriber role - test graceful handling
 
-            $dto = new \App\Data\RegisterDTO(
+            $dto = new \App\Data\User\RegisterDTO(
                 name: 'Test User',
                 email: 'test@example.com',
                 password: 'TestRegP@ss2024!',
@@ -436,7 +436,7 @@ describe('App\Services\Auth\AuthService tests', function () {
                 ['slug' => 'subscriber']
             );
 
-            $dto = new \App\Data\RegisterDTO(
+            $dto = new \App\Data\User\RegisterDTO(
                 name: 'John Doe',
                 email: 'john@example.com',
                 password: 'TestRegP@ss2024!',
@@ -460,7 +460,7 @@ describe('App\Services\Auth\AuthService tests', function () {
                 ['slug' => 'subscriber']
             );
 
-            $dto = new \App\Data\RegisterDTO(
+            $dto = new \App\Data\User\RegisterDTO(
                 name: 'John Doe',
                 email: 'john@example.com',
                 password: 'TestRegP@ss2024!',

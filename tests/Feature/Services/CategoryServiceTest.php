@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Data\CreateCategoryDTO;
-use App\Data\DeleteCategoryDTO;
-use App\Data\UpdateCategoryDTO;
+use App\Data\Category\CreateCategoryDTO;
+use App\Data\Category\DeleteCategoryDTO;
+use App\Data\Category\UpdateCategoryDTO;
 use App\Enums\CacheKey;
 use App\Events\Category\CategoryCreatedEvent;
 use App\Events\Category\CategoryDeletedEvent;

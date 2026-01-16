@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
-use App\Data\CreateNotificationDTO;
-use App\Data\FilterNotificationDTO;
+use App\Data\Notification\CreateNotificationDTO;
+use App\Data\Notification\FilterNotificationDTO;
 use App\Models\Notification;
 use Illuminate\Pagination\LengthAwarePaginator;
 

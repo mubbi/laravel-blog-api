@@ -8,7 +8,7 @@ use App\Models\Article;
 use App\Models\Role;
 use App\Models\User;
 
-describe('API/V1/Admin/Article/ShowArticleController', function () {
+describe('API/V1/Article/ShowArticleController', function () {
     it('can show an article with full details', function () {
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $article = Article::factory()->create([
@@ -20,7 +20,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.articles.show', $article));
+        ])->getJson(route('api.v1.articles.show', ['slug' => $article->slug]));
 
         expect($response)->toHaveApiSuccessStructure([
             'id', 'slug', 'title', 'content_markdown', 'content_html', 'excerpt', 'status',
@@ -38,7 +38,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.articles.show', $article));
+        ])->getJson(route('api.v1.articles.show', ['slug' => $article->slug]));
 
         expect($response)->toHaveApiSuccessStructure()
             ->and($response->json('data.id'))->toBe($article->id)
@@ -51,7 +51,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.articles.show', $article));
+        ])->getJson(route('api.v1.articles.show', ['slug' => $article->slug]));
 
         expect($response)->toHaveApiSuccessStructure()
             ->assertJson([
@@ -75,7 +75,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.articles.show', $article));
+        ])->getJson(route('api.v1.articles.show', ['slug' => $article->slug]));
 
         // Assert
         $response->assertStatus(200)
@@ -98,7 +98,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.articles.show', 99999));
+        ])->getJson(route('api.v1.articles.show', ['slug' => 'non-existent-slug']));
 
         // Assert
         $response->assertStatus(404)
@@ -108,33 +108,51 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
             ]);
     });
 
-    it('returns 401 when user is not authenticated', function () {
+    it('returns public article when user is not authenticated', function () {
         // Arrange
-        $article = Article::factory()->create();
+        $article = Article::factory()->published()->create();
 
-        // Act
-        $response = $this->getJson(route('api.v1.admin.articles.show', $article));
+        // Act - unauthenticated users can access published articles
+        $response = $this->getJson(route('api.v1.articles.show', ['slug' => $article->slug]));
 
-        // Assert
-        $response->assertStatus(401);
+        // Assert - should return 200 with public data
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'status',
+                'message',
+                'data' => [
+                    'id',
+                    'slug',
+                    'title',
+                ],
+            ]);
     });
 
-    it('returns 403 when user does not have permission', function () {
+    it('returns public article when user does not have permission', function () {
         // Arrange
         $user = User::factory()->create();
-        // Don't attach any roles to test authorization failure
+        // Don't attach any roles to test no permission
 
         $token = $user->createToken('test-token', ['access-api']);
 
-        $article = Article::factory()->create();
+        $article = Article::factory()->published()->create();
 
-        // Act
+        // Act - users without permission get public data (only published articles)
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.articles.show', $article));
+        ])->getJson(route('api.v1.articles.show', ['slug' => $article->slug]));
 
-        // Assert
-        $response->assertStatus(403);
+        // Assert - should return 200 with public data
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'status',
+                'message',
+                'data' => [
+                    'id',
+                    'slug',
+                    'title',
+                ],
+            ]);
     });
 
     it('includes author information in response', function () {
@@ -151,7 +169,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.articles.show', $article));
+        ])->getJson(route('api.v1.articles.show', ['slug' => $article->slug]));
 
         // Assert
         $response->assertStatus(200)
@@ -186,7 +204,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.articles.show', $article));
+        ])->getJson(route('api.v1.articles.show', ['slug' => $article->slug]));
 
         // Assert
         $response->assertStatus(200)
@@ -217,7 +235,7 @@ describe('API/V1/Admin/Article/ShowArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.articles.show', $article));
+        ])->getJson(route('api.v1.articles.show', ['slug' => $article->slug]));
 
         // Assert
         $response->assertStatus(500)

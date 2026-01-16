@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests\V1\Article;
+
+final class RestoreFromTrashRequest extends ArticleActionRequest
+{
+    public function authorize(): bool
+    {
+        return $this->canPerformAction('delete_others_posts', 'delete_posts');
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            // No additional validation rules needed for restoring from trash
+        ];
+    }
+}

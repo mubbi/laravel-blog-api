@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\User;
 
-use App\Data\FilterUserFollowersDTO;
+use App\Data\User\FilterUserFollowersDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\User\GetUserFollowingRequest;
 use App\Http\Resources\MetaResource;

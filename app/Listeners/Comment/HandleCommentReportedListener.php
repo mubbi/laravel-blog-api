@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listeners\Comment;
 
-use App\Data\CreateNotificationDTO;
+use App\Data\Notification\CreateNotificationDTO;
 use App\Enums\NotificationType;
 use App\Events\Comment\CommentReportedEvent;
 use App\Services\Interfaces\NotificationServiceInterface;

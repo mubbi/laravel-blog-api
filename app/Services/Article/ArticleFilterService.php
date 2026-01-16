@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Article;
 
-use App\Data\FilterArticleDTO;
+use App\Data\Article\FilterArticleDTO;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**

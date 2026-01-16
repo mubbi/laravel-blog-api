@@ -6,7 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Role;
 use App\Models\User;
 
-describe('API/V1/Admin/User/ShowUserController', function () {
+describe('API/V1/User/ShowUserController', function () {
     it('can show a user with full details', function () {
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $user = User::factory()->create([
@@ -18,7 +18,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.users.show', $user));
+        ])->getJson(route('api.v1.users.show', $user));
 
         expect($response)->toHaveApiSuccessStructure([
             'id', 'name', 'email', 'email_verified_at', 'banned_at', 'blocked_at',
@@ -44,7 +44,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.users.show', $bannedUser));
+        ])->getJson(route('api.v1.users.show', $bannedUser));
 
         expect($response->getStatusCode())->toBe(200)
             ->and($response->json('data.id'))->toBe($bannedUser->id)
@@ -61,7 +61,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.users.show', $blockedUser));
+        ])->getJson(route('api.v1.users.show', $blockedUser));
 
         expect($response->getStatusCode())->toBe(200)
             ->and($response->json('data.id'))->toBe($blockedUser->id)
@@ -78,7 +78,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.users.show', $user));
+        ])->getJson(route('api.v1.users.show', $user));
 
         expect($response->getStatusCode())->toBe(200)
             ->and($response->json('data.id'))->toBe($user->id)
@@ -91,7 +91,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.users.show', 99999));
+        ])->getJson(route('api.v1.users.show', 99999));
 
         expect($response->getStatusCode())->toBe(404)
             ->and($response->json('status'))->toBeFalse()
@@ -101,7 +101,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
     it('returns 401 when user is not authenticated', function () {
         $user = User::factory()->create();
 
-        $response = $this->getJson(route('api.v1.admin.users.show', $user));
+        $response = $this->getJson(route('api.v1.users.show', $user));
 
         $response->assertStatus(401);
     });
@@ -112,7 +112,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.users.show', $targetUser));
+        ])->getJson(route('api.v1.users.show', $targetUser));
 
         $response->assertStatus(403);
     });
@@ -125,7 +125,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.users.show', $user));
+        ])->getJson(route('api.v1.users.show', $user));
 
         expect($response->getStatusCode())->toBe(200)
             ->and($response->json('data.roles'))->toHaveCount(1)
@@ -143,7 +143,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.users.show', $user));
+        ])->getJson(route('api.v1.users.show', $user));
 
         expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.roles');
@@ -159,7 +159,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.users.show', $user));
+        ])->getJson(route('api.v1.users.show', $user));
 
         expect($response->getStatusCode())->toBe(200)
             ->and($response->json('data.id'))->toBe($user->id)
@@ -174,7 +174,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.users.show', $verifiedUser));
+        ])->getJson(route('api.v1.users.show', $verifiedUser));
 
         expect($response->getStatusCode())->toBe(200)
             ->and($response->json('data.id'))->toBe($verifiedUser->id)
@@ -189,7 +189,7 @@ describe('API/V1/Admin/User/ShowUserController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.users.show', $unverifiedUser));
+        ])->getJson(route('api.v1.users.show', $unverifiedUser));
 
         expect($response->getStatusCode())->toBe(200)
             ->and($response->json('data.id'))->toBe($unverifiedUser->id)

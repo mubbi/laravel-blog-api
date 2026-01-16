@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Data\CreateNotificationDTO;
-use App\Data\FilterNotificationDTO;
+use App\Data\Notification\CreateNotificationDTO;
+use App\Data\Notification\FilterNotificationDTO;
 use App\Enums\NotificationType;
 use App\Events\Notification\NotificationCreatedEvent;
 use App\Events\Notification\NotificationSentEvent;

@@ -8,13 +8,13 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
-describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
+describe('API/V1/Newsletter/GetSubscribersController', function () {
     it('can get paginated list of newsletter subscribers', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         NewsletterSubscriber::factory()->count(5)->create();
 
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index'));
+            ->getJson(route('api.v1.newsletter.subscribers.index'));
 
         expect($response)->toHaveApiSuccessStructure([
             'subscribers' => [
@@ -51,7 +51,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index', ['search' => 'example']));
+            ->getJson(route('api.v1.newsletter.subscribers.index', ['search' => 'example']));
 
         // Assert
         $response->assertStatus(200);
@@ -71,7 +71,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index', ['status' => 'verified']));
+            ->getJson(route('api.v1.newsletter.subscribers.index', ['status' => 'verified']));
 
         // Assert
         $response->assertStatus(200);
@@ -100,7 +100,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index', [
+            ->getJson(route('api.v1.newsletter.subscribers.index', [
                 'subscribed_at_from' => now()->subDays(5)->toDateString(),
                 'subscribed_at_to' => now()->subDays(1)->toDateString(),
             ]));
@@ -124,7 +124,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index', [
+            ->getJson(route('api.v1.newsletter.subscribers.index', [
                 'sort_by' => 'email',
                 'sort_order' => 'desc',
             ]));
@@ -146,7 +146,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index', [
+            ->getJson(route('api.v1.newsletter.subscribers.index', [
                 'per_page' => 10,
                 'page' => 2,
             ]));
@@ -167,7 +167,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index'));
+            ->getJson(route('api.v1.newsletter.subscribers.index'));
 
         // Assert
         $response->assertStatus(403);
@@ -175,7 +175,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
     it('returns 401 when not authenticated', function () {
         // Act
-        $response = $this->getJson(route('api.v1.admin.newsletter.subscribers.index'));
+        $response = $this->getJson(route('api.v1.newsletter.subscribers.index'));
 
         // Assert
         $response->assertStatus(401);
@@ -189,7 +189,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index'));
+            ->getJson(route('api.v1.newsletter.subscribers.index'));
 
         // Assert
         $response->assertStatus(200);
@@ -212,7 +212,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index'));
+            ->getJson(route('api.v1.newsletter.subscribers.index'));
 
         // Assert
         $response->assertStatus(500)
@@ -244,7 +244,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index'));
+            ->getJson(route('api.v1.newsletter.subscribers.index'));
 
         // Assert
         $response->assertStatus(200);
@@ -268,7 +268,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index'));
+            ->getJson(route('api.v1.newsletter.subscribers.index'));
 
         // Assert
         $response->assertStatus(200);
@@ -287,7 +287,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index', [
+            ->getJson(route('api.v1.newsletter.subscribers.index', [
                 'subscribed_at_from' => 'invalid-date',
                 'subscribed_at_to' => 'invalid-date',
             ]));
@@ -315,7 +315,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index', [
+            ->getJson(route('api.v1.newsletter.subscribers.index', [
                 'per_page' => 50,
             ]));
 
@@ -353,7 +353,7 @@ describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
 
         // Act - Filter for verified subscribers from the last week
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.newsletter.subscribers.index', [
+            ->getJson(route('api.v1.newsletter.subscribers.index', [
                 'status' => 'verified',
                 'subscribed_at_from' => now()->subWeek()->toDateString(),
                 'subscribed_at_to' => now()->toDateString(),

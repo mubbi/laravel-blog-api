@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Data\FilterNotificationDTO;
+use App\Data\Notification\FilterNotificationDTO;
 use App\Enums\NotificationType;
 
 describe('FilterNotificationDTO', function () {

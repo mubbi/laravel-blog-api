@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Enums\UserRole;
 use App\Models\Category;
 
-describe('API/V1/Admin/Category/CreateCategoryController', function () {
+describe('API/V1/Category/CreateCategoryController', function () {
     it('can create a category with valid data', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $categoryData = [
@@ -14,7 +14,7 @@ describe('API/V1/Admin/Category/CreateCategoryController', function () {
         ];
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.categories.store'), $categoryData);
+            ->postJson(route('api.v1.categories.store'), $categoryData);
 
         expect($response->getStatusCode())->toBe(201)
             ->and($response)->toHaveApiSuccessStructure([
@@ -38,7 +38,7 @@ describe('API/V1/Admin/Category/CreateCategoryController', function () {
         $parentCategory = Category::factory()->create();
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.categories.store'), [
+            ->postJson(route('api.v1.categories.store'), [
                 'name' => 'Web Development',
                 'slug' => 'web-development',
                 'parent_id' => $parentCategory->id,
@@ -58,7 +58,7 @@ describe('API/V1/Admin/Category/CreateCategoryController', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.categories.store'), [
+            ->postJson(route('api.v1.categories.store'), [
                 'name' => 'Mobile Development',
             ]);
 
@@ -70,7 +70,7 @@ describe('API/V1/Admin/Category/CreateCategoryController', function () {
     });
 
     it('requires authentication', function () {
-        $response = $this->postJson(route('api.v1.admin.categories.store'), [
+        $response = $this->postJson(route('api.v1.categories.store'), [
             'name' => 'Technology',
         ]);
 
@@ -81,7 +81,7 @@ describe('API/V1/Admin/Category/CreateCategoryController', function () {
         $user = createUserWithRole(UserRole::AUTHOR->value);
 
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.categories.store'), [
+            ->postJson(route('api.v1.categories.store'), [
                 'name' => 'Technology',
             ]);
 
@@ -93,7 +93,7 @@ describe('API/V1/Admin/Category/CreateCategoryController', function () {
         Category::factory()->create(['name' => 'Technology']);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.categories.store'), [
+            ->postJson(route('api.v1.categories.store'), [
                 'name' => 'Technology',
             ]);
 
@@ -106,7 +106,7 @@ describe('API/V1/Admin/Category/CreateCategoryController', function () {
         Category::factory()->create(['slug' => 'technology']);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.categories.store'), [
+            ->postJson(route('api.v1.categories.store'), [
                 'name' => 'Tech',
                 'slug' => 'technology',
             ]);
@@ -119,7 +119,7 @@ describe('API/V1/Admin/Category/CreateCategoryController', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.categories.store'), [
+            ->postJson(route('api.v1.categories.store'), [
                 'name' => 'Child Category',
                 'parent_id' => 99999,
             ]);

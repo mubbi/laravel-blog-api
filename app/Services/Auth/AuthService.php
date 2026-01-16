@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Auth;
 
-use App\Data\RegisterDTO;
+use App\Data\User\RegisterDTO;
 use App\Enums\UserRole;
 use App\Events\Auth\TokenRefreshedEvent;
 use App\Events\Auth\UserLoggedInEvent;

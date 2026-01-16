@@ -13,7 +13,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/Article/ApproveArticleController', function () {
+describe('API/V1/Article/ApproveArticleController', function () {
     it('can approve a draft article', function () {
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $author = User::factory()->create();
@@ -21,7 +21,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.approve', $article));
+        ])->postJson(route('api.v1.articles.approve', $article));
 
         expect($response)->toHaveApiSuccessStructure([
             'id', 'slug', 'title', 'status', 'status_display', 'published_at',
@@ -43,7 +43,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.approve', $article));
+        ])->postJson(route('api.v1.articles.approve', $article));
 
         expect($response->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('articles', [
@@ -59,7 +59,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.approve', $article));
+        ])->postJson(route('api.v1.articles.approve', $article));
 
         expect($response)->toHaveApiSuccessStructure();
         $this->assertDatabaseHas('articles', [
@@ -74,7 +74,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.approve', 99999));
+        ])->postJson(route('api.v1.articles.approve', 99999));
 
         $response->assertStatus(404);
     });
@@ -82,7 +82,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
     it('returns 401 when user is not authenticated', function () {
         $article = Article::factory()->create();
 
-        $response = $this->postJson(route('api.v1.admin.articles.approve', $article));
+        $response = $this->postJson(route('api.v1.articles.approve', $article));
 
         $response->assertStatus(401);
     });
@@ -93,7 +93,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.approve', $article));
+        ])->postJson(route('api.v1.articles.approve', $article));
 
         $response->assertStatus(403);
     });
@@ -117,7 +117,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.approve', $article));
+        ])->postJson(route('api.v1.articles.approve', $article));
 
         // Assert
         expect($response)->toHaveApiSuccessStructure();
@@ -143,7 +143,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.approve', $article));
+        ])->postJson(route('api.v1.articles.approve', $article));
 
         // Assert
         expect($response)->toHaveApiSuccessStructure();
@@ -166,7 +166,7 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.approve', $article));
+        ])->postJson(route('api.v1.articles.approve', $article));
 
         expect($response->getStatusCode())->toBe(200);
 

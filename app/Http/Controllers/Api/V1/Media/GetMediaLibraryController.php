@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Media;
 
-use App\Data\FilterMediaDTO;
+use App\Data\Media\FilterMediaDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Media\GetMediaLibraryRequest;
 use App\Http\Resources\MetaResource;
@@ -16,7 +16,7 @@ use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-#[Group('Media Management', weight: 3)]
+#[Group('Media Management', weight: 4)]
 final class GetMediaLibraryController extends Controller
 {
     public function __construct(
@@ -24,17 +24,16 @@ final class GetMediaLibraryController extends Controller
     ) {}
 
     /**
-     * Get Media Library
+     * Get Media Library (Admin)
      *
-     * Retrieves a paginated list of media files with comprehensive filtering, sorting,
-     * and search capabilities. Users can filter by type, search by name, and sort by
-     * various fields. Users will only see their own uploaded media unless they have
-     * `manage_media` permission.
+     * Retrieves a paginated list of all media files in the system with comprehensive admin filtering,
+     * sorting, and search capabilities. This admin endpoint provides full access to all media files
+     * regardless of uploader, allowing administrators to manage the entire media library. Includes
+     * filtering by type, search functionality, and advanced sorting options.
      *
      * **Authentication & Authorization:**
      * Requires a valid Bearer token with `access-api` ability and `view_media` permission.
-     * Users with `manage_media` permission can view all media, while regular users can
-     * only view their own uploaded media.
+     * Administrators with `manage_media` permission can view all media files.
      *
      * **Query Parameters (all optional):**
      * - `page` (integer, min:1, default: 1): Page number for pagination
@@ -45,11 +44,12 @@ final class GetMediaLibraryController extends Controller
      * - `sort_direction` (enum: asc|desc, default: desc): Sort direction
      *
      * **Response:**
-     * Returns a paginated collection of media items with metadata including total count,
-     * current page, per page limit, and pagination links.
+     * Returns a paginated collection of all media items with metadata including total count,
+     * current page, per page limit, and pagination links. Administrators can see all media
+     * files regardless of uploader.
      *
-     * **Note:** Regular users will only see their own uploaded media. Users with `manage_media`
-     * permission can see all media files. For admin access to all media, use the admin media endpoints.
+     * **Note:** This admin endpoint returns all media files in the system. For user-specific
+     * media access, use the user media endpoints.
      *
      * @response array{status: true, message: string, data: array{media: MediaResource[], meta: MetaResource}}
      */
@@ -58,7 +58,7 @@ final class GetMediaLibraryController extends Controller
         try {
             $dto = FilterMediaDTO::fromRequest($request);
 
-            // Apply user filtering based on permissions (non-managers see only their media)
+            // Apply user filtering based on permissions (non-managers see only their own media)
             $userIdForFiltering = $request->getUserIdForFiltering();
             if ($userIdForFiltering !== null) {
                 $dto = $dto->withUploadedBy($userIdForFiltering);

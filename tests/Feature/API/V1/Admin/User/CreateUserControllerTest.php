@@ -8,13 +8,13 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/User/CreateUserController', function () {
+describe('API/V1/User/CreateUserController', function () {
     it('can create a new user with valid data', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $authorRole = Role::where('name', UserRole::AUTHOR->value)->first();
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), [
+            ->postJson(route('api.v1.users.store'), [
                 'name' => 'John Doe',
                 'email' => 'john@example.com',
                 'password' => 'password123',
@@ -48,7 +48,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), [
+            ->postJson(route('api.v1.users.store'), [
                 'name' => 'Jane Smith',
                 'email' => 'jane@example.com',
                 'password' => 'password123',
@@ -65,7 +65,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), []);
+            ->postJson(route('api.v1.users.store'), []);
 
         $response->assertStatus(422)
             ->assertJson([
@@ -85,7 +85,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         User::factory()->create(['email' => 'test@example.com']);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), [
+            ->postJson(route('api.v1.users.store'), [
                 'name' => 'John Doe',
                 'email' => 'test@example.com',
                 'password' => 'password123',
@@ -106,7 +106,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), [
+            ->postJson(route('api.v1.users.store'), [
                 'name' => 'John Doe',
                 'email' => 'john@example.com',
                 'password' => '123',
@@ -127,7 +127,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), [
+            ->postJson(route('api.v1.users.store'), [
                 'name' => 'John Doe',
                 'email' => 'john@example.com',
                 'password' => 'password123',
@@ -151,7 +151,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), [
+            ->postJson(route('api.v1.users.store'), [
                 'name' => 'John Doe',
                 'email' => 'john@example.com',
                 'password' => 'password123',
@@ -173,7 +173,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         $user = createUserWithRole(UserRole::SUBSCRIBER->value);
 
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.users.store'), [
+            ->postJson(route('api.v1.users.store'), [
                 'name' => 'John Doe',
                 'email' => 'john@example.com',
                 'password' => 'password123',
@@ -183,7 +183,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
     });
 
     it('returns 401 when not authenticated', function () {
-        $response = $this->postJson(route('api.v1.admin.users.store'), [
+        $response = $this->postJson(route('api.v1.users.store'), [
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => 'password123',
@@ -198,7 +198,7 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         $authorRole = Role::where('name', UserRole::AUTHOR->value)->first();
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), [
+            ->postJson(route('api.v1.users.store'), [
                 'name' => 'New User',
                 'email' => 'newuser@example.com',
                 'password' => 'password123',
