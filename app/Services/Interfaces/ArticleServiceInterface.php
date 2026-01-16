@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
-use App\Data\FilterArticleDTO;
+use App\Data\Article\FilterArticleDTO;
 use App\Models\Article;
 use App\Models\ArticleLike;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;

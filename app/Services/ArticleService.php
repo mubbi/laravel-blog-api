@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Data\FilterArticleDTO;
+use App\Data\Article\FilterArticleDTO;
 use App\Enums\ArticleReactionType;
 use App\Enums\ArticleStatus;
 use App\Models\Article;

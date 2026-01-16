@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Article;
 
-use App\Data\FilterArticleDTO;
+use App\Data\Article\FilterArticleDTO;
+use App\Data\Article\FilterArticleManagementDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Article\GetArticlesRequest;
 use App\Http\Resources\MetaResource;
+use App\Http\Resources\V1\Article\ArticleManagementResource;
 use App\Http\Resources\V1\Article\ArticleResource;
+use App\Services\Interfaces\ArticleManagementServiceInterface;
 use App\Services\Interfaces\ArticleServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -16,58 +19,43 @@ use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-#[Group('Articles', weight: 1)]
+#[Group('Articles', weight: 2)]
 final class GetArticlesController extends Controller
 {
     public function __construct(
+        private readonly ArticleManagementServiceInterface $articleManagementService,
         private readonly ArticleServiceInterface $articleService
     ) {}
 
     /**
-     * Get Paginated List of Published Articles
+     * Get Paginated List of Articles
      *
-     * Retrieves a paginated list of published articles with comprehensive filtering, sorting,
-     * and search capabilities. This public endpoint returns only published articles by default
-     * and supports filtering by categories, tags, authors, publication dates, and search terms.
+     * Returns articles based on user permissions:
+     * - Users with view_posts permission: All article statuses with management filters
+     * - Unauthenticated/No permission: Only published articles with public filters
      *
-     * **Query Parameters (all optional):**
-     * - `page` (integer, min:1, default: 1): Page number for pagination
-     * - `per_page` (integer, min:1, max:100, default: 15): Number of articles per page
-     * - `search` (string, max:255): Search term to filter articles by title or content
-     * - `status` (enum: draft|review|published|archived, default: published): Article status filter
-     * - `category_slug` (string|array): Filter by category slug(s). Can be a single slug or array of slugs
-     * - `tag_slug` (string|array): Filter by tag slug(s). Can be a single slug or array of slugs
-     * - `author_id` (integer): Filter articles by specific author user ID
-     * - `created_by` (integer): Filter articles by creator user ID (may differ from author in multi-author scenarios)
-     * - `published_after` (date, Y-m-d format): Filter articles published on or after this date
-     * - `published_before` (date, Y-m-d format): Filter articles published on or before this date
-     * - `sort_by` (enum: title|published_at|created_at|updated_at, default: published_at): Field to sort by
-     * - `sort_direction` (enum: asc|desc, default: desc): Sort direction
-     *
-     * **Response:**
-     * Returns a paginated collection of articles with metadata including total count, current page,
-     * per page limit, and pagination links. Each article includes full content, author information,
-     * categories, tags, and publication metadata.
-     *
-     * @unauthenticated
-     *
-     * @response array{status: true, message: string, data: array{articles: ArticleResource[], meta: MetaResource}}
+     * @response array{status: true, message: string, data: array{articles: ArticleResource[]|ArticleManagementResource[], meta: MetaResource}}
      */
     public function __invoke(GetArticlesRequest $request): JsonResponse
     {
         try {
-            $dto = FilterArticleDTO::fromPublicRequest($request);
+            $hasPermission = $request->hasViewPostsPermission();
 
-            $articles = $this->articleService->getArticles($dto);
+            if ($hasPermission) {
+                // User has view_posts permission - use management service
+                $dto = FilterArticleManagementDTO::fromRequest($request);
+                $userIdForFiltering = $request->getUserIdForFiltering();
+                $articles = $this->articleManagementService->getArticles($dto, $userIdForFiltering);
+                $articleCollection = ArticleManagementResource::collection($articles);
+            } else {
+                // No permission - use public service (only published articles)
+                $dto = FilterArticleDTO::fromArray($request->validated());
+                $articles = $this->articleService->getArticles($dto);
+                $articleCollection = ArticleResource::collection($articles);
+            }
 
-            $articleCollection = ArticleResource::collection($articles);
-
-            /**
-             * Successful articles retrieval
-             */
             $articleCollectionData = $articleCollection->response()->getData(true);
 
-            // Ensure we have the expected array structure
             if (! is_array($articleCollectionData) || ! isset($articleCollectionData['data'], $articleCollectionData['meta'])) {
                 throw new RuntimeException(__('common.unexpected_response_format'));
             }

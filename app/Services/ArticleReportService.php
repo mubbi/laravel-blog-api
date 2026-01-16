@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Constants\CacheKeys;
-use App\Data\ReportArticleDTO;
+use App\Data\Article\ReportArticleDTO;
 use App\Events\Article\ArticleReportedEvent;
 use App\Events\Article\ArticleReportsClearedEvent;
 use App\Models\Article;

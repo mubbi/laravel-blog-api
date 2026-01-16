@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Data\FilterCommentDTO;
+use App\Data\Comment\FilterCommentDTO;
 use App\Enums\CommentStatus;
 
 describe('FilterCommentDTO', function () {

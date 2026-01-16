@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Enums\UserRole;
 use App\Models\Tag;
 
-describe('API/V1/Admin/Tag/CreateTagController', function () {
+describe('API/V1/Tag/CreateTagController', function () {
     it('can create a tag with valid data', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $tagData = [
@@ -14,7 +14,7 @@ describe('API/V1/Admin/Tag/CreateTagController', function () {
         ];
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.tags.store'), $tagData);
+            ->postJson(route('api.v1.tags.store'), $tagData);
 
         expect($response->getStatusCode())->toBe(201)
             ->and($response)->toHaveApiSuccessStructure([
@@ -34,7 +34,7 @@ describe('API/V1/Admin/Tag/CreateTagController', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.tags.store'), [
+            ->postJson(route('api.v1.tags.store'), [
                 'name' => 'JavaScript Framework',
             ]);
 
@@ -46,7 +46,7 @@ describe('API/V1/Admin/Tag/CreateTagController', function () {
     });
 
     it('requires authentication', function () {
-        $response = $this->postJson(route('api.v1.admin.tags.store'), [
+        $response = $this->postJson(route('api.v1.tags.store'), [
             'name' => 'PHP',
         ]);
 
@@ -57,7 +57,7 @@ describe('API/V1/Admin/Tag/CreateTagController', function () {
         $user = createUserWithRole(UserRole::AUTHOR->value);
 
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.tags.store'), [
+            ->postJson(route('api.v1.tags.store'), [
                 'name' => 'PHP',
             ]);
 
@@ -69,7 +69,7 @@ describe('API/V1/Admin/Tag/CreateTagController', function () {
         Tag::factory()->create(['name' => 'PHP']);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.tags.store'), [
+            ->postJson(route('api.v1.tags.store'), [
                 'name' => 'PHP',
             ]);
 
@@ -82,7 +82,7 @@ describe('API/V1/Admin/Tag/CreateTagController', function () {
         Tag::factory()->create(['slug' => 'php']);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.tags.store'), [
+            ->postJson(route('api.v1.tags.store'), [
                 'name' => 'PHP Framework',
                 'slug' => 'php',
             ]);

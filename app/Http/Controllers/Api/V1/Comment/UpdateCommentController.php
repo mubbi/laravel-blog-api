@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Comment;
 
-use App\Data\UpdateCommentDTO;
+use App\Data\Comment\UpdateCommentDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Comment\UpdateCommentRequest;
 use App\Http\Resources\V1\Comment\CommentResource;

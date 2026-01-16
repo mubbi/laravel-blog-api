@@ -8,7 +8,7 @@ use App\Events\Article\ArticlePinnedEvent;
 use App\Models\Article;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/Article/PinArticleController', function () {
+describe('API/V1/Article/PinArticleController', function () {
     it('can pin a published article', function () {
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $article = Article::factory()->create([
@@ -18,7 +18,7 @@ describe('API/V1/Admin/Article/PinArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.pin', $article));
+        ])->postJson(route('api.v1.articles.pin', $article));
 
         expect($response)->toHaveApiSuccessStructure([
             'id', 'slug', 'title', 'status', 'status_display', 'published_at',
@@ -40,7 +40,7 @@ describe('API/V1/Admin/Article/PinArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.pin', $article));
+        ])->postJson(route('api.v1.articles.pin', $article));
 
         expect($response->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('articles', [
@@ -54,7 +54,7 @@ describe('API/V1/Admin/Article/PinArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.pin', 99999));
+        ])->postJson(route('api.v1.articles.pin', 99999));
 
         $response->assertStatus(404);
     });
@@ -62,7 +62,7 @@ describe('API/V1/Admin/Article/PinArticleController', function () {
     it('returns 401 when user is not authenticated', function () {
         $article = Article::factory()->create();
 
-        $response = $this->postJson(route('api.v1.admin.articles.pin', $article));
+        $response = $this->postJson(route('api.v1.articles.pin', $article));
 
         $response->assertStatus(401);
     });
@@ -73,7 +73,7 @@ describe('API/V1/Admin/Article/PinArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.pin', $article));
+        ])->postJson(route('api.v1.articles.pin', $article));
 
         $response->assertStatus(403);
     });
@@ -92,7 +92,7 @@ describe('API/V1/Admin/Article/PinArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.pin', $article));
+        ])->postJson(route('api.v1.articles.pin', $article));
 
         expect($response->getStatusCode())->toBe(200);
         $article->refresh();
@@ -114,7 +114,7 @@ describe('API/V1/Admin/Article/PinArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.pin', $article));
+        ])->postJson(route('api.v1.articles.pin', $article));
 
         expect($response->getStatusCode())->toBe(200);
         Event::assertDispatched(ArticlePinnedEvent::class, fn ($event) => $event->article->id === $article->id
@@ -134,7 +134,7 @@ describe('API/V1/Admin/Article/PinArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.pin', $article));
+        ])->postJson(route('api.v1.articles.pin', $article));
 
         expect($response)->toHaveApiErrorStructure(500)
             ->and($response->json('message'))->toBe(__('common.something_went_wrong'));

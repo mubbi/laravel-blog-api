@@ -5,64 +5,82 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Article;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\V1\Article\ShowArticleRequest;
+use App\Http\Resources\V1\Article\ArticleManagementResource;
 use App\Http\Resources\V1\Article\ArticleResource;
+use App\Models\Article;
+use App\Services\Interfaces\ArticleManagementServiceInterface;
 use App\Services\Interfaces\ArticleServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-#[Group('Articles', weight: 1)]
+#[Group('Articles', weight: 2)]
 final class ShowArticleController extends Controller
 {
     public function __construct(
+        private readonly ArticleManagementServiceInterface $articleManagementService,
         private readonly ArticleServiceInterface $articleService
     ) {}
 
     /**
-     * Get Single Article by Slug
+     * Get Single Article
      *
-     * Retrieves a single published article by its unique slug identifier. This endpoint is used
-     * to display individual article pages and includes all article details including content,
-     * author information, categories, tags, publication date, and view count.
+     * Returns article based on user permissions:
+     * - Users with view_posts permission: Article by ID with management details (all statuses)
+     * - Unauthenticated/No permission: Published article by slug
      *
-     * **Route Parameters:**
-     * - `slug` (string, required): The unique slug identifier of the article (e.g., "my-article-title")
-     *
-     * **Response:**
-     * Returns the complete article object with all related data including author details,
-     * associated categories and tags, publication metadata, and full article content.
-     *
-     * **Note:** This endpoint only returns published articles. Draft or archived articles
-     * are not accessible through this public endpoint (see admin endpoints for those).
-     *
-     * @unauthenticated
-     *
-     * @response array{status: true, message: string, data: ArticleResource}
+     * @response array{status: true, message: string, data: ArticleResource|ArticleManagementResource}
      */
-    public function __invoke(string $slug, Request $request): JsonResponse
+    public function __invoke(ShowArticleRequest $request, ?string $slug = null): JsonResponse
     {
         try {
-            $article = $this->articleService->getArticleBySlug($slug);
+            $hasPermission = $request->hasViewPostsPermission();
 
-            /**
-             * Successful article retrieval
-             */
+            // Get slug from route parameter
+            $routeSlug = $request->route('slug');
+
+            // Ensure slug is a string (route parameter should be string, but handle edge cases)
+            if ($routeSlug !== null && ! is_string($routeSlug)) {
+                $routeSlug = null;
+            }
+
+            $slug = (string) ($routeSlug ?? $slug ?? '');
+
+            if ($slug === '') {
+                return response()->apiError(
+                    __('common.article_not_found'),
+                    Response::HTTP_NOT_FOUND
+                );
+            }
+
+            // Load article by slug
+            try {
+                $article = $this->articleService->getArticleBySlug($slug);
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                return response()->apiError(
+                    __('common.article_not_found'),
+                    Response::HTTP_NOT_FOUND
+                );
+            }
+
+            // If user has permission, check if they can view this article for management
+            if ($hasPermission && $request->canViewArticle($article)) {
+                $article = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
+
+                return response()->apiSuccess(
+                    new ArticleManagementResource($article),
+                    __('common.success')
+                );
+            }
+
+            // Public access - only published articles (service already filters to published)
             return response()->apiSuccess(
                 new ArticleResource($article),
                 __('common.success')
             );
-        } catch (ModelNotFoundException $e) {
-            /**
-             * Article not found
-             *
-             * @status 404
-             *
-             * @body array{status: false, message: string, data: null, error: null}
-             */
-            return $this->handleException($e, $request);
         } catch (Throwable $e) {
             /**
              * Internal server error
@@ -71,7 +89,17 @@ final class ShowArticleController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            return $this->handleException($e, $request);
+            Log::error('Error showing article', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->apiError(
+                __('common.something_went_wrong'),
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
         }
     }
 }

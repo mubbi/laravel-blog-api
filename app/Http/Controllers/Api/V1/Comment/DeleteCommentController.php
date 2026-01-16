@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Comment;
 
-use App\Data\DeleteCommentDTO;
+use App\Data\Comment\DeleteCommentDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Comment\DeleteCommentRequest;
 use App\Models\Comment;
@@ -22,15 +22,15 @@ final class DeleteCommentController extends Controller
     ) {}
 
     /**
-     * Delete Comment
+     * Permanently Delete Comment (Admin)
      *
-     * Permanently deletes a comment from the system. Users can only delete their own comments,
-     * while administrators can delete any comment. This action cannot be undone and will remove
-     * the comment and all associated data, including any replies to the comment.
+     * Permanently deletes a comment from the system. This action cannot be undone and will
+     * remove the comment and all associated data. Used for removing inappropriate, spam, or
+     * otherwise unwanted comments. This is different from rejecting a comment, which changes
+     * its status but preserves the data.
      *
      * **Authentication & Authorization:**
-     * Requires a valid Bearer token with `access-api` ability. Users can only delete their own comments,
-     * while administrators with `delete_comments` permission can delete any comment.
+     * Requires a valid Bearer token with `access-api` ability and `delete_comments` permission.
      *
      * **Route Parameters:**
      * - `comment` (Comment, required): The comment model instance to delete
@@ -42,7 +42,8 @@ final class DeleteCommentController extends Controller
      * Returns a success message confirming the comment has been deleted. The response body
      * contains no data (null) as the comment no longer exists.
      *
-     * **Note:** This operation cannot be reversed. Only the comment owner or an administrator can delete a comment.
+     * **Note:** This operation cannot be reversed. Consider rejecting comments instead if
+     * you want to preserve the data for audit purposes.
      *
      * @response array{status: true, message: string, data: null}
      */
@@ -51,6 +52,15 @@ final class DeleteCommentController extends Controller
         try {
             $user = $request->user();
             assert($user !== null);
+
+            // Check authorization using policy (allows users to delete their own comments)
+            if (! $user->can('delete', $comment)) {
+                return response()->apiError(
+                    __('common.unauthorized'),
+                    Response::HTTP_FORBIDDEN
+                );
+            }
+
             $dto = DeleteCommentDTO::fromRequest($request);
             $this->commentService->deleteComment($comment, $dto, $user);
 

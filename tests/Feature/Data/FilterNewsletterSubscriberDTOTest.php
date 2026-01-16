@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Data\FilterNewsletterSubscriberDTO;
+use App\Data\Newsletter\FilterNewsletterSubscriberDTO;
 
 describe('FilterNewsletterSubscriberDTO', function () {
     it('can be created with default values', function () {

@@ -4,29 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\V1\Comment;
 
-use App\Models\Comment;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * @property-read string|null $reason
+ */
 final class DeleteCommentRequest extends FormRequest
 {
+    /**
+     * Allow authenticated users - authorization checked in controller using policy
+     */
     public function authorize(): bool
     {
-        $user = $this->user();
-        if ($user === null) {
-            return false;
-        }
-
-        $comment = $this->route('comment');
-        if (! $comment instanceof Comment) {
-            return false;
-        }
-
-        // Admin can delete any comment, users can only delete their own
-        if ($user->hasPermission('delete_comments')) {
-            return true;
-        }
-
-        return $user->id === $comment->user_id;
+        return $this->user() !== null;
     }
 
     /**
@@ -39,15 +29,5 @@ final class DeleteCommentRequest extends FormRequest
         return [
             'reason' => ['nullable', 'string', 'max:500'],
         ];
-    }
-
-    /**
-     * Get the default values for missing parameters
-     *
-     * @return array<string, mixed>
-     */
-    public function withDefaults(): array
-    {
-        return $this->validated();
     }
 }

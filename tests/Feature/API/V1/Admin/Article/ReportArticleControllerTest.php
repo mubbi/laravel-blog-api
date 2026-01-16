@@ -10,7 +10,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/Article/ReportArticleController', function () {
+describe('API/V1/Article/ReportArticleController', function () {
     it('can report an article successfully', function () {
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $article = Article::factory()->create([
@@ -20,7 +20,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.report', $article));
+        ])->postJson(route('api.v1.articles.report', $article));
 
         expect($response)->toHaveApiSuccessStructure([
             'id', 'slug', 'title', 'status', 'status_display', 'published_at',
@@ -42,7 +42,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.report', $article));
+        ])->postJson(route('api.v1.articles.report', $article));
 
         expect($response)->toHaveApiSuccessStructure();
         $this->assertDatabaseHas('articles', [
@@ -67,7 +67,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.report', $article));
+        ])->postJson(route('api.v1.articles.report', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -94,7 +94,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.report', $article));
+        ])->postJson(route('api.v1.articles.report', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -121,7 +121,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.report', $article));
+        ])->postJson(route('api.v1.articles.report', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -143,7 +143,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.report', 99999));
+        ])->postJson(route('api.v1.articles.report', 99999));
 
         // Assert
         $response->assertStatus(404)
@@ -158,7 +158,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         $article = Article::factory()->create();
 
         // Act
-        $response = $this->postJson(route('api.v1.admin.articles.report', $article));
+        $response = $this->postJson(route('api.v1.articles.report', $article));
 
         // Assert
         $response->assertStatus(401);
@@ -176,7 +176,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.report', $article));
+        ])->postJson(route('api.v1.articles.report', $article));
 
         // Assert
         $response->assertStatus(403);
@@ -206,7 +206,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.report', $article));
+        ])->postJson(route('api.v1.articles.report', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -239,7 +239,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         // Act - First report
         $response1 = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.report', $article));
+        ])->postJson(route('api.v1.articles.report', $article));
 
         // Assert - Should be 1
         $response1->assertStatus(200);
@@ -251,7 +251,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         // Act - Second report
         $response2 = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.report', $article));
+        ])->postJson(route('api.v1.articles.report', $article));
 
         // Assert - Should be 2
         $response2->assertStatus(200);
@@ -263,7 +263,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         // Act - Third report
         $response3 = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.report', $article));
+        ])->postJson(route('api.v1.articles.report', $article));
 
         // Assert - Should be 3
         $response3->assertStatus(200);
@@ -291,7 +291,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.report', $article));
+        ])->postJson(route('api.v1.articles.report', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -323,7 +323,7 @@ describe('API/V1/Admin/Article/ReportArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.report', $article));
+        ])->postJson(route('api.v1.articles.report', $article));
 
         // Assert
         $response->assertStatus(500)

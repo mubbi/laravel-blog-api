@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
-use App\Data\ApproveCommentDTO;
-use App\Data\CreateCommentDTO;
-use App\Data\DeleteCommentDTO;
-use App\Data\FilterCommentDTO;
-use App\Data\ReportCommentDTO;
-use App\Data\UpdateCommentDTO;
+use App\Data\Comment\ApproveCommentDTO;
+use App\Data\Comment\CreateCommentDTO;
+use App\Data\Comment\DeleteCommentDTO;
+use App\Data\Comment\FilterCommentDTO;
+use App\Data\Comment\ReportCommentDTO;
+use App\Data\Comment\UpdateCommentDTO;
 use App\Models\Article;
 use App\Models\Comment;
 use App\Models\User;

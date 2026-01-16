@@ -2,19 +2,22 @@
 
 declare(strict_types=1);
 
-use App\Data\ApproveCommentDTO;
+use App\Data\Comment\ApproveCommentDTO;
 use App\Enums\CommentStatus;
+use App\Enums\NotificationType;
 use App\Enums\UserRole;
 use App\Events\Comment\CommentApprovedEvent;
 use App\Models\Article;
 use App\Models\Comment;
+use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserNotification;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 
-describe('API/V1/Admin/Comment/ApproveCommentController', function () {
+describe('API/V1/Comment/ApproveCommentController', function () {
     it('can approve a pending comment successfully', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $comment = Comment::factory()->create([
@@ -22,7 +25,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Approved after review',
             ]);
 
@@ -54,7 +57,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment));
+            ->postJson(route('api.v1.comments.approve', $comment));
 
         expect($response)->toHaveApiSuccessStructure()
             ->and($response->json('data.id'))->toBe($comment->id)
@@ -73,7 +76,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Re-approved',
             ]);
 
@@ -89,7 +92,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Approved after reconsideration',
             ]);
 
@@ -108,7 +111,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $nonExistentId), [
+            ->postJson(route('api.v1.comments.approve', $nonExistentId), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -134,7 +137,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -149,7 +152,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         // Act
-        $response = $this->postJson(route('api.v1.admin.comments.approve', $comment), [
+        $response = $this->postJson(route('api.v1.comments.approve', $comment), [
             'admin_note' => 'Test note',
         ]);
 
@@ -169,7 +172,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => str_repeat('a', 501), // Exceeds max length
             ]);
 
@@ -198,7 +201,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         });
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -226,7 +229,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         });
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
@@ -244,7 +247,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         $originalUpdatedAt = $comment->updated_at;
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
@@ -266,7 +269,7 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
@@ -285,12 +288,74 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.comments.approve', $comment), [
+            ->postJson(route('api.v1.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
         expect($response->getStatusCode())->toBe(200);
         Event::assertDispatched(CommentApprovedEvent::class, fn ($event) => $event->comment->id === $comment->id
             && $event->comment->status === CommentStatus::APPROVED);
+    });
+
+    it('creates notification for comment author when comment is approved', function () {
+        // Reset event fake by faking an event that won't be dispatched in this test
+        // This resets the global fake and allows all other events to be dispatched
+        // With QUEUE_CONNECTION=sync, queued listeners run immediately
+        Event::fake([\App\Events\Comment\CommentCreatedEvent::class]);
+
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
+        $articleAuthor = User::factory()->create();
+        $commenter = User::factory()->create();
+        $article = Article::factory()->for($articleAuthor, 'author')->create();
+        $comment = Comment::factory()->create([
+            'article_id' => $article->id,
+            'user_id' => $commenter->id,
+            'status' => CommentStatus::PENDING->value,
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->postJson(route('api.v1.comments.approve', $comment), [
+                'admin_note' => 'Approved',
+            ]);
+
+        expect($response->getStatusCode())->toBe(200);
+
+        // Verify notification was created for comment author (not article author)
+        $notification = Notification::where('type', NotificationType::SYSTEM_ALERT->value)
+            ->whereJsonContains('message->title', __('notifications.comment_approved.title'))
+            ->first();
+
+        expect($notification)->not->toBeNull();
+
+        // Verify user notification was created for the comment author
+        $userNotification = UserNotification::where('user_id', $commenter->id)
+            ->where('notification_id', $notification->id)
+            ->first();
+
+        expect($userNotification)->not->toBeNull()
+            ->and($userNotification->is_read)->toBeFalse();
+    });
+
+    it('does not create notification when comment author is the same as article author', function () {
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
+        $author = User::factory()->create();
+        $article = Article::factory()->for($author, 'author')->create();
+        $comment = Comment::factory()->create([
+            'article_id' => $article->id,
+            'user_id' => $author->id, // Same user as article author
+            'status' => CommentStatus::PENDING->value,
+        ]);
+
+        $notificationCountBefore = Notification::count();
+
+        $response = $this->actingAs($admin)
+            ->postJson(route('api.v1.comments.approve', $comment), [
+                'admin_note' => 'Approved',
+            ]);
+
+        expect($response->getStatusCode())->toBe(200);
+
+        // Verify no notification was created
+        expect(Notification::count())->toBe($notificationCountBefore);
     });
 });

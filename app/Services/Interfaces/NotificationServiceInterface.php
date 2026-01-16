@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
-use App\Data\CreateNotificationDTO;
-use App\Data\FilterNotificationDTO;
+use App\Data\Notification\CreateNotificationDTO;
+use App\Data\Notification\FilterNotificationDTO;
 use App\Models\Notification;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -46,4 +46,11 @@ interface NotificationServiceInterface
      * @return array<string, int|array<string, int>>
      */
     public function getNotificationStats(): array;
+
+    /**
+     * Distribute notification to users by creating UserNotification records
+     *
+     * @return int Number of UserNotification records created
+     */
+    public function distributeToUsers(Notification $notification): int;
 }

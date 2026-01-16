@@ -9,7 +9,7 @@ use App\Models\Comment;
 use App\Models\Role;
 use App\Models\User;
 
-describe('API/V1/Admin/Comment/GetCommentsController', function () {
+describe('API/V1/Comment/GetCommentsController', function () {
     it('can get paginated comments', function () {
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $user = User::factory()->create();
@@ -22,7 +22,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.comments.index'));
+        ])->getJson(route('api.v1.comments.index'));
 
         expect($response)->toHaveApiSuccessStructure([
             'comments' => [
@@ -58,7 +58,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.comments.index', ['status' => CommentStatus::PENDING->value]));
+        ])->getJson(route('api.v1.comments.index', ['status' => CommentStatus::PENDING->value]));
 
         expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.comments');
@@ -86,7 +86,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.comments.index', ['user_id' => $user1->id]));
+        ])->getJson(route('api.v1.comments.index', ['user_id' => $user1->id]));
 
         expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.comments');
@@ -114,7 +114,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.comments.index', ['article_id' => $article1->id]));
+        ])->getJson(route('api.v1.comments.index', ['article_id' => $article1->id]));
 
         expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.comments');
@@ -143,7 +143,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.comments.index', ['search' => 'specific']));
+        ])->getJson(route('api.v1.comments.index', ['search' => 'specific']));
 
         expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.comments');
@@ -170,7 +170,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.comments.index', ['sort_by' => 'created_at', 'sort_order' => 'desc']));
+        ])->getJson(route('api.v1.comments.index', ['sort_by' => 'created_at', 'sort_order' => 'desc']));
 
         expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.comments');
@@ -197,7 +197,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->getJson(route('api.v1.admin.comments.index', ['sort_by' => 'created_at', 'sort_order' => 'asc']));
+        ])->getJson(route('api.v1.comments.index', ['sort_by' => 'created_at', 'sort_order' => 'asc']));
 
         expect($response->getStatusCode())->toBe(200);
         $responseData = $response->json('data.comments');
@@ -224,7 +224,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.comments.index', ['per_page' => 10]));
+        ])->getJson(route('api.v1.comments.index', ['per_page' => 10]));
 
         // Assert
         $response->assertStatus(200);
@@ -240,7 +240,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
 
     it('returns 401 when user is not authenticated', function () {
         // Act
-        $response = $this->getJson(route('api.v1.admin.comments.index'));
+        $response = $this->getJson(route('api.v1.comments.index'));
 
         // Assert
         $response->assertStatus(401);
@@ -257,7 +257,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.comments.index'));
+        ])->getJson(route('api.v1.comments.index'));
 
         // Assert
         $response->assertStatus(403);
@@ -289,7 +289,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.comments.index'));
+        ])->getJson(route('api.v1.comments.index'));
 
         // Assert
         $response->assertStatus(200);
@@ -316,7 +316,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->getJson(route('api.v1.admin.comments.index'));
+        ])->getJson(route('api.v1.comments.index'));
 
         // Assert
         $response->assertStatus(200);
@@ -342,7 +342,7 @@ describe('API/V1/Admin/Comment/GetCommentsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.comments.index'));
+            ->getJson(route('api.v1.comments.index'));
 
         // Assert
         $response->assertStatus(500)

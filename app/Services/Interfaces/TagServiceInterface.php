@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
-use App\Data\CreateTagDTO;
-use App\Data\UpdateTagDTO;
+use App\Data\Tag\CreateTagDTO;
+use App\Data\Tag\UpdateTagDTO;
 use App\Models\Tag;
 use Illuminate\Database\Eloquent\Collection;
 

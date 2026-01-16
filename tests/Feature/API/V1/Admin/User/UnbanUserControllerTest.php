@@ -8,13 +8,13 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/User/UnbanUserController', function () {
+describe('API/V1/User/UnbanUserController', function () {
     it('can unban a user successfully', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToUnban = User::factory()->create(['banned_at' => now()]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
+            ->postJson(route('api.v1.users.unban', $userToUnban));
 
         expect($response)->toHaveApiSuccessStructure([
             'id',
@@ -46,7 +46,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
+            ->postJson(route('api.v1.users.unban', $userToUnban));
 
         // Assert
         $response->assertStatus(200);
@@ -61,7 +61,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         $userToUnban = User::factory()->create(['banned_at' => null]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
+            ->postJson(route('api.v1.users.unban', $userToUnban));
 
         expect($response->getStatusCode())->toBe(200);
         $userToUnban->refresh();
@@ -72,7 +72,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', 99999));
+            ->postJson(route('api.v1.users.unban', 99999));
 
         expect($response->getStatusCode())->toBe(404)
             ->and($response->json('status'))->toBeFalse()
@@ -84,7 +84,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         $userToUnban = User::factory()->create(['banned_at' => now()]);
 
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
+            ->postJson(route('api.v1.users.unban', $userToUnban));
 
         $response->assertStatus(403);
     });
@@ -92,7 +92,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
     it('returns 401 when not authenticated', function () {
         $userToUnban = User::factory()->create(['banned_at' => now()]);
 
-        $response = $this->postJson(route('api.v1.admin.users.unban', $userToUnban));
+        $response = $this->postJson(route('api.v1.users.unban', $userToUnban));
 
         $response->assertStatus(401);
     });
@@ -103,7 +103,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         attachRoleAndRefreshCache($admin, $adminRole);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $admin));
+            ->postJson(route('api.v1.users.unban', $admin));
 
         expect($response->getStatusCode())->toBe(403)
             ->and($response->json('status'))->toBeFalse()
@@ -126,7 +126,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         ]));
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
+            ->postJson(route('api.v1.users.unban', $userToUnban));
 
         expect($response->getStatusCode())->toBe(200);
         $userToUnban->refresh();
@@ -142,7 +142,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         $userToUnban = User::factory()->create(['banned_at' => now()->subMonths(6)]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
+            ->postJson(route('api.v1.users.unban', $userToUnban));
 
         expect($response->getStatusCode())->toBe(200);
         $userToUnban->refresh();
@@ -155,7 +155,7 @@ describe('API/V1/Admin/User/UnbanUserController', function () {
         $userToUnban = User::factory()->create(['banned_at' => now()]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unban', $userToUnban));
+            ->postJson(route('api.v1.users.unban', $userToUnban));
 
         expect($response->getStatusCode())->toBe(200);
         Event::assertDispatched(UserUnbannedEvent::class, fn ($event) => $event->user->id === $userToUnban->id

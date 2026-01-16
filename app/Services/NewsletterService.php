@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Data\FilterNewsletterSubscriberDTO;
-use App\Data\SubscribeNewsletterDTO;
-use App\Data\UnsubscribeNewsletterDTO;
-use App\Data\VerifySubscriptionDTO;
-use App\Data\VerifyUnsubscriptionDTO;
+use App\Data\Newsletter\FilterNewsletterSubscriberDTO;
+use App\Data\Newsletter\SubscribeNewsletterDTO;
+use App\Data\Newsletter\UnsubscribeNewsletterDTO;
+use App\Data\Newsletter\VerifySubscriptionDTO;
+use App\Data\Newsletter\VerifyUnsubscriptionDTO;
 use App\Events\Newsletter\NewsletterSubscriberCreatedEvent;
 use App\Events\Newsletter\NewsletterSubscriberDeletedEvent;
 use App\Events\Newsletter\NewsletterSubscriberUnsubscribedEvent;

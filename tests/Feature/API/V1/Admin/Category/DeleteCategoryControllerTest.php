@@ -7,13 +7,13 @@ use App\Models\Category;
 use App\Models\Role;
 use App\Models\User;
 
-describe('API/V1/Admin/Category/DeleteCategoryController', function () {
+describe('API/V1/Category/DeleteCategoryController', function () {
     it('can delete a category successfully', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $category = Category::factory()->create();
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.categories.destroy', $category));
+            ->deleteJson(route('api.v1.categories.destroy', $category));
 
         expect($response)->toHaveApiSuccessStructure()
             ->and($response->json('message'))->toBe(__('common.category_deleted_successfully'));
@@ -29,7 +29,7 @@ describe('API/V1/Admin/Category/DeleteCategoryController', function () {
         $child2 = Category::factory()->create(['parent_id' => $category->id]);
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.categories.destroy', $category), [
+            ->deleteJson(route('api.v1.categories.destroy', $category), [
                 'delete_children' => false,
             ]);
 
@@ -47,7 +47,7 @@ describe('API/V1/Admin/Category/DeleteCategoryController', function () {
         $grandchild = Category::factory()->create(['parent_id' => $child1->id]);
 
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.categories.destroy', $category), [
+            ->deleteJson(route('api.v1.categories.destroy', $category), [
                 'delete_children' => true,
             ]);
 
@@ -72,7 +72,7 @@ describe('API/V1/Admin/Category/DeleteCategoryController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->deleteJson(route('api.v1.admin.categories.destroy', $category), [
+            ->deleteJson(route('api.v1.categories.destroy', $category), [
                 'delete_children' => false,
             ]);
 
@@ -95,7 +95,7 @@ describe('API/V1/Admin/Category/DeleteCategoryController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->deleteJson(route('api.v1.admin.categories.destroy', $category));
+            ->deleteJson(route('api.v1.categories.destroy', $category));
 
         // Assert
         $response->assertStatus(403);

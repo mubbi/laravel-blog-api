@@ -10,7 +10,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/Article/UnpinArticleController', function () {
+describe('API/V1/Article/UnpinArticleController', function () {
     it('can unpin a pinned article', function () {
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $article = Article::factory()->create([
@@ -20,7 +20,7 @@ describe('API/V1/Admin/Article/UnpinArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.unpin', $article));
+        ])->postJson(route('api.v1.articles.unpin', $article));
 
         expect($response)->toHaveApiSuccessStructure([
             'id', 'slug', 'title', 'status', 'status_display', 'published_at',
@@ -49,7 +49,7 @@ describe('API/V1/Admin/Article/UnpinArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.unpin', $article));
+        ])->postJson(route('api.v1.articles.unpin', $article));
 
         // Assert
         expect($response)->toHaveApiSuccessStructure();
@@ -71,7 +71,7 @@ describe('API/V1/Admin/Article/UnpinArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.unpin', 99999));
+        ])->postJson(route('api.v1.articles.unpin', 99999));
 
         // Assert
         $response->assertStatus(404);
@@ -82,7 +82,7 @@ describe('API/V1/Admin/Article/UnpinArticleController', function () {
         $article = Article::factory()->create();
 
         // Act
-        $response = $this->postJson(route('api.v1.admin.articles.unpin', $article));
+        $response = $this->postJson(route('api.v1.articles.unpin', $article));
 
         // Assert
         $response->assertStatus(401);
@@ -101,7 +101,7 @@ describe('API/V1/Admin/Article/UnpinArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.unpin', $article));
+        ])->postJson(route('api.v1.articles.unpin', $article));
 
         // Assert
         $response->assertStatus(403);
@@ -130,7 +130,7 @@ describe('API/V1/Admin/Article/UnpinArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.unpin', $article));
+        ])->postJson(route('api.v1.articles.unpin', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -162,7 +162,7 @@ describe('API/V1/Admin/Article/UnpinArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.unpin', $article));
+        ])->postJson(route('api.v1.articles.unpin', $article));
 
         // Assert
         $response->assertStatus(200);
@@ -195,7 +195,7 @@ describe('API/V1/Admin/Article/UnpinArticleController', function () {
         // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->postJson(route('api.v1.admin.articles.unpin', $article));
+        ])->postJson(route('api.v1.articles.unpin', $article));
 
         // Assert
         $response->assertStatus(500)

@@ -9,13 +9,13 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
-describe('API/V1/Admin/Notification/GetNotificationsController', function () {
+describe('API/V1/Notification/GetNotificationsController', function () {
     it('can get paginated list of notifications', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         Notification::factory()->count(5)->create();
 
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index'));
+            ->getJson(route('api.v1.notifications.index'));
 
         expect($response)->toHaveApiSuccessStructure([
             'notifications' => [
@@ -50,7 +50,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index', ['type' => NotificationType::SYSTEM_ALERT->value]));
+            ->getJson(route('api.v1.notifications.index', ['type' => NotificationType::SYSTEM_ALERT->value]));
 
         // Assert
         $response->assertStatus(200);
@@ -79,7 +79,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index', ['search' => 'maintenance']));
+            ->getJson(route('api.v1.notifications.index', ['search' => 'maintenance']));
 
         // Assert
         $response->assertStatus(200);
@@ -106,7 +106,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index', [
+            ->getJson(route('api.v1.notifications.index', [
                 'created_at_from' => now()->subDays(5)->toDateString(),
                 'created_at_to' => now()->subDays(1)->toDateString(),
             ]));
@@ -130,7 +130,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index', [
+            ->getJson(route('api.v1.notifications.index', [
                 'sort_by' => 'created_at',
                 'sort_order' => 'desc',
             ]));
@@ -154,7 +154,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index', [
+            ->getJson(route('api.v1.notifications.index', [
                 'per_page' => 10,
                 'page' => 2,
             ]));
@@ -175,7 +175,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->getJson(route('api.v1.admin.notifications.index'));
+            ->getJson(route('api.v1.notifications.index'));
 
         // Assert
         $response->assertStatus(403);
@@ -183,7 +183,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
     it('returns 401 when not authenticated', function () {
         // Act
-        $response = $this->getJson(route('api.v1.admin.notifications.index'));
+        $response = $this->getJson(route('api.v1.notifications.index'));
 
         // Assert
         $response->assertStatus(401);
@@ -197,7 +197,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index'));
+            ->getJson(route('api.v1.notifications.index'));
 
         // Assert
         $response->assertStatus(200);
@@ -220,7 +220,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index'));
+            ->getJson(route('api.v1.notifications.index'));
 
         // Assert
         $response->assertStatus(500)
@@ -261,7 +261,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index'));
+            ->getJson(route('api.v1.notifications.index'));
 
         // Assert
         $response->assertStatus(200);
@@ -290,7 +290,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index'));
+            ->getJson(route('api.v1.notifications.index'));
 
         // Assert
         $response->assertStatus(200);
@@ -312,7 +312,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index', [
+            ->getJson(route('api.v1.notifications.index', [
                 'created_at_from' => 'invalid-date',
                 'created_at_to' => 'invalid-date',
             ]));
@@ -341,7 +341,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index', [
+            ->getJson(route('api.v1.notifications.index', [
                 'per_page' => 50,
             ]));
 
@@ -379,7 +379,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act - Filter for system notifications from the last week
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index', [
+            ->getJson(route('api.v1.notifications.index', [
                 'type' => NotificationType::SYSTEM_ALERT->value,
                 'created_at_from' => now()->subWeek()->toDateString(),
                 'created_at_to' => now()->toDateString(),
@@ -411,7 +411,7 @@ describe('API/V1/Admin/Notification/GetNotificationsController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.notifications.index'));
+            ->getJson(route('api.v1.notifications.index'));
 
         // Assert
         $response->assertStatus(200);

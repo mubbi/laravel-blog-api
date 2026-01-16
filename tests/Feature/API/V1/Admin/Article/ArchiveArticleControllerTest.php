@@ -8,7 +8,7 @@ use App\Events\Article\ArticleArchivedEvent;
 use App\Models\Article;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/Article/ArchiveArticleController', function () {
+describe('API/V1/Article/ArchiveArticleController', function () {
     it('can archive a published article', function () {
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $article = Article::factory()->create([

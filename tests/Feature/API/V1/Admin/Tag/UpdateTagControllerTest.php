@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Enums\UserRole;
 use App\Models\Tag;
 
-describe('API/V1/Admin/Tag/UpdateTagController', function () {
+describe('API/V1/Tag/UpdateTagController', function () {
     it('can update a tag successfully', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $tag = Tag::factory()->create([
@@ -14,7 +14,7 @@ describe('API/V1/Admin/Tag/UpdateTagController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->putJson(route('api.v1.admin.tags.update', $tag), [
+            ->putJson(route('api.v1.tags.update', $tag), [
                 'name' => 'New Name',
                 'slug' => 'new-slug',
             ]);
@@ -36,7 +36,7 @@ describe('API/V1/Admin/Tag/UpdateTagController', function () {
         $tag = Tag::factory()->create();
 
         $response = $this->actingAs($user)
-            ->putJson(route('api.v1.admin.tags.update', $tag), ['name' => 'New Name']);
+            ->putJson(route('api.v1.tags.update', $tag), ['name' => 'New Name']);
 
         $response->assertStatus(403);
     });

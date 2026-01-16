@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Media;
 
-use App\Data\UpdateMediaMetadataDTO;
+use App\Data\Media\UpdateMediaMetadataDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Media\UpdateMediaMetadataRequest;
 use App\Http\Resources\V1\Media\MediaResource;
@@ -15,7 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-#[Group('Media Management', weight: 3)]
+#[Group('Media Management', weight: 4)]
 final class UpdateMediaMetadataController extends Controller
 {
     public function __construct(
@@ -23,26 +23,30 @@ final class UpdateMediaMetadataController extends Controller
     ) {}
 
     /**
-     * Update Media Metadata
+     * Update Media Metadata (Admin)
      *
-     * Updates metadata for a media file such as name, alt text, caption, and description.
-     * This does not modify the actual file, only its metadata in the database.
-     *
-     * **Access Control:**
-     * - **Media owner**: Can update their own media metadata
-     * - **Administrators**: Can update any media metadata
+     * Updates metadata for any media file in the system such as name, alt text, caption, and description.
+     * This admin endpoint allows administrators to update metadata for any media file, regardless of
+     * who uploaded it. This does not modify the actual file, only its metadata in the database.
      *
      * **Authentication & Authorization:**
-     * Requires a valid Bearer token with `access-api` ability and appropriate permissions.
+     * Requires a valid Bearer token with `access-api` ability and `manage_media` permission.
+     * Administrators can update metadata for any media file.
      *
-     * **Request Body:**
-     * - `name` (optional, string, max:255): Custom name for the media
-     * - `alt_text` (optional, string, max:500): Alt text for accessibility
-     * - `caption` (optional, string, max:500): Caption for the media
-     * - `description` (optional, string, max:1000): Description of the media
+     * **Route Parameters:**
+     * - `media` (Media, required): The media model instance to update (route model binding)
+     *
+     * **Request Body (all fields optional):**
+     * - `name` (string, max:255): Custom name for the media
+     * - `alt_text` (string, max:500): Alt text for accessibility
+     * - `caption` (string, max:500): Caption for the media
+     * - `description` (string, max:1000): Description of the media
      *
      * **Response:**
-     * Returns the updated media object with all details.
+     * Returns the updated media object with all details including the modified metadata.
+     *
+     * **Note:** This admin endpoint allows updating any media file. For user-specific media
+     * updates with ownership checks, use the user media endpoints.
      *
      * @response array{status: true, message: string, data: MediaResource}
      */

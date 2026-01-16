@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Media;
 
-use App\Data\UploadMediaDTO;
+use App\Data\Media\UploadMediaDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Media\UploadMediaRequest;
 use App\Http\Resources\V1\Media\MediaResource;

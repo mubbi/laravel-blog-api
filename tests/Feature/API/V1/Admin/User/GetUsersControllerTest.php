@@ -6,13 +6,13 @@ use App\Enums\UserRole;
 use App\Models\Role;
 use App\Models\User;
 
-describe('API/V1/Admin/User/GetUsersController', function () {
+describe('API/V1/User/GetUsersController', function () {
     it('can get paginated list of users', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         User::factory()->count(5)->create();
 
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.users.index'));
+            ->getJson(route('api.v1.users.index'));
 
         expect($response)->toHaveApiSuccessStructure([
             'users' => [
@@ -56,7 +56,7 @@ describe('API/V1/Admin/User/GetUsersController', function () {
         $user3 = User::factory()->create(['name' => 'Bob TestSearched']);
 
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.users.index', ['search' => 'TestSearch']));
+            ->getJson(route('api.v1.users.index', ['search' => 'TestSearch']));
 
         expect($response->getStatusCode())->toBe(200)
             ->and($response->json('data.users'))->toHaveCount(2);
@@ -70,7 +70,7 @@ describe('API/V1/Admin/User/GetUsersController', function () {
         $user2 = User::factory()->create();
 
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.users.index', ['role_id' => $authorRole->id]));
+            ->getJson(route('api.v1.users.index', ['role_id' => $authorRole->id]));
 
         expect($response->getStatusCode())->toBe(200)
             ->and($response->json('data.users'))->toHaveCount(1)
@@ -84,7 +84,7 @@ describe('API/V1/Admin/User/GetUsersController', function () {
         $activeUser = User::factory()->create();
 
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.users.index', ['status' => 'banned']));
+            ->getJson(route('api.v1.users.index', ['status' => 'banned']));
 
         expect($response->getStatusCode())->toBe(200)
             ->and($response->json('data.users'))->toHaveCount(1)
@@ -99,7 +99,7 @@ describe('API/V1/Admin/User/GetUsersController', function () {
         $user3 = User::factory()->create(['name' => 'Charlie']);
 
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.users.index', [
+            ->getJson(route('api.v1.users.index', [
                 'sort_by' => 'name',
                 'sort_direction' => 'desc',
             ]));
@@ -116,7 +116,7 @@ describe('API/V1/Admin/User/GetUsersController', function () {
         User::factory()->count(15)->create();
 
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.users.index', ['per_page' => 10, 'page' => 2]));
+            ->getJson(route('api.v1.users.index', ['per_page' => 10, 'page' => 2]));
 
         expect($response->getStatusCode())->toBe(200);
         $meta = $response->json('data.meta');
@@ -129,13 +129,13 @@ describe('API/V1/Admin/User/GetUsersController', function () {
         $user = createUserWithRole(UserRole::SUBSCRIBER->value);
 
         $response = $this->actingAs($user)
-            ->getJson(route('api.v1.admin.users.index'));
+            ->getJson(route('api.v1.users.index'));
 
         $response->assertStatus(403);
     });
 
     it('returns 401 when not authenticated', function () {
-        $response = $this->getJson(route('api.v1.admin.users.index'));
+        $response = $this->getJson(route('api.v1.users.index'));
 
         $response->assertStatus(401);
     });

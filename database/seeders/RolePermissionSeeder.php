@@ -92,6 +92,8 @@ final class RolePermissionSeeder extends Seeder
             'view_comments', 'edit_own_comments', 'delete_own_comments',
             // Newsletter
             'subscribe_newsletter', 'unsubscribe_newsletter',
+            // Notifications
+            'read_notifications', 'delete_notifications',
             // Media Management
             'upload_media', 'view_media', 'delete_media', 'edit_media',
             // Social/Community
