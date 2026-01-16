@@ -409,57 +409,30 @@ Based on the codebase review, the following APIs and features are pending implem
 - **Notification Management (Admin)**: List, Create
 - **Taxonomy (Public)**: Get categories, Get tags
 - **Taxonomy Management (Admin/Editor)**: Create category, Update category, Delete category, Create tag, Update tag, Delete tag
+- **Media Management**: Upload media, List media library, Get media details, Update media metadata, Delete media
+  - Available for both authenticated users and admin
+  - Full CRUD operations implemented
+- **Social/Community Features**: Follow user, Unfollow user, Get user followers, Get user following, View user profile
+  - All social features fully implemented
+  - Follow/unfollow with proper authorization checks
+  - Public profile viewing with follower/following lists
 
 ### ❌ Pending Implementation
 
 - **NextJS Client App**
   - Complete NextJS App to integrate all these APIs (separate REPO once APIs are complete)
 
-- **Role & Permission Management**
-  - Assign roles to users endpoint (service method exists: `assignRoles()` in `UserService`)
-  - Get all roles endpoint (service method exists: `getAllRoles()` in `UserService`)
-  - Get all permissions endpoint (service method exists: `getAllPermissions()` in `UserService`)
-
-- **Media Management**
-  - Upload media endpoint
-  - Delete media endpoint
-  - List media library endpoint
-  - Get media details endpoint
-  - Update media metadata endpoint
-  - Image optimization and storage integration
-
 - **User Notifications**
-  - Get user's notifications endpoint
+  - Get user's notifications endpoint (for authenticated users to view their own notifications)
   - Mark notification as read endpoint
-  - Delete notification endpoint
+  - Delete notification endpoint (user can delete their own notifications)
   - Mark all notifications as read endpoint
   - Get unread notifications count endpoint
+  - Note: Admin notification management is already implemented, but user-facing notification endpoints are missing
 
 - **Analytics & Settings**
   - View analytics dashboard endpoint (user and admin)
   - Get site statistics endpoint
   - Manage site settings endpoints (CRUD)
-  - Export data endpoint
-  - View logs endpoint (admin only)
-  - User activity tracking endpoints
-
-- **Social/Community Features**
-  - Follow user endpoint
-  - Unfollow user endpoint
-  - Get user followers endpoint
-  - Get user following endpoint
-  - View user profile endpoint
-
-- **General Improvements**
-  - Ensure all permission checks are enforced in controllers/routes
-  - Add integration and feature tests for all remaining APIs
-  - Review and optimize rate limiting configuration for all endpoints
-  - Optimize database queries and add proper indexing
-  - Implement caching strategies for better performance
-  - Add API versioning strategy documentation
-  - Review and update API documentation (Scramble) for all endpoints
-
-> _Note: Service methods exist but lack corresponding API endpoints. Key services to review:_
-> - `app/Services/UserService.php` - `getAllRoles()`, `getAllPermissions()`, `assignRoles()`
-
+  
 ---
