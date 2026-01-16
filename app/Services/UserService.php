@@ -20,11 +20,11 @@ use App\Models\User;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\Interfaces\CacheServiceInterface;
 use App\Services\Interfaces\UserServiceInterface;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
@@ -34,7 +34,8 @@ final class UserService implements UserServiceInterface
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
         private readonly RoleRepositoryInterface $roleRepository,
-        private readonly PermissionRepositoryInterface $permissionRepository
+        private readonly PermissionRepositoryInterface $permissionRepository,
+        private readonly CacheServiceInterface $cacheService
     ) {}
 
     /**
@@ -112,7 +113,7 @@ final class UserService implements UserServiceInterface
             return $user;
         });
 
-        Event::dispatch(new UserCreatedEvent($user));
+        DB::afterCommit(fn () => Event::dispatch(new UserCreatedEvent($user)));
 
         return $user;
     }
@@ -144,7 +145,7 @@ final class UserService implements UserServiceInterface
             return $freshUser;
         });
 
-        Event::dispatch(new UserUpdatedEvent($freshUser));
+        DB::afterCommit(fn () => Event::dispatch(new UserUpdatedEvent($freshUser)));
 
         return $freshUser;
     }
@@ -249,9 +250,10 @@ final class UserService implements UserServiceInterface
     public function getAllRoles(): \Illuminate\Database\Eloquent\Collection
     {
         /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Role> $result */
-        $result = Cache::remember(CacheKeys::ALL_ROLES_CACHE_KEY, CacheKeys::CACHE_TTL, function () {
-            return $this->roleRepository->getAllWithPermissions();
-        });
+        $result = $this->cacheService->remember(
+            CacheKeys::ALL_ROLES_CACHE_KEY,
+            fn () => $this->roleRepository->getAllWithPermissions()
+        );
 
         return $result;
     }
@@ -264,9 +266,10 @@ final class UserService implements UserServiceInterface
     public function getAllPermissions(): \Illuminate\Database\Eloquent\Collection
     {
         /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permission> $result */
-        $result = Cache::remember(CacheKeys::ALL_PERMISSIONS_CACHE_KEY, CacheKeys::CACHE_TTL, function () {
-            return $this->permissionRepository->getAll();
-        });
+        $result = $this->cacheService->remember(
+            CacheKeys::ALL_PERMISSIONS_CACHE_KEY,
+            fn () => $this->permissionRepository->getAll()
+        );
 
         return $result;
     }

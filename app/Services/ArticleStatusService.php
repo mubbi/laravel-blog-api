@@ -18,14 +18,16 @@ use App\Models\User;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use App\Services\Interfaces\ArticleManagementServiceInterface;
 use App\Services\Interfaces\ArticleStatusServiceInterface;
-use Illuminate\Support\Facades\Cache;
+use App\Services\Interfaces\CacheServiceInterface;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
 final class ArticleStatusService implements ArticleStatusServiceInterface
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,
-        private readonly ArticleManagementServiceInterface $articleManagementService
+        private readonly ArticleManagementServiceInterface $articleManagementService,
+        private readonly CacheServiceInterface $cacheService
     ) {}
 
     /**
@@ -33,19 +35,23 @@ final class ArticleStatusService implements ArticleStatusServiceInterface
      */
     public function approveArticle(Article $article, User $approvedBy): Article
     {
-        $this->articleRepository->update($article->id, [
-            'status' => ArticleStatus::PUBLISHED,
-            'approved_by' => $approvedBy->id,
-            'published_at' => now(),
-        ]);
+        $updatedArticle = DB::transaction(function () use ($article, $approvedBy): Article {
+            $this->articleRepository->update($article->id, [
+                'status' => ArticleStatus::PUBLISHED,
+                'approved_by' => $approvedBy->id,
+                'published_at' => now(),
+            ]);
 
-        $article->refresh();
-        $updatedArticle = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
+            $article->refresh();
+            $updated = $this->articleManagementService->loadArticleRelationshipsOnModel($article);
 
-        // Invalidate article cache
-        $this->invalidateArticleCache($article);
+            // Invalidate article cache
+            $this->invalidateArticleCache($article);
 
-        Event::dispatch(new ArticleApprovedEvent($updatedArticle));
+            return $updated;
+        });
+
+        DB::afterCommit(fn () => Event::dispatch(new ArticleApprovedEvent($updatedArticle)));
 
         return $updatedArticle;
     }
@@ -182,7 +188,7 @@ final class ArticleStatusService implements ArticleStatusServiceInterface
      */
     private function invalidateArticleCache(Article $article): void
     {
-        Cache::forget(CacheKeys::articleBySlug($article->slug));
-        Cache::forget(CacheKeys::articleById($article->id));
+        $this->cacheService->forget(CacheKeys::articleBySlug($article->slug));
+        $this->cacheService->forget(CacheKeys::articleById($article->id));
     }
 }

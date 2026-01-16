@@ -392,6 +392,7 @@ final class User extends Authenticatable
      * Scope a query to filter users by role.
      *
      * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @param  string  $roleSlug  The role slug to filter by
      * @return \Illuminate\Database\Eloquent\Builder<User>
      */
     public function scopeByRole($query, string $roleSlug)
@@ -403,8 +404,11 @@ final class User extends Authenticatable
 
     /**
      * Scope a query to search users by name or email.
+     * Note: Uses LIKE '%search%' pattern which doesn't use indexes efficiently.
+     * Consider full-text indexes or Laravel Scout for better performance with large datasets.
      *
      * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @param  string  $search  The search term
      * @return \Illuminate\Database\Eloquent\Builder<User>
      */
     public function scopeSearch($query, string $search)

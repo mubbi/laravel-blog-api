@@ -13,7 +13,6 @@ use App\Services\Interfaces\ArticleManagementServiceInterface;
 use App\Services\Interfaces\ArticleServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -89,17 +88,7 @@ final class ShowArticleController extends Controller
              *
              * @body array{status: false, message: string, data: null, error: null}
              */
-            Log::error('Error showing article', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return response()->apiError(
-                __('common.something_went_wrong'),
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return $this->handleException($e, $request);
         }
     }
 }

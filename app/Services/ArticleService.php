@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Constants\CacheKeys;
 use App\Data\Article\FilterArticleDTO;
 use App\Enums\ArticleReactionType;
 use App\Enums\ArticleStatus;
@@ -12,6 +13,7 @@ use App\Models\ArticleLike;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use App\Services\Article\ArticleFilterService;
 use App\Services\Interfaces\ArticleServiceInterface;
+use App\Services\Interfaces\CacheServiceInterface;
 use App\Services\Interfaces\CommentServiceInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
@@ -23,7 +25,8 @@ final class ArticleService implements ArticleServiceInterface
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,
         private readonly CommentServiceInterface $commentService,
-        private readonly ArticleFilterService $filterService
+        private readonly ArticleFilterService $filterService,
+        private readonly CacheServiceInterface $cacheService
     ) {}
 
     /**
@@ -42,15 +45,11 @@ final class ArticleService implements ArticleServiceInterface
      */
     public function getArticleBySlug(string $slug): Article
     {
-        $cacheKey = \App\Constants\CacheKeys::articleBySlug($slug);
-
-        /** @var int $ttl */
-        $ttl = (int) config('cache-ttl.keys.article_by_slug', 3600);
+        $cacheKey = CacheKeys::articleBySlug($slug);
 
         /** @var Article $article */
-        $article = \Illuminate\Support\Facades\Cache::remember(
+        $article = $this->cacheService->remember(
             $cacheKey,
-            $ttl,
             function () use ($slug) {
                 return $this->articleRepository->query()
                     ->with([
@@ -205,16 +204,20 @@ final class ArticleService implements ArticleServiceInterface
                 'type' => $reactionType,
             ]);
 
-            // Dispatch appropriate event
-            $article = $this->articleRepository->findOrFail($articleId);
+            return $reaction;
+        });
+
+        // Dispatch events after transaction commits
+        $article = $this->articleRepository->findOrFail($articleId);
+        DB::afterCommit(function () use ($article, $reaction, $reactionType): void {
             if ($reactionType === \App\Enums\ArticleReactionType::LIKE) {
                 \Illuminate\Support\Facades\Event::dispatch(new \App\Events\Article\ArticleLikedEvent($article, $reaction));
             } else {
                 \Illuminate\Support\Facades\Event::dispatch(new \App\Events\Article\ArticleDislikedEvent($article, $reaction));
             }
-
-            return $reaction;
         });
+
+        return $reaction;
     }
 
     /**

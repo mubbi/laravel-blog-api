@@ -268,12 +268,17 @@ final class CommentService implements CommentServiceInterface
         // Collect IDs of parent comments
         $parentCommentIds = $comments->pluck('id');
 
+        // Safety limit: prevent loading too many replies at once
+        // Max replies = number of parent comments * replies per page, capped at reasonable limit
+        $maxReplies = min($parentCommentIds->count() * $repliesPerPage, 100);
+
         // Fetch replies in batch (LIMIT repliesPerPage per parent)
         $replies = $this->commentRepository->query()
             ->whereIn('parent_comment_id', $parentCommentIds)
             ->with('user')
             ->withCount('replies')
             ->orderBy('created_at')
+            ->take($maxReplies)
             ->get()
             ->groupBy('parent_comment_id');
 

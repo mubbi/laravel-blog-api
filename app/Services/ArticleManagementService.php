@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Constants\CacheKeys;
 use App\Data\Article\CreateArticleDTO;
 use App\Data\Article\FilterArticleManagementDTO;
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use App\Services\Interfaces\ArticleManagementServiceInterface;
+use App\Services\Interfaces\CacheServiceInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +18,8 @@ use Illuminate\Support\Facades\DB;
 final class ArticleManagementService implements ArticleManagementServiceInterface
 {
     public function __construct(
-        private readonly ArticleRepositoryInterface $articleRepository
+        private readonly ArticleRepositoryInterface $articleRepository,
+        private readonly CacheServiceInterface $cacheService
     ) {}
 
     /**
@@ -176,7 +179,7 @@ final class ArticleManagementService implements ArticleManagementServiceInterfac
      */
     public function createArticle(CreateArticleDTO $dto): Article
     {
-        return DB::transaction(function () use ($dto) {
+        $article = DB::transaction(function () use ($dto) {
             // Create the article
             $article = $this->articleRepository->create($dto->toArray());
 
@@ -198,9 +201,23 @@ final class ArticleManagementService implements ArticleManagementServiceInterfac
             // Reload with relationships
             $article = $this->getArticleWithRelationships($article->id);
 
-            \Illuminate\Support\Facades\Event::dispatch(new \App\Events\Article\ArticleCreatedEvent($article));
-
             return $article;
         });
+
+        // Invalidate cache after article creation
+        $this->invalidateArticleCache($article);
+
+        DB::afterCommit(fn () => \Illuminate\Support\Facades\Event::dispatch(new \App\Events\Article\ArticleCreatedEvent($article)));
+
+        return $article;
+    }
+
+    /**
+     * Invalidate article cache by slug and ID
+     */
+    private function invalidateArticleCache(Article $article): void
+    {
+        $this->cacheService->forget(CacheKeys::articleBySlug($article->slug));
+        $this->cacheService->forget(CacheKeys::articleById($article->id));
     }
 }
