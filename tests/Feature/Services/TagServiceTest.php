@@ -10,11 +10,8 @@ use App\Events\Tag\TagDeletedEvent;
 use App\Events\Tag\TagUpdatedEvent;
 use App\Models\Tag;
 use App\Services\TagService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 describe('TagService', function () {
     beforeEach(function () {

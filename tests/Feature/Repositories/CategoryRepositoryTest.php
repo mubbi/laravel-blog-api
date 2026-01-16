@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use App\Models\Category;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('CategoryRepository', function () {
     beforeEach(function () {

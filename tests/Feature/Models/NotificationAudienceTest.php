@@ -5,9 +5,6 @@ declare(strict_types=1);
 use App\Models\Notification;
 use App\Models\NotificationAudience;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('NotificationAudience Model', function () {
     it('can be created', function () {

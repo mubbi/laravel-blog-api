@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Models\Article;
 use App\Models\Category;
 use App\Models\Tag;
 use App\Models\User;
@@ -12,79 +11,46 @@ describe('API/V1/Article/ShowArticleController', function () {
         $user = User::factory()->create();
         $category = Category::factory()->create();
         $tag = Tag::factory()->create();
-
-        $article = Article::factory()
-            ->for($user, 'author')
-            ->for($user, 'approver')
-            ->published()
-            ->create();
-
+        $article = createPublishedArticle($user, $user);
         $article->categories()->attach($category->id);
         $article->tags()->attach($tag->id);
 
         $response = $this->getJson(route('api.v1.articles.show', ['slug' => $article->slug]));
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'id',
-                    'slug',
-                    'title',
-                    'subtitle',
-                    'excerpt',
-                    'content_html',
-                    'content_markdown',
-                    'featured_media',
-                    'status',
-                    'published_at',
-                    'meta_title',
-                    'meta_description',
-                    'created_at',
-                    'updated_at',
-                    'author' => [
-                        'id',
-                        'name',
-                        'avatar_url',
-                        'bio',
-                    ],
-                    'categories' => [
-                        '*' => [
-                            'id',
-                            'name',
-                            'slug',
-                        ],
-                    ],
-                    'tags' => [
-                        '*' => [
-                            'id',
-                            'name',
-                            'slug',
-                        ],
-                    ],
-                    'authors',
-                    'comments_count',
-                ],
-            ]);
-
-        expect($response->json('data.id'))->toBe($article->id);
-        expect($response->json('data.slug'))->toBe($article->slug);
+        expect($response)->toHaveApiSuccessStructure([
+            'id',
+            'slug',
+            'title',
+            'subtitle',
+            'excerpt',
+            'content_html',
+            'content_markdown',
+            'featured_media',
+            'status',
+            'published_at',
+            'meta_title',
+            'meta_description',
+            'created_at',
+            'updated_at',
+            'author' => ['id', 'name', 'avatar_url', 'bio'],
+            'categories' => ['*' => ['id', 'name', 'slug']],
+            'tags' => ['*' => ['id', 'name', 'slug']],
+            'authors',
+            'comments_count',
+        ])->and($response->json('data.id'))->toBe($article->id)
+            ->and($response->json('data.slug'))->toBe($article->slug);
     });
 
     it('returns 404 when article not found by slug', function () {
         $response = $this->getJson(route('api.v1.articles.show', ['slug' => 'non-existent-slug']));
-        $response->assertStatus(404)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.article_not_found'),
-                'data' => null,
-                'error' => null,
-            ]);
+
+        expect($response->getStatusCode())->toBe(404)
+            ->and($response->json('status'))->toBeFalse()
+            ->and($response->json('message'))->toBe(__('common.article_not_found'))
+            ->and($response->json('data'))->toBeNull();
     });
 
     it('returns 500 when showing article fails with exception', function () {
-        // Mock ArticleService to throw an exception
         $this->mock(\App\Services\Interfaces\ArticleServiceInterface::class, function ($mock) {
             $mock->shouldReceive('getArticleBySlug')
                 ->with('test-slug')
@@ -93,12 +59,7 @@ describe('API/V1/Article/ShowArticleController', function () {
 
         $response = $this->getJson(route('api.v1.articles.show', ['slug' => 'test-slug']));
 
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 });

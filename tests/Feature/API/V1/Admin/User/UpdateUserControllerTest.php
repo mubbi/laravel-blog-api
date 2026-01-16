@@ -10,51 +10,30 @@ use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/User/UpdateUserController', function () {
     it('can update a user successfully', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToUpdate = User::factory()->create([
             'name' => 'Old Name',
             'email' => 'old@example.com',
         ]);
 
-        $updateData = [
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'new@example.com',
-        ];
+        ]);
 
-        // Act
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
-
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'id', 'name', 'email', 'email_verified_at', 'banned_at', 'blocked_at',
-                    'status', 'created_at', 'updated_at',
-                    'roles' => [
-                        '*' => [
-                            'id', 'name', 'display_name',
-                        ],
-                    ],
+        expect($response)->toHaveApiSuccessStructure([
+            'id', 'name', 'email', 'email_verified_at', 'banned_at', 'blocked_at',
+            'status', 'created_at', 'updated_at',
+            'roles' => [
+                '*' => [
+                    'id', 'name', 'display_name',
                 ],
-            ])
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'id' => $userToUpdate->id,
-                    'name' => 'New Name',
-                    'email' => 'new@example.com',
-                ],
-            ]);
+            ],
+        ])->and($response->json('data.id'))->toBe($userToUpdate->id)
+            ->and($response->json('data.name'))->toBe('New Name')
+            ->and($response->json('data.email'))->toBe('new@example.com');
 
         $this->assertDatabaseHas('users', [
             'id' => $userToUpdate->id,
@@ -64,156 +43,98 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
     });
 
     it('can update only name', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToUpdate = User::factory()->create([
             'name' => 'Old Name',
             'email' => 'test@example.com',
         ]);
 
-        $updateData = [
-            'name' => 'New Name',
-        ];
-
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+            'name' => 'New Name',
+        ]);
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('users', [
             'id' => $userToUpdate->id,
             'name' => 'New Name',
-            'email' => 'test@example.com', // Should remain unchanged
+            'email' => 'test@example.com',
         ]);
     });
 
     it('can update only email', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToUpdate = User::factory()->create([
             'name' => 'Test User',
             'email' => 'old@example.com',
         ]);
 
-        $updateData = [
-            'email' => 'new@example.com',
-        ];
-
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+            'email' => 'new@example.com',
+        ]);
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('users', [
             'id' => $userToUpdate->id,
-            'name' => 'Test User', // Should remain unchanged
+            'name' => 'Test User',
             'email' => 'new@example.com',
         ]);
     });
 
     it('returns 404 when user does not exist', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
 
-        $token = $admin->createToken('test-token', ['access-api']);
-
-        $updateData = [
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->putJson(route('api.v1.admin.users.update', 99999), [
             'name' => 'New Name',
             'email' => 'new@example.com',
-        ];
+        ]);
 
-        // Act
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', 99999), $updateData);
-
-        // Assert
-        $response->assertStatus(404)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.user_not_found'),
-            ]);
+        expect($response->getStatusCode())->toBe(404)
+            ->and($response->json('status'))->toBeFalse()
+            ->and($response->json('message'))->toBe(__('common.user_not_found'));
     });
 
     it('returns 401 when user is not authenticated', function () {
-        // Arrange
         $userToUpdate = User::factory()->create();
 
-        $updateData = [
+        $response = $this->putJson(route('api.v1.admin.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'new@example.com',
-        ];
+        ]);
 
-        // Act
-        $response = $this->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
-
-        // Assert
         $response->assertStatus(401);
     });
 
     it('returns 403 when user does not have permission', function () {
-        // Arrange
-        $user = User::factory()->create();
-        $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        attachRoleAndRefreshCache($user, $subscriberRole);
-
-        $token = $user->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $userToUpdate = User::factory()->create();
 
-        $updateData = [
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'new@example.com',
-        ];
+        ]);
 
-        // Act
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
-
-        // Assert
         $response->assertStatus(403);
     });
 
     it('validates email format', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToUpdate = User::factory()->create();
 
-        $updateData = [
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'invalid-email',
-        ];
+        ]);
 
-        // Act
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
-
-        // Assert
         $response->assertStatus(422)
             ->assertJson([
                 'status' => false,
@@ -224,27 +145,17 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
     });
 
     it('validates email uniqueness', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
-        $existingUser = User::factory()->create(['email' => 'existing@example.com']);
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
+        User::factory()->create(['email' => 'existing@example.com']);
         $userToUpdate = User::factory()->create(['email' => 'test@example.com']);
 
-        $updateData = [
-            'name' => 'New Name',
-            'email' => 'existing@example.com', // Already exists
-        ];
-
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+            'name' => 'New Name',
+            'email' => 'existing@example.com',
+        ]);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJson([
                 'status' => false,
@@ -255,31 +166,20 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
     });
 
     it('allows updating to same email', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToUpdate = User::factory()->create([
             'name' => 'Old Name',
             'email' => 'test@example.com',
         ]);
 
-        $updateData = [
-            'name' => 'New Name',
-            'email' => 'test@example.com', // Same email
-        ];
-
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+            'name' => 'New Name',
+            'email' => 'test@example.com',
+        ]);
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('users', [
             'id' => $userToUpdate->id,
             'name' => 'New Name',
@@ -288,26 +188,16 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
     });
 
     it('validates name is required when provided', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToUpdate = User::factory()->create();
 
-        $updateData = [
-            'name' => '', // Empty name
-            'email' => 'new@example.com',
-        ];
-
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+            'name' => '',
+            'email' => 'new@example.com',
+        ]);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJson([
                 'status' => false,
@@ -318,26 +208,16 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
     });
 
     it('validates name length', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToUpdate = User::factory()->create();
 
-        $updateData = [
-            'name' => str_repeat('a', 256), // Too long
-            'email' => 'new@example.com',
-        ];
-
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
+            'name' => str_repeat('a', 256),
+            'email' => 'new@example.com',
+        ]);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJson([
                 'status' => false,
@@ -348,66 +228,47 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
     });
 
     it('maintains other user properties when updating', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $originalData = [
             'email_verified_at' => now(),
             'banned_at' => now()->subDays(5),
             'blocked_at' => now()->subDays(2),
         ];
-
         $userToUpdate = User::factory()->create($originalData);
 
-        $updateData = [
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'new@example.com',
-        ];
+        ]);
 
-        // Act
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
-
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $userToUpdate->refresh();
-        $this->assertEquals('New Name', $userToUpdate->name);
-        $this->assertEquals('new@example.com', $userToUpdate->email);
-        $this->assertEquals($originalData['email_verified_at']->toDateTimeString(), $userToUpdate->email_verified_at->toDateTimeString());
-        $this->assertEquals($originalData['banned_at']->toDateTimeString(), $userToUpdate->banned_at->toDateTimeString());
-        $this->assertEquals($originalData['blocked_at']->toDateTimeString(), $userToUpdate->blocked_at->toDateTimeString());
+        expect($userToUpdate->name)->toBe('New Name')
+            ->and($userToUpdate->email)->toBe('new@example.com')
+            ->and($userToUpdate->email_verified_at->toDateTimeString())->toBe($originalData['email_verified_at']->toDateTimeString())
+            ->and($userToUpdate->banned_at->toDateTimeString())->toBe($originalData['banned_at']->toDateTimeString())
+            ->and($userToUpdate->blocked_at->toDateTimeString())->toBe($originalData['blocked_at']->toDateTimeString());
     });
 
     it('allows admin to update themselves', function () {
-        // Arrange
         $admin = User::factory()->create([
             'name' => 'Old Admin Name',
             'email' => 'admin@example.com',
         ]);
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
         attachRoleAndRefreshCache($admin, $adminRole);
-
         $token = $admin->createToken('test-token', ['access-api']);
 
-        $updateData = [
-            'name' => 'New Admin Name',
-            'email' => 'newadmin@example.com',
-        ];
-
-        // Act
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $admin), $updateData);
+        ])->putJson(route('api.v1.admin.users.update', $admin), [
+            'name' => 'New Admin Name',
+            'email' => 'newadmin@example.com',
+        ]);
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('users', [
             'id' => $admin->id,
             'name' => 'New Admin Name',
@@ -416,37 +277,23 @@ describe('API/V1/Admin/User/UpdateUserController', function () {
     });
 
     it('dispatches UserUpdatedEvent when user is updated', function () {
-        // Arrange
         Event::fake([UserUpdatedEvent::class]);
-
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToUpdate = User::factory()->create([
             'name' => 'Old Name',
             'email' => 'old@example.com',
         ]);
 
-        $updateData = [
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), [
             'name' => 'New Name',
             'email' => 'new@example.com',
-        ];
+        ]);
 
-        // Act
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
-        ])->putJson(route('api.v1.admin.users.update', $userToUpdate), $updateData);
-
-        // Assert
-        $response->assertStatus(200);
-
-        Event::assertDispatched(UserUpdatedEvent::class, function ($event) use ($userToUpdate) {
-            return $event->user->id === $userToUpdate->id
-                && $event->user->name === 'New Name'
-                && $event->user->email === 'new@example.com';
-        });
+        expect($response->getStatusCode())->toBe(200);
+        Event::assertDispatched(UserUpdatedEvent::class, fn ($event) => $event->user->id === $userToUpdate->id
+            && $event->user->name === 'New Name'
+            && $event->user->email === 'new@example.com');
     });
 });

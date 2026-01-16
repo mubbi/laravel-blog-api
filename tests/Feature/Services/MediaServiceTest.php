@@ -11,12 +11,9 @@ use App\Events\Media\MediaUploadedEvent;
 use App\Models\Media;
 use App\Models\User;
 use App\Services\Interfaces\MediaServiceInterface;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
-
-uses(RefreshDatabase::class);
 
 describe('MediaService', function () {
     beforeEach(function () {

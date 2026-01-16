@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use App\Models\Article;
 use App\Models\Tag;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Tag Model', function () {
     it('can be created', function () {

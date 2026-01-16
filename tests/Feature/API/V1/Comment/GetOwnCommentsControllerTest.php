@@ -9,63 +9,46 @@ use App\Models\User;
 
 describe('API/V1/Comment/GetOwnCommentsController', function () {
     it('can get own comments successfully', function () {
-        // Arrange
-        $user = User::factory()->create();
-        $token = $user->createToken('test-token', ['access-api']);
+        $auth = createAuthenticatedUser();
         $article = Article::factory()->create();
 
         Comment::factory()->count(5)->create([
-            'user_id' => $user->id,
+            'user_id' => $auth['user']->id,
             'article_id' => $article->id,
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->getJson(route('api.v1.comments.own'));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'comments' => [
-                        '*' => [
-                            'id',
-                            'content',
-                            'status',
-                            'created_at',
-                            'updated_at',
-                        ],
-                    ],
-                    'meta' => [
-                        'current_page',
-                        'from',
-                        'last_page',
-                        'per_page',
-                        'to',
-                        'total',
-                    ],
+        expect($response)->toHaveApiSuccessStructure([
+            'comments' => [
+                '*' => [
+                    'id',
+                    'content',
+                    'status',
+                    'created_at',
+                    'updated_at',
                 ],
-            ])
-            ->assertJson([
-                'status' => true,
-            ]);
-
-        $responseData = $response->json('data.comments');
-        $this->assertCount(5, $responseData);
+            ],
+            'meta' => [
+                'current_page',
+                'from',
+                'last_page',
+                'per_page',
+                'to',
+                'total',
+            ],
+        ])->and($response->json('data.comments'))->toHaveCount(5);
     });
 
     it('only returns comments belonging to authenticated user', function () {
-        // Arrange
-        $user = User::factory()->create();
+        $auth = createAuthenticatedUser();
         $otherUser = User::factory()->create();
-        $token = $user->createToken('test-token', ['access-api']);
         $article = Article::factory()->create();
 
         Comment::factory()->count(3)->create([
-            'user_id' => $user->id,
+            'user_id' => $auth['user']->id,
             'article_id' => $article->id,
         ]);
         Comment::factory()->count(2)->create([
@@ -73,19 +56,15 @@ describe('API/V1/Comment/GetOwnCommentsController', function () {
             'article_id' => $article->id,
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->getJson(route('api.v1.comments.own'));
 
-        // Assert
-        $response->assertStatus(200);
+        expect($response->getStatusCode())->toBe(200)
+            ->and($response->json('data.comments'))->toHaveCount(3);
 
-        $responseData = $response->json('data.comments');
-        $this->assertCount(3, $responseData);
-
-        foreach ($responseData as $comment) {
-            $this->assertEquals($user->id, $comment['user_id']);
+        foreach ($response->json('data.comments') as $comment) {
+            expect($comment['user_id'])->toBe($auth['user']->id);
         }
     });
 
@@ -256,29 +235,19 @@ describe('API/V1/Comment/GetOwnCommentsController', function () {
     });
 
     it('returns 500 when service throws exception', function () {
-        // Arrange
-        $user = User::factory()->create();
-        $token = $user->createToken('test-token', ['access-api']);
+        $auth = createAuthenticatedUser();
 
-        // Mock CommentServiceInterface to throw exception
         $this->mock(\App\Services\Interfaces\CommentServiceInterface::class, function ($mock) {
             $mock->shouldReceive('getOwnComments')
                 ->andThrow(new \Exception('Service error'));
         });
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->getJson(route('api.v1.comments.own'));
 
-        // Assert
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 
     it('handles empty results', function () {

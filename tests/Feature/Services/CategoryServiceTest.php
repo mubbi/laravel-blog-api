@@ -11,11 +11,8 @@ use App\Events\Category\CategoryDeletedEvent;
 use App\Events\Category\CategoryUpdatedEvent;
 use App\Models\Category;
 use App\Services\CategoryService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 describe('CategoryService', function () {
     beforeEach(function () {

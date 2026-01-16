@@ -32,17 +32,9 @@ describe('API/V1/Auth/ResetPasswordController', function () {
             'password_confirmation' => 'NewSecureP@ssw0rd123',
         ]);
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data',
-            ])
-            ->assertJson([
-                'status' => true,
-                'message' => __('passwords.reset'),
-                'data' => null,
-            ]);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('message'))->toBe(__('passwords.reset'))
+            ->and($response->json('data'))->toBeNull();
 
         // Verify password was updated
         $user->refresh();
@@ -213,12 +205,7 @@ describe('API/V1/Auth/ResetPasswordController', function () {
             'password_confirmation' => 'TestP@ssw0rd2024!',
         ]);
 
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 });

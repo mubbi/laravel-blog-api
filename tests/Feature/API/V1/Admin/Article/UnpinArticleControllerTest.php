@@ -12,33 +12,20 @@ use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/Article/UnpinArticleController', function () {
     it('can unpin a pinned article', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
-        $token = $admin->createToken('test-token', ['access-api']);
-
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $article = Article::factory()->create([
             'status' => ArticleStatus::PUBLISHED,
             'is_pinned' => true,
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.admin.articles.unpin', $article));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'id', 'slug', 'title', 'status', 'status_display', 'published_at',
-                    'is_featured', 'is_pinned', 'report_count', 'created_at', 'updated_at',
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure([
+            'id', 'slug', 'title', 'status', 'status_display', 'published_at',
+            'is_featured', 'is_pinned', 'report_count', 'created_at', 'updated_at',
+        ]);
 
         $this->assertDatabaseHas('articles', [
             'id' => $article->id,
@@ -65,7 +52,7 @@ describe('API/V1/Admin/Article/UnpinArticleController', function () {
         ])->postJson(route('api.v1.admin.articles.unpin', $article));
 
         // Assert
-        $response->assertStatus(200);
+        expect($response)->toHaveApiSuccessStructure();
 
         $this->assertDatabaseHas('articles', [
             'id' => $article->id,

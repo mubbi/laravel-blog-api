@@ -13,38 +13,21 @@ use Illuminate\Support\Facades\Log;
 
 describe('API/V1/Admin/Newsletter/DeleteSubscriberController', function () {
     it('can delete a newsletter subscriber successfully', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $subscriber = NewsletterSubscriber::factory()->create([
             'email' => 'test@example.com',
         ]);
 
-        // Act
         $response = $this->actingAs($admin)
             ->deleteJson(route('api.v1.admin.newsletter.subscribers.destroy', $subscriber), [
                 'reason' => 'Removed for spam',
             ]);
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data',
-            ])
-            ->assertJson([
-                'status' => true,
-                'message' => __('common.subscriber_deleted'),
-                'data' => null,
-            ]);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('message'))->toBe(__('common.subscriber_deleted'))
+            ->and($response->json('data'))->toBeNull();
 
-        // Verify subscriber was deleted from database
-        $this->assertDatabaseMissing('newsletter_subscribers', [
-            'id' => $subscriber->id,
-        ]);
+        $this->assertDatabaseMissing('newsletter_subscribers', ['id' => $subscriber->id]);
     });
 
     it('can delete a verified subscriber', function () {

@@ -7,9 +7,6 @@ use App\Models\Role;
 use App\Models\Tag;
 use App\Models\User;
 use App\Policies\TagPolicy;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('TagPolicy', function () {
     beforeEach(function () {

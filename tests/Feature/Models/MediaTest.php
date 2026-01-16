@@ -5,9 +5,6 @@ declare(strict_types=1);
 use App\Models\Article;
 use App\Models\Media;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Media Model', function () {
     describe('relationships', function () {

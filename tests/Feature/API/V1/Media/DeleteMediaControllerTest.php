@@ -6,11 +6,8 @@ use App\Enums\UserRole;
 use App\Events\Media\MediaDeletedEvent;
 use App\Models\Media;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
-
-uses(RefreshDatabase::class);
 
 describe('API/V1/Media/DeleteMediaController', function () {
     beforeEach(function () {
@@ -27,8 +24,7 @@ describe('API/V1/Media/DeleteMediaController', function () {
         $response = $this->actingAs($user)
             ->deleteJson(route('api.v1.media.destroy', $media));
 
-        $response->assertStatus(200)
-            ->assertJson(['status' => true]);
+        expect($response)->toHaveApiSuccessStructure();
 
         $this->assertDatabaseMissing('media', ['id' => $media->id]);
         Storage::disk('public')->assertMissing($path);
@@ -62,7 +58,7 @@ describe('API/V1/Media/DeleteMediaController', function () {
         $response = $this->actingAs($user)
             ->deleteJson(route('api.v1.media.destroy', $media));
 
-        $response->assertStatus(200);
+        expect($response)->toHaveApiSuccessStructure();
         $this->assertDatabaseMissing('media', ['id' => $media->id]);
     });
 

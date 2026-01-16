@@ -17,23 +17,20 @@ describe('API/V1/Category/GetCategoriesController', function () {
 
         $response = $this->getJson(route('api.v1.categories.index'));
 
-        $response->assertStatus(200)
-            ->assertJson(['status' => true, 'message' => __('common.success')])
-            ->assertJsonStructure([
-                'data' => ['*' => ['id', 'name', 'slug']],
-            ]);
-        expect($response->json('data'))->toHaveCount(3);
+        expect($response)->toHaveApiSuccessStructure([
+            '*' => ['id', 'name', 'slug'],
+        ])->and($response->json('data'))->toHaveCount(3);
     });
 
     it('caches categories after first request', function () {
         Category::factory()->count(3)->create();
 
         $response1 = $this->getJson(route('api.v1.categories.index'));
-        $response1->assertStatus(200);
+        expect($response1)->toHaveApiSuccessStructure();
         expect(Cache::has(CacheKey::CATEGORIES->value))->toBeTrue();
 
         $response2 = $this->getJson(route('api.v1.categories.index'));
-        $response2->assertStatus(200);
+        expect($response2)->toHaveApiSuccessStructure();
         expect($response2->json('data'))->toBe($response1->json('data'));
     });
 
@@ -92,8 +89,7 @@ describe('API/V1/Category/GetCategoriesController', function () {
 
         $response = $this->getJson(route('api.v1.categories.index'));
 
-        $response->assertStatus(500)
-            ->assertJson(['status' => false, 'message' => __('common.something_went_wrong')])
-            ->assertJsonStructure(['data', 'error']);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 });

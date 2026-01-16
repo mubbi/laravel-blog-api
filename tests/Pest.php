@@ -38,6 +38,57 @@ expect()->extend('toBeOne', function () {
     return $this->toBe(1);
 });
 
+/**
+ * Assert that a response has the standard API success structure
+ */
+expect()->extend('toHaveApiSuccessStructure', function (array $dataStructure = []) {
+    $response = $this->value;
+
+    if (! $response instanceof \Illuminate\Testing\TestResponse) {
+        throw new \InvalidArgumentException('Expected TestResponse instance');
+    }
+
+    $structure = [
+        'status',
+        'message',
+        'data',
+    ];
+
+    if (! empty($dataStructure)) {
+        $structure['data'] = $dataStructure;
+    }
+
+    $response->assertJsonStructure($structure);
+
+    expect($response->json('status'))->toBeTrue();
+
+    return $this;
+});
+
+/**
+ * Assert that a response has the standard API error structure
+ */
+expect()->extend('toHaveApiErrorStructure', function (int $statusCode = 500) {
+    $response = $this->value;
+
+    if (! $response instanceof \Illuminate\Testing\TestResponse) {
+        throw new \InvalidArgumentException('Expected TestResponse instance');
+    }
+
+    $response->assertStatus($statusCode)
+        ->assertJsonStructure([
+            'status',
+            'message',
+            'data',
+            'error',
+        ]);
+
+    expect($response->json('status'))->toBeFalse()
+        ->and($response->json('data'))->toBeNull();
+
+    return $this;
+});
+
 /*
 |--------------------------------------------------------------------------
 | Functions
@@ -102,4 +153,93 @@ function createFakeImageFile(string $filename = 'test-image.jpg', int $width = 8
 
     // Fallback: use create() with MIME type
     return $factory->create($filename, 10, 'image/jpeg');
+}
+
+/**
+ * Create an authenticated user with a Sanctum token
+ */
+function createAuthenticatedUser(?User $user = null, array $abilities = ['access-api']): array
+{
+    $user = $user ?? User::factory()->create();
+    $token = $user->createToken('test-token', $abilities);
+
+    return [
+        'user' => $user,
+        'token' => $token,
+        'tokenString' => $token->plainTextToken,
+    ];
+}
+
+/**
+ * Create an authenticated user with a specific role and token
+ */
+function createAuthenticatedUserWithRole(string $roleName, array $abilities = ['access-api']): array
+{
+    $user = createUserWithRole($roleName);
+    $token = $user->createToken('test-token', $abilities);
+
+    return [
+        'user' => $user,
+        'token' => $token,
+        'tokenString' => $token->plainTextToken,
+    ];
+}
+
+/**
+ * Create a user with a specific permission
+ */
+function createUserWithPermission(string $permissionName): User
+{
+    $user = User::factory()->create();
+    $role = Role::factory()->create();
+    $permission = \App\Models\Permission::firstOrCreate(
+        ['name' => $permissionName],
+        ['slug' => $permissionName]
+    );
+    $role->permissions()->attach($permission->id);
+    attachRoleAndRefreshCache($user, $role);
+
+    return $user;
+}
+
+/**
+ * Create a published article with author and approver
+ */
+function createPublishedArticle(?User $author = null, ?User $approver = null, array $attributes = []): \App\Models\Article
+{
+    $author = $author ?? User::factory()->create();
+    $approver = $approver ?? $author;
+
+    return \App\Models\Article::factory()
+        ->for($author, 'author')
+        ->for($approver, 'approver')
+        ->published()
+        ->create($attributes);
+}
+
+/**
+ * Create a draft article with author
+ */
+function createDraftArticle(?User $author = null, array $attributes = []): \App\Models\Article
+{
+    $author = $author ?? User::factory()->create();
+
+    return \App\Models\Article::factory()
+        ->for($author, 'author')
+        ->draft()
+        ->create($attributes);
+}
+
+/**
+ * Make an authenticated API request
+ */
+function authenticatedJson(string $method, string $uri, array $data = [], ?string $token = null, array $headers = []): \Illuminate\Testing\TestResponse
+{
+    $test = test();
+    $headers = array_merge([
+        'Authorization' => 'Bearer '.$token,
+        'Accept' => 'application/json',
+    ], $headers);
+
+    return $test->withHeaders($headers)->json($method, $uri, $data);
 }

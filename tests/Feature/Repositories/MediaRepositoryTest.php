@@ -5,9 +5,6 @@ declare(strict_types=1);
 use App\Models\Media;
 use App\Models\User;
 use App\Repositories\Contracts\MediaRepositoryInterface;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('MediaRepository', function () {
     beforeEach(function () {

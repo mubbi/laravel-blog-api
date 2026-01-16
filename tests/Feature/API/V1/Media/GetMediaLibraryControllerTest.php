@@ -5,9 +5,6 @@ declare(strict_types=1);
 use App\Enums\UserRole;
 use App\Models\Media;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('API/V1/Media/GetMediaLibraryController', function () {
     it('returns paginated media library', function () {
@@ -17,15 +14,10 @@ describe('API/V1/Media/GetMediaLibraryController', function () {
         $response = $this->actingAs($user)
             ->getJson(route('api.v1.media.index'));
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'media' => ['*' => ['id', 'name', 'file_name', 'mime_type', 'url', 'type']],
-                    'meta' => ['current_page', 'per_page', 'total'],
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure([
+            'media' => ['*' => ['id', 'name', 'file_name', 'mime_type', 'url', 'type']],
+            'meta' => ['current_page', 'per_page', 'total'],
+        ]);
     });
 
     it('filters media by type', function () {
@@ -36,10 +28,10 @@ describe('API/V1/Media/GetMediaLibraryController', function () {
         $response = $this->actingAs($user)
             ->getJson(route('api.v1.media.index', ['type' => 'image']));
 
-        $response->assertStatus(200);
+        expect($response)->toHaveApiSuccessStructure();
         $data = $response->json('data.media');
-        expect($data)->toHaveCount(5);
-        expect($data[0]['type'])->toBe('image');
+        expect($data)->toHaveCount(5)
+            ->and($data[0]['type'])->toBe('image');
     });
 
     it('searches media by name', function () {
@@ -50,8 +42,8 @@ describe('API/V1/Media/GetMediaLibraryController', function () {
         $response = $this->actingAs($user)
             ->getJson(route('api.v1.media.index', ['search' => 'Test']));
 
-        $response->assertStatus(200);
-        expect($response->json('data.media'))->toHaveCount(1)
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('data.media'))->toHaveCount(1)
             ->and($response->json('data.media.0.name'))->toContain('Test');
     });
 
@@ -64,8 +56,8 @@ describe('API/V1/Media/GetMediaLibraryController', function () {
         $response = $this->actingAs($user1)
             ->getJson(route('api.v1.media.index'));
 
-        $response->assertStatus(200);
-        expect($response->json('data.media'))->toHaveCount(3);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('data.media'))->toHaveCount(3);
     });
 
     it('managers see all media', function () {
@@ -75,8 +67,8 @@ describe('API/V1/Media/GetMediaLibraryController', function () {
         $response = $this->actingAs($manager)
             ->getJson(route('api.v1.media.index'));
 
-        $response->assertStatus(200);
-        expect($response->json('data.media'))->toHaveCount(5);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('data.media'))->toHaveCount(5);
     });
 
     it('requires authentication', function () {

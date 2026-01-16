@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use App\Models\Permission;
 use App\Models\Role;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Permission Model', function () {
     it('can be created', function () {

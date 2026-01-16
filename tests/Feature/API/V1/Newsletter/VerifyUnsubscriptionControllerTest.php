@@ -30,29 +30,17 @@ describe('API/V1/Newsletter/VerifyUnsubscriptionController', function () {
             'email' => 'verify-unsubscribe@example.com',
         ]);
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'id',
-                    'email',
-                    'is_verified',
-                    'subscribed_at',
-                    'unsubscribed_at',
-                    'created_at',
-                    'updated_at',
-                ],
-            ])
-            ->assertJson([
-                'status' => true,
-                'message' => __('common.subscriber_unsubscribed_successfully'),
-                'data' => [
-                    'email' => 'verify-unsubscribe@example.com',
-                    'is_verified' => false,
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure([
+            'id',
+            'email',
+            'is_verified',
+            'subscribed_at',
+            'unsubscribed_at',
+            'created_at',
+            'updated_at',
+        ])->and($response->json('message'))->toBe(__('common.subscriber_unsubscribed_successfully'))
+            ->and($response->json('data.email'))->toBe('verify-unsubscribe@example.com')
+            ->and($response->json('data.is_verified'))->toBeFalse();
 
         // Verify subscriber was unsubscribed
         $subscriber->refresh();

@@ -13,56 +13,45 @@ use Mockery\MockInterface;
 
 describe('API/V1/Auth/RegisterController', function () {
     it('can register a new user with valid data', function () {
-        // Ensure subscriber role exists
-        $subscriberRole = Role::firstOrCreate(
+        Role::firstOrCreate(
             ['name' => UserRole::SUBSCRIBER->value],
             ['slug' => 'subscriber']
         );
 
-        // Attempt registration
         $response = $this->postJson(route('api.v1.auth.register'), [
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => 'TestRegP@ss2024!',
         ]);
 
-        // Check response
-        $response->assertStatus(201)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'id',
-                    'name',
-                    'email',
-                    'roles',
-                    'permissions',
-                    'access_token',
-                    'refresh_token',
-                    'token_type',
-                ],
+        expect($response->getStatusCode())->toBe(201)
+            ->and($response)->toHaveApiSuccessStructure([
+                'id',
+                'name',
+                'email',
+                'roles',
+                'permissions',
+                'access_token',
+                'refresh_token',
+                'token_type',
             ]);
 
-        // Verify user was created
         $this->assertDatabaseHas('users', [
             'email' => 'john@example.com',
             'name' => 'John Doe',
         ]);
 
-        // Verify user has subscriber role
         $user = User::where('email', 'john@example.com')->first();
-        expect($user)->not->toBeNull();
-        expect($user->roles->pluck('slug')->toArray())->toContain('subscriber');
+        expect($user)->not->toBeNull()
+            ->and($user->roles->pluck('slug')->toArray())->toContain('subscriber');
     });
 
     it('can register with optional profile fields', function () {
-        // Ensure subscriber role exists
-        $subscriberRole = Role::firstOrCreate(
+        Role::firstOrCreate(
             ['name' => UserRole::SUBSCRIBER->value],
             ['slug' => 'subscriber']
         );
 
-        // Attempt registration with optional fields
         $response = $this->postJson(route('api.v1.auth.register'), [
             'name' => 'Jane Doe',
             'email' => 'jane@example.com',
@@ -73,10 +62,7 @@ describe('API/V1/Auth/RegisterController', function () {
             'website' => 'https://jane.example.com',
         ]);
 
-        // Check response
-        $response->assertStatus(201);
-
-        // Verify user was created with optional fields
+        expect($response->getStatusCode())->toBe(201);
         $this->assertDatabaseHas('users', [
             'email' => 'jane@example.com',
             'name' => 'Jane Doe',
@@ -169,110 +155,76 @@ describe('API/V1/Auth/RegisterController', function () {
     });
 
     it('returns 500 when AuthService throws unexpected exception', function () {
-        // Mock the AuthServiceInterface
         $this->mock(AuthServiceInterface::class, function (MockInterface $mock) {
             $mock->shouldReceive('register')
                 ->andThrow(new \Exception(__('common.database_connection_failed')));
         });
 
-        // Attempt registration which will trigger unexpected exception
-        // Note: We use a valid password format here since we're testing exception handling,
-        // but the mock will throw before validation
         $response = $this->postJson(route('api.v1.auth.register'), [
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => 'TestRegP@ss2024!',
         ]);
 
-        // Check response
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 
     it('dispatches UserCreatedEvent and UserLoggedInEvent when user registers successfully', function () {
-        // Arrange
         Event::fake([UserCreatedEvent::class, UserLoggedInEvent::class]);
-
-        // Ensure subscriber role exists
-        $subscriberRole = Role::firstOrCreate(
+        Role::firstOrCreate(
             ['name' => UserRole::SUBSCRIBER->value],
             ['slug' => 'subscriber']
         );
 
-        // Act
         $response = $this->postJson(route('api.v1.auth.register'), [
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => 'TestRegP@ss2024!',
         ]);
 
-        // Assert
-        $response->assertStatus(201);
-
-        Event::assertDispatched(UserCreatedEvent::class, function ($event) {
-            return $event->user->email === 'john@example.com'
-                && $event->user->name === 'John Doe';
-        });
-
-        Event::assertDispatched(UserLoggedInEvent::class, function ($event) {
-            return $event->user->email === 'john@example.com';
-        });
+        expect($response->getStatusCode())->toBe(201);
+        Event::assertDispatched(UserCreatedEvent::class, fn ($event) => $event->user->email === 'john@example.com' && $event->user->name === 'John Doe');
+        Event::assertDispatched(UserLoggedInEvent::class, fn ($event) => $event->user->email === 'john@example.com');
     });
 
     it('returns user with access and refresh tokens after registration', function () {
-        // Ensure subscriber role exists
-        $subscriberRole = Role::firstOrCreate(
+        Role::firstOrCreate(
             ['name' => UserRole::SUBSCRIBER->value],
             ['slug' => 'subscriber']
         );
 
-        // Attempt registration
         $response = $this->postJson(route('api.v1.auth.register'), [
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => 'TestRegP@ss2024!',
         ]);
 
-        // Check response
-        $response->assertStatus(201);
-
         $responseData = $response->json('data');
-
-        // Verify tokens are present
-        expect($responseData['access_token'])->toBeString();
-        expect($responseData['refresh_token'])->toBeString();
-        expect($responseData['token_type'])->toBe('Bearer');
-        expect($responseData['access_token_expires_at'])->not->toBeNull();
-        expect($responseData['refresh_token_expires_at'])->not->toBeNull();
+        expect($response->getStatusCode())->toBe(201)
+            ->and($responseData['access_token'])->toBeString()
+            ->and($responseData['refresh_token'])->toBeString()
+            ->and($responseData['token_type'])->toBe('Bearer')
+            ->and($responseData['access_token_expires_at'])->not->toBeNull()
+            ->and($responseData['refresh_token_expires_at'])->not->toBeNull();
     });
 
     it('returns user with roles and permissions after registration', function () {
-        // Ensure subscriber role exists
-        $subscriberRole = Role::firstOrCreate(
+        Role::firstOrCreate(
             ['name' => UserRole::SUBSCRIBER->value],
             ['slug' => 'subscriber']
         );
 
-        // Attempt registration
         $response = $this->postJson(route('api.v1.auth.register'), [
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => 'TestRegP@ss2024!',
         ]);
 
-        // Check response
-        $response->assertStatus(201);
-
         $responseData = $response->json('data');
-
-        // Verify roles and permissions are included
-        expect($responseData['roles'])->toBeArray();
-        expect($responseData['permissions'])->toBeArray();
-        expect($responseData['roles'])->toContain('subscriber');
+        expect($response->getStatusCode())->toBe(201)
+            ->and($responseData['roles'])->toBeArray()
+            ->and($responseData['permissions'])->toBeArray()
+            ->and($responseData['roles'])->toContain('subscriber');
     });
 });

@@ -249,25 +249,17 @@ describe('API/V1/Newsletter/SubscribeController', function () {
     });
 
     it('handles service exception and returns 500', function () {
-        // Arrange
         $this->mock(\App\Services\Interfaces\NewsletterServiceInterface::class, function ($mock) {
             $mock->shouldReceive('subscribe')
                 ->andThrow(new \Exception('Database error'));
         });
 
-        // Act
         $response = $this->postJson(route('api.v1.newsletter.subscribe'), [
             'email' => 'error@example.com',
         ]);
 
-        // Assert
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 
     it('does not require authentication', function () {

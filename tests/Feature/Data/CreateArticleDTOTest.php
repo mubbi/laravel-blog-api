@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use App\Data\CreateArticleDTO;
 use App\Enums\ArticleStatus;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('CreateArticleDTO', function () {
     it('can be created with all properties', function () {

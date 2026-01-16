@@ -27,16 +27,12 @@ describe('API/V1/Media/UploadMediaController', function () {
                 'alt_text' => 'Test alt text',
             ]);
 
-        $response->assertStatus(201)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => ['id', 'name', 'file_name', 'mime_type', 'url', 'type'],
-            ])
-            ->assertJson([
-                'status' => true,
-                'data' => ['name' => 'Test Image', 'alt_text' => 'Test alt text', 'type' => 'image'],
-            ]);
+        expect($response)->toHaveApiSuccessStructure([
+            'id', 'name', 'file_name', 'mime_type', 'url', 'type',
+        ])->and($response->getStatusCode())->toBe(201)
+            ->and($response->json('data.name'))->toBe('Test Image')
+            ->and($response->json('data.alt_text'))->toBe('Test alt text')
+            ->and($response->json('data.type'))->toBe('image');
 
         $this->assertDatabaseHas('media', [
             'name' => 'Test Image',

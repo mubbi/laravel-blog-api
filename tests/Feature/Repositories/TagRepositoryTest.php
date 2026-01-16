@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use App\Models\Tag;
 use App\Repositories\Contracts\TagRepositoryInterface;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('TagRepository', function () {
     beforeEach(function () {

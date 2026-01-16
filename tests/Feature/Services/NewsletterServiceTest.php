@@ -15,11 +15,8 @@ use App\Events\Newsletter\NewsletterSubscriberVerifiedEvent;
 use App\Models\NewsletterSubscriber;
 use App\Services\NewsletterService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
-
-uses(RefreshDatabase::class);
 
 describe('NewsletterService', function () {
     beforeEach(function () {

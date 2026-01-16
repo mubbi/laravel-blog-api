@@ -6,10 +6,7 @@ use App\Enums\UserRole;
 use App\Events\Media\MediaMetadataUpdatedEvent;
 use App\Models\Media;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 describe('API/V1/Media/UpdateMediaMetadataController', function () {
     it('updates media metadata and dispatches event', function () {
@@ -27,20 +24,11 @@ describe('API/V1/Media/UpdateMediaMetadataController', function () {
                 'caption' => 'New caption',
             ]);
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => ['id', 'name', 'alt_text', 'caption'],
-            ])
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'name' => 'New Name',
-                    'alt_text' => 'New alt text',
-                    'caption' => 'New caption',
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure([
+            'id', 'name', 'alt_text', 'caption',
+        ])->and($response->json('data.name'))->toBe('New Name')
+            ->and($response->json('data.alt_text'))->toBe('New alt text')
+            ->and($response->json('data.caption'))->toBe('New caption');
 
         $this->assertDatabaseHas('media', [
             'id' => $media->id,
@@ -83,7 +71,7 @@ describe('API/V1/Media/UpdateMediaMetadataController', function () {
                 'name' => 'Updated Name',
             ]);
 
-        $response->assertStatus(200);
+        expect($response)->toHaveApiSuccessStructure();
     });
 
     it('validates name max length', function () {

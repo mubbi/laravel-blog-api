@@ -16,21 +16,20 @@ describe('API/V1/Tag/GetTagsController', function () {
 
         $response = $this->getJson(route('api.v1.tags.index'));
 
-        $response->assertStatus(200)
-            ->assertJson(['status' => true, 'message' => __('common.success')])
-            ->assertJsonStructure(['data' => ['*' => ['id', 'name', 'slug']]]);
-        expect($response->json('data'))->toHaveCount(4);
+        expect($response)->toHaveApiSuccessStructure([
+            '*' => ['id', 'name', 'slug'],
+        ])->and($response->json('data'))->toHaveCount(4);
     });
 
     it('caches tags after first request', function () {
         Tag::factory()->count(4)->create();
 
         $response1 = $this->getJson(route('api.v1.tags.index'));
-        $response1->assertStatus(200);
+        expect($response1)->toHaveApiSuccessStructure();
         expect(Cache::has(CacheKey::TAGS->value))->toBeTrue();
 
         $response2 = $this->getJson(route('api.v1.tags.index'));
-        $response2->assertStatus(200);
+        expect($response2)->toHaveApiSuccessStructure();
         expect($response2->json('data'))->toBe($response1->json('data'));
     });
 
@@ -89,8 +88,7 @@ describe('API/V1/Tag/GetTagsController', function () {
 
         $response = $this->getJson(route('api.v1.tags.index'));
 
-        $response->assertStatus(500)
-            ->assertJson(['status' => false, 'message' => __('common.something_went_wrong')])
-            ->assertJsonStructure(['data', 'error']);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 });
