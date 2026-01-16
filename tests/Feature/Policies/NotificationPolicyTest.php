@@ -7,9 +7,6 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Policies\NotificationPolicy;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('NotificationPolicy', function () {
     beforeEach(function () {

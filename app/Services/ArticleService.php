@@ -60,6 +60,7 @@ final class ArticleService implements ArticleServiceInterface
                         'categories:id,name,slug',
                         'tags:id,name,slug',
                         'authors:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
+                        'featuredMedia:id,url,name,alt_text',
                     ])
                     ->withCount('comments')
                     ->where('slug', $slug)

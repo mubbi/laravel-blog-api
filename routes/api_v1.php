@@ -10,6 +10,7 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
 
     // Auth Routes (stricter rate limiting)
     Route::middleware(['throttle:auth'])->group(function () {
+        Route::post('/auth/register', \App\Http\Controllers\Api\V1\Auth\RegisterController::class)->name('api.v1.auth.register');
         Route::post('/auth/login', \App\Http\Controllers\Api\V1\Auth\LoginController::class)->name('api.v1.auth.login');
         Route::post('/auth/refresh', \App\Http\Controllers\Api\V1\Auth\RefreshTokenController::class)->name('api.v1.auth.refresh');
         Route::post('/auth/forgot-password', \App\Http\Controllers\Api\V1\Auth\ForgotPasswordController::class)->name('api.v1.auth.password.forgot');
@@ -104,6 +105,25 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
             Route::post('/', \App\Http\Controllers\Api\V1\Admin\Tag\CreateTagController::class)->name('api.v1.admin.tags.store');
             Route::put('/{tag}', \App\Http\Controllers\Api\V1\Admin\Tag\UpdateTagController::class)->name('api.v1.admin.tags.update');
             Route::delete('/{tag}', \App\Http\Controllers\Api\V1\Admin\Tag\DeleteTagController::class)->name('api.v1.admin.tags.destroy');
+        });
+
+        // Media Management
+        Route::prefix('media')->group(function () {
+            Route::get('/', \App\Http\Controllers\Api\V1\Media\GetMediaLibraryController::class)->name('api.v1.admin.media.index');
+            Route::get('/{media}', \App\Http\Controllers\Api\V1\Media\GetMediaDetailsController::class)->name('api.v1.admin.media.show');
+            Route::put('/{media}', \App\Http\Controllers\Api\V1\Media\UpdateMediaMetadataController::class)->name('api.v1.admin.media.update');
+            Route::delete('/{media}', \App\Http\Controllers\Api\V1\Media\DeleteMediaController::class)->name('api.v1.admin.media.destroy');
+        });
+    });
+
+    // Media Management (Authenticated Users)
+    Route::middleware(['auth:sanctum', 'ability:access-api'])->group(function () {
+        Route::prefix('media')->group(function () {
+            Route::post('/', \App\Http\Controllers\Api\V1\Media\UploadMediaController::class)->name('api.v1.media.store');
+            Route::get('/', \App\Http\Controllers\Api\V1\Media\GetMediaLibraryController::class)->name('api.v1.media.index');
+            Route::get('/{media}', \App\Http\Controllers\Api\V1\Media\GetMediaDetailsController::class)->name('api.v1.media.show');
+            Route::put('/{media}', \App\Http\Controllers\Api\V1\Media\UpdateMediaMetadataController::class)->name('api.v1.media.update');
+            Route::delete('/{media}', \App\Http\Controllers\Api\V1\Media\DeleteMediaController::class)->name('api.v1.media.destroy');
         });
     });
 

@@ -29,7 +29,7 @@ final class ArticleManagementService implements ArticleManagementServiceInterfac
     public function getArticles(FilterArticleManagementDTO $dto, ?int $userIdForFiltering = null): LengthAwarePaginator
     {
         $query = $this->articleRepository->query()
-            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug'])
+            ->with(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug', 'featuredMedia:id,url,name,alt_text'])
             ->withCount(['comments', 'authors']);
 
         // Filter by user if provided (non-admin users see only their own articles)
@@ -92,7 +92,7 @@ final class ArticleManagementService implements ArticleManagementServiceInterfac
      */
     public function loadArticleRelationshipsOnModel(Article $article): Article
     {
-        $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug']);
+        $article->load(['author:id,name,email', 'approver:id,name,email', 'updater:id,name,email', 'categories:id,name,slug', 'tags:id,name,slug', 'featuredMedia:id,url,name,alt_text']);
         $article->loadCount(['comments', 'authors']);
 
         return $article;

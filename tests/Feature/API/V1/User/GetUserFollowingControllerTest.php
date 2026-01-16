@@ -6,50 +6,34 @@ use App\Models\User;
 
 describe('API/V1/User/GetUserFollowingController', function () {
     it('can get paginated list of users that a user is following', function () {
-        // Arrange
         $user = User::factory()->create();
         $following = User::factory()->count(5)->create();
 
-        // Create follow relationships
         foreach ($following as $followedUser) {
             $user->following()->attach($followedUser->id);
         }
 
-        // Act
         $response = $this->getJson(route('api.v1.users.following', ['user' => $user->id]));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'following' => [
-                        '*' => [
-                            'id',
-                            'name',
-                            'email',
-                            'avatar_url',
-                            'bio',
-                            'created_at',
-                            'updated_at',
-                        ],
-                    ],
-                    'meta' => [
-                        'current_page',
-                        'per_page',
-                        'total',
-                    ],
+        expect($response)->toHaveApiSuccessStructure([
+            'following' => [
+                '*' => [
+                    'id',
+                    'name',
+                    'email',
+                    'avatar_url',
+                    'bio',
+                    'created_at',
+                    'updated_at',
                 ],
-            ])
-            ->assertJson([
-                'status' => true,
-                'message' => __('common.success'),
-            ]);
-
-        $responseData = $response->json('data');
-        expect($responseData['following'])->toHaveCount(5);
-        expect($responseData['meta']['total'])->toBe(5);
+            ],
+            'meta' => [
+                'current_page',
+                'per_page',
+                'total',
+            ],
+        ])->and($response->json('data.following'))->toHaveCount(5)
+            ->and($response->json('data.meta.total'))->toBe(5);
     });
 
     it('returns empty list when user is not following anyone', function () {

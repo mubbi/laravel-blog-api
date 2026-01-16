@@ -8,10 +8,7 @@ use App\Events\Article\ArticleUnfeaturedEvent;
 use App\Events\Article\ArticleUnpinnedEvent;
 use App\Models\Article;
 use App\Services\ArticleFeatureService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 describe('ArticleFeatureService', function () {
     beforeEach(function () {

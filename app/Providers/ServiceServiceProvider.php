@@ -20,10 +20,12 @@ use App\Services\Interfaces\ArticleStatusServiceInterface;
 use App\Services\Interfaces\CacheServiceInterface;
 use App\Services\Interfaces\CategoryServiceInterface;
 use App\Services\Interfaces\CommentServiceInterface;
+use App\Services\Interfaces\MediaServiceInterface;
 use App\Services\Interfaces\NewsletterServiceInterface;
 use App\Services\Interfaces\NotificationServiceInterface;
 use App\Services\Interfaces\TagServiceInterface;
 use App\Services\Interfaces\UserServiceInterface;
+use App\Services\MediaService;
 use App\Services\NewsletterService;
 use App\Services\NotificationService;
 use App\Services\TagService;
@@ -108,6 +110,11 @@ final class ServiceServiceProvider extends ServiceProvider
         $this->app->scoped(
             CommentServiceInterface::class,
             CommentService::class
+        );
+
+        $this->app->scoped(
+            MediaServiceInterface::class,
+            MediaService::class
         );
 
         // Communication services

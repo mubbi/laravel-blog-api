@@ -10,40 +10,28 @@ use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/User/CreateUserController', function () {
     it('can create a new user with valid data', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $authorRole = Role::where('name', UserRole::AUTHOR->value)->first();
 
-        $userData = [
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'password' => 'password123',
-            'bio' => 'A test user bio',
-            'twitter' => 'johndoe',
-            'role_id' => $authorRole->id,
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), $userData);
+            ->postJson(route('api.v1.admin.users.store'), [
+                'name' => 'John Doe',
+                'email' => 'john@example.com',
+                'password' => 'password123',
+                'bio' => 'A test user bio',
+                'twitter' => 'johndoe',
+                'role_id' => $authorRole->id,
+            ]);
 
-        // Assert
-        $response->assertStatus(201)
-            ->assertJsonStructure([
+        expect($response->getStatusCode())->toBe(201)
+            ->and($response)->toHaveApiSuccessStructure([
+                'id',
+                'name',
+                'email',
+                'bio',
+                'twitter',
+                'roles',
                 'status',
-                'message',
-                'data' => [
-                    'id',
-                    'name',
-                    'email',
-                    'bio',
-                    'twitter',
-                    'roles',
-                    'status',
-                ],
             ]);
 
         $this->assertDatabaseHas('users', [
@@ -52,29 +40,21 @@ describe('API/V1/Admin/User/CreateUserController', function () {
         ]);
 
         $user = User::where('email', 'john@example.com')->first();
-        expect($user->roles)->toHaveCount(1);
-        expect($user->roles->first()->name)->toBe(UserRole::AUTHOR->value);
+        expect($user->roles)->toHaveCount(1)
+            ->and($user->roles->first()->name)->toBe(UserRole::AUTHOR->value);
     });
 
     it('can create a user without optional fields', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
-        $userData = [
-            'name' => 'Jane Smith',
-            'email' => 'jane@example.com',
-            'password' => 'password123',
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), $userData);
+            ->postJson(route('api.v1.admin.users.store'), [
+                'name' => 'Jane Smith',
+                'email' => 'jane@example.com',
+                'password' => 'password123',
+            ]);
 
-        // Assert
-        $response->assertStatus(201);
-
+        expect($response->getStatusCode())->toBe(201);
         $this->assertDatabaseHas('users', [
             'name' => 'Jane Smith',
             'email' => 'jane@example.com',
@@ -82,16 +62,11 @@ describe('API/V1/Admin/User/CreateUserController', function () {
     });
 
     it('validates required fields', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.users.store'), []);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJson([
                 'status' => false,
@@ -106,24 +81,16 @@ describe('API/V1/Admin/User/CreateUserController', function () {
     });
 
     it('validates email uniqueness', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
+        User::factory()->create(['email' => 'test@example.com']);
 
-        $existingUser = User::factory()->create(['email' => 'test@example.com']);
-
-        $userData = [
-            'name' => 'John Doe',
-            'email' => 'test@example.com',
-            'password' => 'password123',
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), $userData);
+            ->postJson(route('api.v1.admin.users.store'), [
+                'name' => 'John Doe',
+                'email' => 'test@example.com',
+                'password' => 'password123',
+            ]);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJson([
                 'status' => false,
@@ -136,22 +103,15 @@ describe('API/V1/Admin/User/CreateUserController', function () {
     });
 
     it('validates password minimum length', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
-        $userData = [
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'password' => '123',
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), $userData);
+            ->postJson(route('api.v1.admin.users.store'), [
+                'name' => 'John Doe',
+                'email' => 'john@example.com',
+                'password' => '123',
+            ]);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJson([
                 'status' => false,
@@ -164,24 +124,17 @@ describe('API/V1/Admin/User/CreateUserController', function () {
     });
 
     it('validates URL fields', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
-        $userData = [
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'password' => 'password123',
-            'avatar_url' => 'not-a-url',
-            'website' => 'invalid-url',
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), $userData);
+            ->postJson(route('api.v1.admin.users.store'), [
+                'name' => 'John Doe',
+                'email' => 'john@example.com',
+                'password' => 'password123',
+                'avatar_url' => 'not-a-url',
+                'website' => 'invalid-url',
+            ]);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJson([
                 'status' => false,
@@ -195,23 +148,16 @@ describe('API/V1/Admin/User/CreateUserController', function () {
     });
 
     it('validates role_id exists', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
-        $userData = [
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'password' => 'password123',
-            'role_id' => 99999, // Non-existent role
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), $userData);
+            ->postJson(route('api.v1.admin.users.store'), [
+                'name' => 'John Doe',
+                'email' => 'john@example.com',
+                'password' => 'password123',
+                'role_id' => 99999,
+            ]);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJson([
                 'status' => false,
@@ -224,67 +170,43 @@ describe('API/V1/Admin/User/CreateUserController', function () {
     });
 
     it('returns 403 when user lacks create_users permission', function () {
-        // Arrange
-        $user = User::factory()->create();
-        $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        attachRoleAndRefreshCache($user, $subscriberRole);
+        $user = createUserWithRole(UserRole::SUBSCRIBER->value);
 
-        $userData = [
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'password' => 'password123',
-        ];
-
-        // Act
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.users.store'), $userData);
+            ->postJson(route('api.v1.admin.users.store'), [
+                'name' => 'John Doe',
+                'email' => 'john@example.com',
+                'password' => 'password123',
+            ]);
 
-        // Assert
         $response->assertStatus(403);
     });
 
     it('returns 401 when not authenticated', function () {
-        // Arrange
-        $userData = [
+        $response = $this->postJson(route('api.v1.admin.users.store'), [
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => 'password123',
-        ];
+        ]);
 
-        // Act
-        $response = $this->postJson(route('api.v1.admin.users.store'), $userData);
-
-        // Assert
         $response->assertStatus(401);
     });
 
     it('dispatches UserCreatedEvent when user is created', function () {
-        // Arrange
         Event::fake([UserCreatedEvent::class]);
-
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $authorRole = Role::where('name', UserRole::AUTHOR->value)->first();
 
-        $userData = [
-            'name' => 'New User',
-            'email' => 'newuser@example.com',
-            'password' => 'password123',
-            'role_id' => $authorRole->id,
-        ];
-
-        // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.store'), $userData);
+            ->postJson(route('api.v1.admin.users.store'), [
+                'name' => 'New User',
+                'email' => 'newuser@example.com',
+                'password' => 'password123',
+                'role_id' => $authorRole->id,
+            ]);
 
-        // Assert
-        $response->assertStatus(201);
-
-        Event::assertDispatched(UserCreatedEvent::class, function ($event) {
-            return $event->user->email === 'newuser@example.com'
-                && $event->user->name === 'New User';
-        });
+        expect($response->getStatusCode())->toBe(201);
+        Event::assertDispatched(UserCreatedEvent::class, fn ($event) => $event->user->email === 'newuser@example.com'
+            && $event->user->name === 'New User');
     });
 });

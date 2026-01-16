@@ -43,8 +43,15 @@ final class SecurityHeaders
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin', true);
 
         // Content-Security-Policy: Restrict resource loading
-        // For API, we can be more restrictive since we're not serving HTML
-        $csp = "default-src 'self'; script-src 'none'; style-src 'none'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none';";
+        // For API documentation (Scramble), we need to allow external resources and inline scripts/styles
+        // For API endpoints, we can be more restrictive since we're not serving HTML
+        if ($request->is('docs/*')) {
+            // Permissive CSP for API documentation (Scramble/Stoplight Elements)
+            $csp = "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https:; font-src 'self' data: https://unpkg.com; connect-src 'self'; frame-ancestors 'self';";
+        } else {
+            // Restrictive CSP for API endpoints
+            $csp = "default-src 'self'; script-src 'none'; style-src 'none'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none';";
+        }
         $response->headers->set('Content-Security-Policy', $csp, true);
 
         // Permissions-Policy: Restrict browser features

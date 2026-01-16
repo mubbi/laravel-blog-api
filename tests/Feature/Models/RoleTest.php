@@ -8,10 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Events\Dispatcher;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-
-uses(RefreshDatabase::class);
 
 describe('Role Model', function () {
     beforeEach(function () {

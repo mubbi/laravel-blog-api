@@ -10,44 +10,33 @@ use Illuminate\Support\Facades\Log;
 
 describe('API/V1/Admin/Newsletter/GetSubscribersController', function () {
     it('can get paginated list of newsletter subscribers', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         NewsletterSubscriber::factory()->count(5)->create();
 
-        // Act
         $response = $this->actingAs($admin)
             ->getJson(route('api.v1.admin.newsletter.subscribers.index'));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'subscribers' => [
-                        '*' => [
-                            'id',
-                            'email',
-                            'user_id',
-                            'is_verified',
-                            'subscribed_at',
-                            'created_at',
-                            'updated_at',
-                        ],
-                    ],
-                    'meta' => [
-                        'current_page',
-                        'per_page',
-                        'total',
-                        'last_page',
-                        'from',
-                        'to',
-                    ],
+        expect($response)->toHaveApiSuccessStructure([
+            'subscribers' => [
+                '*' => [
+                    'id',
+                    'email',
+                    'user_id',
+                    'is_verified',
+                    'subscribed_at',
+                    'created_at',
+                    'updated_at',
                 ],
-            ]);
+            ],
+            'meta' => [
+                'current_page',
+                'per_page',
+                'total',
+                'last_page',
+                'from',
+                'to',
+            ],
+        ]);
     });
 
     it('can filter subscribers by search term', function () {

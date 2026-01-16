@@ -11,10 +11,7 @@ use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\NotificationService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 describe('NotificationService', function () {
     beforeEach(function () {

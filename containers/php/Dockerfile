@@ -31,8 +31,12 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
+# Configure and install GD extension with JPEG, PNG, and FreeType support
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd
+
+# Install other PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath zip intl
 
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis

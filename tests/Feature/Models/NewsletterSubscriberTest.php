@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use App\Models\NewsletterSubscriber;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('NewsletterSubscriber Model', function () {
     it('can be created', function () {

@@ -1,0 +1,18 @@
+; Custom PHP Configuration for Testing
+; Higher memory limit for coverage generation
+memory_limit = 2G
+upload_max_filesize = 20M
+post_max_size = 20M
+max_execution_time = 600
+max_input_vars = 3000
+
+; Error reporting
+display_errors = On
+display_startup_errors = On
+error_reporting = E_ALL
+
+; Timezone
+date.timezone = UTC
+
+; Session
+session.gc_maxlifetime = 1440

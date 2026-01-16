@@ -12,45 +12,30 @@ use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Comment/CreateCommentController', function () {
     it('can create a comment successfully', function () {
-        // Arrange
         Event::fake();
-        $user = User::factory()->create();
-        $token = $user->createToken('test-token', ['access-api']);
+        $auth = createAuthenticatedUser();
         $article = Article::factory()->create();
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.comments.store', $article), [
             'content' => 'This is a test comment',
         ]);
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'id',
-                    'content',
-                    'status',
-                    'status_display',
-                    'is_approved',
-                    'created_at',
-                    'updated_at',
-                ],
-            ])
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'content' => 'This is a test comment',
-                    'status' => CommentStatus::PENDING->value,
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure([
+            'id',
+            'content',
+            'status',
+            'status_display',
+            'is_approved',
+            'created_at',
+            'updated_at',
+        ])->and($response->json('data.content'))->toBe('This is a test comment')
+            ->and($response->json('data.status'))->toBe(CommentStatus::PENDING->value);
 
         $this->assertDatabaseHas('comments', [
             'content' => 'This is a test comment',
-            'user_id' => $user->id,
+            'user_id' => $auth['user']->id,
             'article_id' => $article->id,
             'status' => CommentStatus::PENDING->value,
         ]);
@@ -59,33 +44,24 @@ describe('API/V1/Comment/CreateCommentController', function () {
     });
 
     it('can create a reply comment successfully', function () {
-        // Arrange
         Event::fake();
-        $user = User::factory()->create();
-        $token = $user->createToken('test-token', ['access-api']);
+        $auth = createAuthenticatedUser();
         $article = Article::factory()->create();
         $parentComment = Comment::factory()->create([
             'article_id' => $article->id,
             'user_id' => User::factory()->create()->id,
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.comments.store', $article), [
             'content' => 'This is a reply',
             'parent_comment_id' => $parentComment->id,
         ]);
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'content' => 'This is a reply',
-                    'parent_comment_id' => $parentComment->id,
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('data.content'))->toBe('This is a reply')
+            ->and($response->json('data.parent_comment_id'))->toBe($parentComment->id);
 
         $this->assertDatabaseHas('comments', [
             'content' => 'This is a reply',
@@ -97,17 +73,13 @@ describe('API/V1/Comment/CreateCommentController', function () {
     });
 
     it('returns 422 when content is missing', function () {
-        // Arrange
-        $user = User::factory()->create();
-        $token = $user->createToken('test-token', ['access-api']);
+        $auth = createAuthenticatedUser();
         $article = Article::factory()->create();
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.comments.store', $article), []);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJson([
                 'status' => false,
@@ -116,19 +88,15 @@ describe('API/V1/Comment/CreateCommentController', function () {
     });
 
     it('returns 422 when content exceeds max length', function () {
-        // Arrange
-        $user = User::factory()->create();
-        $token = $user->createToken('test-token', ['access-api']);
+        $auth = createAuthenticatedUser();
         $article = Article::factory()->create();
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.comments.store', $article), [
             'content' => str_repeat('a', 5001),
         ]);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJson([
                 'status' => false,
@@ -137,20 +105,16 @@ describe('API/V1/Comment/CreateCommentController', function () {
     });
 
     it('returns 422 when parent_comment_id does not exist', function () {
-        // Arrange
-        $user = User::factory()->create();
-        $token = $user->createToken('test-token', ['access-api']);
+        $auth = createAuthenticatedUser();
         $article = Article::factory()->create();
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.comments.store', $article), [
             'content' => 'Test comment',
             'parent_comment_id' => 99999,
         ]);
 
-        // Assert
         $response->assertStatus(422)
             ->assertJson([
                 'status' => false,
@@ -159,119 +123,81 @@ describe('API/V1/Comment/CreateCommentController', function () {
     });
 
     it('returns 500 when parent comment belongs to different article', function () {
-        // Arrange
-        $user = User::factory()->create();
-        $token = $user->createToken('test-token', ['access-api']);
+        $auth = createAuthenticatedUser();
         $article1 = Article::factory()->create();
         $article2 = Article::factory()->create();
         $parentComment = Comment::factory()->create([
             'article_id' => $article1->id,
         ]);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.comments.store', $article2), [
             'content' => 'Test comment',
             'parent_comment_id' => $parentComment->id,
         ]);
 
-        // Assert
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 
     it('returns 401 when not authenticated', function () {
-        // Arrange
         $article = Article::factory()->create();
 
-        // Act
         $response = $this->postJson(route('api.v1.comments.store', $article), [
             'content' => 'Test comment',
         ]);
 
-        // Assert
         $response->assertStatus(401);
     });
 
     it('returns 500 when service throws exception', function () {
-        // Arrange
-        $user = User::factory()->create();
-        $token = $user->createToken('test-token', ['access-api']);
+        $auth = createAuthenticatedUser();
         $article = Article::factory()->create();
 
-        // Mock CommentServiceInterface to throw exception
         $this->mock(CommentServiceInterface::class, function ($mock) {
             $mock->shouldReceive('createComment')
                 ->andThrow(new \Exception('Service error'));
         });
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.comments.store', $article), [
             'content' => 'Test comment',
         ]);
 
-        // Assert
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
     });
 
     it('creates comment with minimum content length', function () {
-        // Arrange
         Event::fake();
-        $user = User::factory()->create();
-        $token = $user->createToken('test-token', ['access-api']);
+        $auth = createAuthenticatedUser();
         $article = Article::factory()->create();
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.comments.store', $article), [
             'content' => 'A',
         ]);
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'content' => 'A',
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('data.content'))->toBe('A');
     });
 
     it('creates comment with maximum content length', function () {
-        // Arrange
         Event::fake();
-        $user = User::factory()->create();
-        $token = $user->createToken('test-token', ['access-api']);
+        $auth = createAuthenticatedUser();
         $article = Article::factory()->create();
         $maxContent = str_repeat('a', 5000);
 
-        // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer '.$token->plainTextToken,
+            'Authorization' => 'Bearer '.$auth['tokenString'],
         ])->postJson(route('api.v1.comments.store', $article), [
             'content' => $maxContent,
         ]);
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'content' => $maxContent,
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('data.content'))->toBe($maxContent);
     });
 });

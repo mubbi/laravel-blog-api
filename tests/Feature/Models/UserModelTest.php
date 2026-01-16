@@ -7,10 +7,7 @@ use App\Models\Article;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-
-uses(RefreshDatabase::class);
 
 describe('User Model', function () {
     describe('hasRole', function () {

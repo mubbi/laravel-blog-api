@@ -1,4 +1,15 @@
 # =============================================================================
+# Variables
+# =============================================================================
+
+DOCKER_COMPOSE_MAIN := containers/docker-compose.yml
+DOCKER_COMPOSE_TEST := containers/docker-compose.test.yml
+DOCKER_COMPOSE_SONAR := containers/docker-compose.sonarqube.yml
+CONTAINER_MAIN := laravel_blog_api
+CONTAINER_TEST := laravel_blog_api_test
+CONTAINER_DIR := containers
+
+# =============================================================================
 # Local Full Setup - Complete Development Environment
 # =============================================================================
 
@@ -7,16 +18,16 @@ local-setup: docker-cleanup docker-setup-env check-ports install-commit-tools se
 	@echo "🚀 SETUP: Complete local development environment..."
 	@echo ""
 	@echo "📦 Setting up Docker containers..."
-	cd containers && docker-compose up -d
-	cd containers && docker-compose -f docker-compose.test.yml up -d
+	cd $(CONTAINER_DIR) && docker-compose up -d
+	cd $(CONTAINER_DIR) && docker-compose -f docker-compose.test.yml up -d
 	@echo ""
 	@echo "⏳ Waiting for containers to be ready..."
 	@sleep 15
 	@echo ""
 	@echo "🔧 Installing test dependencies..."
-	-docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader
-	-docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force
-	-docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force
+	-docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) composer install --no-interaction --prefer-dist --optimize-autoloader
+	-docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) php artisan key:generate --env=testing --force
+	-docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) php artisan migrate:fresh --seed --env=testing --force
 	@echo ""
 	@echo "✅ SUCCESS: Local development environment setup complete!"
 	@echo ""
@@ -72,16 +83,28 @@ release:
 # Check port availability (standalone command)
 check-ports-standalone:
 	@echo "🔍 PORTS: Checking port availability for Docker services..."
-	@bash containers/check-ports.sh
+	@bash $(CONTAINER_DIR)/check-ports.sh
 	@echo ""
 	@echo "💡 TIP: Use 'make local-setup' to automatically check ports before setup"
+
+# Check port availability before Docker setup
+check-ports:
+	@echo "🔍 PORTS: Checking port availability for Docker services..."
+	@bash $(CONTAINER_DIR)/check-ports.sh || (echo "❌ Port check failed. Please resolve port conflicts before continuing." && exit 1)
+	@echo "✅ SUCCESS: All required ports are available!"
 
 # Check SonarQube port availability (standalone command)
 check-sonarqube-ports-standalone:
 	@echo "🔍 SONARQUBE PORTS: Checking SonarQube port availability..."
-	@bash containers/check-sonarqube-ports.sh
+	@bash $(CONTAINER_DIR)/check-sonarqube-ports.sh
 	@echo ""
 	@echo "💡 TIP: Use 'make sonarqube-setup' to automatically check ports before SonarQube setup"
+
+# Check SonarQube port availability
+check-sonarqube-ports:
+	@echo "🔍 SONARQUBE PORTS: Checking port availability..."
+	@bash $(CONTAINER_DIR)/check-sonarqube-ports.sh || (echo "⚠️  SonarQube port check failed. You can continue without SonarQube or resolve port conflicts." && read -p "Continue anyway? (y/N): " confirm && [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ] || exit 1)
+	@echo "✅ SUCCESS: SonarQube ports are available!"
 
 # =============================================================================
 # Docker Environment Management
@@ -91,8 +114,8 @@ check-sonarqube-ports-standalone:
 docker-cleanup:
 	@echo "CLEANUP: Docker environment..."
 	@echo "Stopping and removing containers..."
-	-cd containers && docker-compose down --remove-orphans
-	-cd containers && docker-compose -f docker-compose.test.yml down --remove-orphans
+	-cd $(CONTAINER_DIR) && docker-compose down --remove-orphans
+	-cd $(CONTAINER_DIR) && docker-compose -f docker-compose.test.yml down --remove-orphans
 	@echo "Removing project-specific images..."
 	-docker rmi $$(docker images --filter "reference=containers_*" -q) 2>/dev/null || true
 	@echo "Removing dangling images..."
@@ -106,19 +129,13 @@ docker-cleanup:
 # Setup Docker environment files
 docker-setup-env:
 	@echo "SETUP: Docker environment files..."
-	bash containers/setup-env.sh
+	bash $(CONTAINER_DIR)/setup-env.sh
 	@echo "SUCCESS: Environment files setup completed!"
 
 # Verify Docker environment setup
 docker-verify-env:
 	@echo "VERIFY: Docker environment setup..."
-	bash containers/verify-env-setup.sh
-
-# Check port availability before Docker setup
-check-ports:
-	@echo "🔍 PORTS: Checking port availability for Docker services..."
-	@bash containers/check-ports.sh || (echo "❌ Port check failed. Please resolve port conflicts before continuing." && exit 1)
-	@echo "✅ SUCCESS: All required ports are available!"
+	bash $(CONTAINER_DIR)/verify-env-setup.sh
 
 # =============================================================================
 # Docker Development Environment
@@ -127,13 +144,13 @@ check-ports:
 # Start existing development environment (no rebuild)
 docker-up:
 	@echo "START: Docker development environment..."
-	cd containers && docker-compose up -d
+	cd $(CONTAINER_DIR) && docker-compose up -d
 	@echo "SUCCESS: Development environment started!"
 
 # Stop development environment
 docker-down:
 	@echo "STOP: Docker development environment..."
-	cd containers && docker-compose down
+	cd $(CONTAINER_DIR) && docker-compose down
 	@echo "SUCCESS: Development environment stopped!"
 
 # Restart development environment
@@ -144,66 +161,67 @@ docker-restart: docker-down docker-up
 # Testing Environment
 # =============================================================================
 
+# Internal: Check if test container is running
+_test-container-running:
+	@docker-compose -f $(DOCKER_COMPOSE_TEST) ps | grep -q '$(CONTAINER_TEST)' && docker-compose -f $(DOCKER_COMPOSE_TEST) ps | grep 'Up' || exit 1
+
+# Internal: Setup test container
+_test-setup:
+	@echo "🧪 TESTING: Setting up test environment..."
+	cd $(CONTAINER_DIR) && docker-compose -f docker-compose.test.yml up -d
+	@echo ">> Installing dependencies in test container..."
+	@sleep 10
+	docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) composer install --no-interaction --prefer-dist --optimize-autoloader
+	docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) php artisan key:generate --env=testing --force
+	docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) php artisan config:clear
+	docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) php artisan route:clear
+	docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) php artisan migrate:fresh --seed --env=testing --force
+
+# Internal: Clear test caches
+_test-clear-cache:
+	@echo ">> Clearing caches..."
+	docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) php artisan config:clear
+	docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) php artisan route:clear
 
 # Run tests (automated testing environment)
 # Usage: make test                    - Run all tests
 # Usage: make test filter='TestName'  - Run specific test by filter
 test:
-	@if docker-compose -f containers/docker-compose.test.yml ps | grep -q 'laravel_blog_api_test' && docker-compose -f containers/docker-compose.test.yml ps | grep 'Up'; then \
+	@if docker-compose -f $(DOCKER_COMPOSE_TEST) ps | grep -q '$(CONTAINER_TEST)' && docker-compose -f $(DOCKER_COMPOSE_TEST) ps | grep 'Up' >/dev/null 2>&1; then \
 		echo "🧪 TESTING: Test container already running. Skipping setup..."; \
-		echo ">> Clearing caches..."; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan route:clear; \
+		$(MAKE) -s _test-clear-cache; \
 		if [ -n "$(filter)" ]; then \
 			echo ">> Running filtered test: $(filter)..."; \
-			docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --filter=$(filter); \
+			docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) php artisan test --filter=$(filter); \
 		else \
 			echo ">> Running tests..."; \
-			docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure; \
+			docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) php artisan test --parallel --recreate-databases --stop-on-failure; \
 		fi; \
 		echo "✅ SUCCESS: Tests completed!"; \
 	else \
-		echo "🧪 TESTING: Running test suite..."; \
-		cd containers && docker-compose -f docker-compose.test.yml up -d; \
-		echo ">> Installing dependencies in test container..."; \
-		sleep 10; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan route:clear; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force; \
+		$(MAKE) -s _test-setup; \
 		if [ -n "$(filter)" ]; then \
 			echo ">> Running filtered test: $(filter)..."; \
-			docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --filter=$(filter); \
+			docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) php artisan test --filter=$(filter); \
 		else \
 			echo ">> Running tests..."; \
-			docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --parallel --recreate-databases --stop-on-failure; \
+			docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) php artisan test --parallel --recreate-databases --stop-on-failure; \
 		fi; \
 		echo "✅ SUCCESS: Tests completed!"; \
 	fi
 
-
 # Run tests with coverage report
 test-coverage:
-	@if docker-compose -f containers/docker-compose.test.yml ps | grep -q 'laravel_blog_api_test' && docker-compose -f containers/docker-compose.test.yml ps | grep 'Up'; then \
+	@if docker-compose -f $(DOCKER_COMPOSE_TEST) ps | grep -q '$(CONTAINER_TEST)' && docker-compose -f $(DOCKER_COMPOSE_TEST) ps | grep 'Up' >/dev/null 2>&1; then \
 		echo "🧪 TESTING: Test container already running. Skipping setup..."; \
-		echo ">> Clearing caches..."; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan route:clear; \
-		echo ">> Running tests with coverage..."; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=70; \
+		$(MAKE) -s _test-clear-cache; \
+		echo ">> Running tests with coverage (memory limit: 2GB)..."; \
+		docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) bash -c "php -d memory_limit=2G artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=70"; \
 		echo "✅ SUCCESS: Tests with coverage completed!"; \
 	else \
-		echo "🧪 TESTING: Running tests with coverage..."; \
-		cd containers && docker-compose -f docker-compose.test.yml up -d; \
-		sleep 10; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test composer install --no-interaction --prefer-dist --optimize-autoloader; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan key:generate --env=testing --force; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan config:clear; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan route:clear; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan migrate:fresh --seed --env=testing --force; \
-		echo ">> Running tests with coverage..."; \
-		docker-compose -f containers/docker-compose.test.yml exec -T laravel_blog_api_test php artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=70; \
+		$(MAKE) -s _test-setup; \
+		echo ">> Running tests with coverage (memory limit: 2GB)..."; \
+		docker-compose -f $(DOCKER_COMPOSE_TEST) exec -T $(CONTAINER_TEST) bash -c "php -d memory_limit=2G artisan test --coverage --coverage-html reports/coverage --coverage-clover reports/coverage.xml --stop-on-failure --min=70"; \
 		echo "✅ SUCCESS: Tests with coverage completed!"; \
 	fi
 
@@ -214,31 +232,31 @@ test-coverage:
 # Run Code Linting with Pint
 lint:
 	@echo "🔍 LINT: Running Pint linter..."
-	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api ./vendor/bin/pint
+	docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) ./vendor/bin/pint
 	@echo "SUCCESS: Linting completed!"
 
 # Run Code Linting (only recent changes)
 lint-dirty:
 	@echo "🔍 LINT: Running Pint linter on dirty files..."
-	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api ./vendor/bin/pint --dirty
+	docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) ./vendor/bin/pint --dirty
 	@echo "SUCCESS: Dirty files linting completed!"
 
 # Run Static Analysis (PHPStan)
 analyze:
 	@echo "🔍 ANALYZE: Running PHPStan static analysis..."
 	@echo ">> Ensuring .env file exists with APP_KEY..."
-	@docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api bash -c "if [ ! -f .env ]; then if [ -f .env.docker.example ]; then cp .env.docker.example .env; else echo 'ERROR: .env file not found and .env.docker.example does not exist'; exit 1; fi; fi; if ! grep -q 'APP_KEY=base64:' .env 2>/dev/null; then php artisan key:generate --force 2>/dev/null || true; fi"
+	@docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) bash -c "if [ ! -f .env ]; then if [ -f .env.docker.example ]; then cp .env.docker.example .env; else echo 'ERROR: .env file not found and .env.docker.example does not exist'; exit 1; fi; fi; if ! grep -q 'APP_KEY=base64:' .env 2>/dev/null; then php artisan key:generate --force 2>/dev/null || true; fi"
 	@echo ">> Clearing all caches..."
-	@docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api bash -c "rm -rf bootstrap/cache/*.php storage/framework/cache/* storage/framework/views/* 2>/dev/null || true"
+	@docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) bash -c "rm -rf bootstrap/cache/*.php storage/framework/cache/* storage/framework/views/* 2>/dev/null || true"
 	@echo ">> Running PHPStan..."
-	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api ./vendor/bin/phpstan analyse --memory-limit=2G
+	docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) ./vendor/bin/phpstan analyse --memory-limit=2G
 	@echo "SUCCESS: Static analysis completed!"
 
 # Run Artisan commands
 artisan:
 	@echo "ARTISAN: Running custom artisan command..."
 	@echo "Usage: make artisan ARGS='migrate --seed'"
-	docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api php artisan $(ARGS)
+	docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) php artisan $(ARGS)
 
 # =============================================================================
 # Container Utilities
@@ -247,27 +265,22 @@ artisan:
 # Access main container shell
 shell:
 	@echo "SHELL: Accessing main container..."
-	docker-compose -f containers/docker-compose.yml exec laravel_blog_api bash
-
-# Access main container terminal (alias for shell)
-terminal:
-	@echo "TERMINAL: Accessing Laravel container terminal..."
-	docker-compose -f containers/docker-compose.yml exec laravel_blog_api bash
+	docker-compose -f $(DOCKER_COMPOSE_MAIN) exec $(CONTAINER_MAIN) bash
 
 # Access test container shell
 test-shell:
 	@echo "SHELL: Accessing test container..."
-	docker-compose -f containers/docker-compose.test.yml exec laravel_blog_api_test bash
+	docker-compose -f $(DOCKER_COMPOSE_TEST) exec $(CONTAINER_TEST) bash
 
 # View logs from all containers
 logs:
 	@echo "LOGS: Viewing container logs..."
-	cd containers && docker-compose logs -f
+	cd $(CONTAINER_DIR) && docker-compose logs -f
 
 # Check container status and connection info
 status:
 	@echo "STATUS: Container information..."
-	cd containers && docker-compose ps
+	cd $(CONTAINER_DIR) && docker-compose ps
 	@echo ""
 	@echo ">> Application Access Points:"
 	@echo "  - Laravel API: http://localhost:8081"
@@ -284,7 +297,7 @@ health:
 	@echo "HEALTH: Checking application status..."
 	@echo ""
 	@echo "INFO: Main App Ready Marker:"
-	@if docker-compose -f containers/docker-compose.yml exec -T laravel_blog_api test -f storage/laravel_ready 2>/dev/null; then \
+	@if docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) test -f storage/laravel_ready 2>/dev/null; then \
 		echo "SUCCESS: Ready marker exists - main app setup complete"; \
 	else \
 		echo "WAITING: Ready marker missing - main app still setting up"; \
@@ -298,14 +311,36 @@ health:
 	fi
 	@echo ""
 	@echo "INFO: Container Health Status:"
-	@cd containers && docker-compose ps
+	@cd $(CONTAINER_DIR) && docker-compose ps
 
 # =============================================================================
 # SonarQube Quality Analysis (Optional)
 # =============================================================================
 
+# Internal: Setup SonarQube environment file
+_sonarqube-setup-env:
+	@if [ ! -f $(CONTAINER_DIR)/.env.sonarqube ]; then \
+		echo "📋 Creating SonarQube environment file from example..."; \
+		if [ -f .env.sonarqube.example ]; then \
+			cp .env.sonarqube.example $(CONTAINER_DIR)/.env.sonarqube; \
+			echo "✅ SonarQube environment file created from .env.sonarqube.example"; \
+		else \
+			echo "❌ .env.sonarqube.example not found. Creating basic environment file..."; \
+			echo "# SonarQube Environment Configuration" > $(CONTAINER_DIR)/.env.sonarqube; \
+			echo "SONAR_HOST_URL=http://localhost:9000" >> $(CONTAINER_DIR)/.env.sonarqube; \
+			echo "# SONAR_TOKEN=your_token_here" >> $(CONTAINER_DIR)/.env.sonarqube; \
+			echo "SONAR_PROJECT_KEY=laravel-blog-api" >> $(CONTAINER_DIR)/.env.sonarqube; \
+			echo "SONAR_PROJECT_NAME=\"Laravel Blog API\"" >> $(CONTAINER_DIR)/.env.sonarqube; \
+			echo "SONAR_PROJECT_VERSION=1.0.0" >> $(CONTAINER_DIR)/.env.sonarqube; \
+			echo "SONAR_SOURCES=app" >> $(CONTAINER_DIR)/.env.sonarqube; \
+			echo "SONAR_TESTS=tests" >> $(CONTAINER_DIR)/.env.sonarqube; \
+		fi; \
+	else \
+		echo "✅ SonarQube environment file already exists"; \
+	fi
+
 # Complete SonarQube setup and analysis
-sonarqube-setup: sonarqube-setup-env check-sonarqube-ports sonarqube-start
+sonarqube-setup: _sonarqube-setup-env check-sonarqube-ports sonarqube-start
 	@echo "🔍 SONARQUBE: Complete setup and analysis..."
 	@echo "⏳ SonarQube is starting up... This may take a few minutes."
 	@echo "📊 SonarQube will be available at: http://localhost:9000"
@@ -320,77 +355,39 @@ sonarqube-setup: sonarqube-setup-env check-sonarqube-ports sonarqube-start
 # Start SonarQube Server
 sonarqube-start:
 	@echo "SONARQUBE: Starting SonarQube server..."
-	cd containers && docker-compose -f docker-compose.sonarqube.yml up -d
+	cd $(CONTAINER_DIR) && docker-compose -f docker-compose.sonarqube.yml up -d
 
 # Stop SonarQube Server
 sonarqube-stop:
 	@echo "SONARQUBE: Stopping SonarQube server..."
-	cd containers && docker-compose -f docker-compose.sonarqube.yml down
+	cd $(CONTAINER_DIR) && docker-compose -f docker-compose.sonarqube.yml down
 	@echo "SUCCESS: SonarQube server stopped!"
 
-# Check SonarQube port availability
-check-sonarqube-ports:
-	@echo "🔍 SONARQUBE PORTS: Checking port availability..."
-	@bash containers/check-sonarqube-ports.sh || (echo "⚠️  SonarQube port check failed. You can continue without SonarQube or resolve port conflicts." && read -p "Continue anyway? (y/N): " confirm && [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ] || exit 1)
-	@echo "✅ SUCCESS: SonarQube ports are available!"
+# Setup SonarQube environment and token
+sonarqube-setup-env: _sonarqube-setup-env
+	@echo "SUCCESS: SonarQube environment setup completed!"
 
 # Setup SonarQube environment and token
-sonarqube-setup-token:
-	@echo "SONARQUBE: Setting up SonarQube environment and token..."
-	@echo "📋 Checking SonarQube environment configuration..."
-	@if [ ! -f containers/.env.sonarqube ]; then \
-		echo "❌ SonarQube environment file not found. Creating it from example..."; \
-		if [ -f .env.sonarqube.example ]; then \
-			cp .env.sonarqube.example containers/.env.sonarqube; \
-			echo "✅ SonarQube environment file created from .env.sonarqube.example"; \
-		else \
-			echo "❌ .env.sonarqube.example not found. Creating basic environment file..."; \
-			echo "SONAR_HOST_URL=http://localhost:9000" > containers/.env.sonarqube; \
-			echo "# SONAR_TOKEN=your_token_here" >> containers/.env.sonarqube; \
-		fi; \
-	fi
+sonarqube-setup-token: _sonarqube-setup-env
+	@echo "SONARQUBE: Setting up SonarQube token..."
 	@echo "🔧 Opening SonarQube token setup helper..."
-	./containers/sonarqube/scripts/setup-sonar-token.sh
-	@echo "SUCCESS: SonarQube environment setup completed!"
-
-# Setup SonarQube environment (create .env.sonarqube if missing)
-sonarqube-setup-env:
-	@echo "SONARQUBE: Setting up SonarQube environment..."
-	@if [ ! -f containers/.env.sonarqube ]; then \
-		echo "📋 Creating SonarQube environment file from example..."; \
-		if [ -f .env.sonarqube.example ]; then \
-			cp .env.sonarqube.example containers/.env.sonarqube; \
-			echo "✅ SonarQube environment file created from .env.sonarqube.example"; \
-		else \
-			echo "❌ .env.sonarqube.example not found. Creating basic environment file..."; \
-			echo "# SonarQube Environment Configuration" > containers/.env.sonarqube; \
-			echo "SONAR_HOST_URL=http://localhost:9000" >> containers/.env.sonarqube; \
-			echo "# SONAR_TOKEN=your_token_here" >> containers/.env.sonarqube; \
-			echo "SONAR_PROJECT_KEY=laravel-blog-api" >> containers/.env.sonarqube; \
-			echo "SONAR_PROJECT_NAME=\"Laravel Blog API\"" >> containers/.env.sonarqube; \
-			echo "SONAR_PROJECT_VERSION=1.0.0" >> containers/.env.sonarqube; \
-			echo "SONAR_SOURCES=app" >> containers/.env.sonarqube; \
-			echo "SONAR_TESTS=tests" >> containers/.env.sonarqube; \
-		fi; \
-	else \
-		echo "✅ SonarQube environment file already exists"; \
-	fi
-	@echo "SUCCESS: SonarQube environment setup completed!"
+	./$(CONTAINER_DIR)/sonarqube/scripts/setup-sonar-token.sh
+	@echo "SUCCESS: SonarQube token setup completed!"
 
 # Run complete SonarQube analysis
-sonarqube-analyze: sonarqube-setup-env sonarqube-start
+sonarqube-analyze: _sonarqube-setup-env sonarqube-start
 	@echo "SONARQUBE: Running complete quality analysis..."
 	@echo "⚠️  Make sure to set SONAR_TOKEN environment variable first!"
 	@echo "   Generate token at: http://localhost:9000/account/security"
-	@if grep -q "^SONAR_TOKEN=" containers/.env.sonarqube && ! grep -q "^SONAR_TOKEN=your_token_here" containers/.env.sonarqube; then \
+	@if grep -q "^SONAR_TOKEN=" $(CONTAINER_DIR)/.env.sonarqube && ! grep -q "^SONAR_TOKEN=your_token_here" $(CONTAINER_DIR)/.env.sonarqube; then \
 		echo "✅ SONAR_TOKEN is configured in .env.sonarqube"; \
 	else \
 		echo "❌ SONAR_TOKEN is not configured. Please run: make sonarqube-setup-token"; \
 		echo "   Current token status:"; \
-		grep -n "SONAR_TOKEN" containers/.env.sonarqube || echo "   No SONAR_TOKEN found"; \
+		grep -n "SONAR_TOKEN" $(CONTAINER_DIR)/.env.sonarqube || echo "   No SONAR_TOKEN found"; \
 		exit 1; \
 	fi
-	./containers/sonarqube/scripts/sonar-analysis.sh
+	./$(CONTAINER_DIR)/sonarqube/scripts/sonar-analysis.sh
 	@echo "SUCCESS: SonarQube analysis completed!"
 
 # View SonarQube dashboard
@@ -401,7 +398,7 @@ sonarqube-dashboard:
 # Clean SonarQube data (reset everything)
 sonarqube-clean:
 	@echo "SONARQUBE: Cleaning SonarQube data..."
-	cd containers && docker-compose -f docker-compose.sonarqube.yml down -v
+	cd $(CONTAINER_DIR) && docker-compose -f docker-compose.sonarqube.yml down -v
 	@echo "SUCCESS: SonarQube data cleaned!"
 
 # =============================================================================
@@ -426,25 +423,31 @@ help:
 	@echo "  make test filter='...'   - Run specific test by filter (e.g., filter='Auth')"
 	@echo "  make test-coverage       - Run tests with coverage report"
 	@echo "  make lint                - Run code linting (Pint)"
+	@echo "  make lint-dirty          - Lint only changed files"
 	@echo "  make analyze             - Run static analysis (PHPStan)"
 	@echo ""
 	@echo "🐳 CONTAINER MANAGEMENT:"
 	@echo "  make docker-up           - Start containers"
 	@echo "  make docker-down         - Stop containers"
+	@echo "  make docker-restart      - Restart containers"
+	@echo "  make docker-cleanup      - Clean up all containers and resources"
 	@echo "  make status              - Check container status"
 	@echo "  make health              - Check application health"
 	@echo "  make logs                - View container logs"
 	@echo "  make shell               - Access main container shell"
-	@echo "  make terminal            - Access Laravel container terminal"
+	@echo "  make test-shell          - Access test container shell"
+	@echo ""
+	@echo "🛠️  UTILITIES:"
+	@echo "  make artisan ARGS='...' - Run artisan command (e.g., ARGS='migrate --seed')"
+	@echo "  make check-ports         - Check port availability"
+	@echo "  make check-ports-standalone - Check ports (standalone, non-blocking)"
 	@echo ""
 	@echo "🔍 SONARQUBE (OPTIONAL):"
 	@echo "  make sonarqube-start     - Start SonarQube server"
 	@echo "  make sonarqube-analyze   - Run code quality analysis"
 	@echo "  make sonarqube-dashboard - Open SonarQube dashboard"
 	@echo "  make sonarqube-stop      - Stop SonarQube server"
-	@echo ""
-	@echo "🧹 CLEANUP:"
-	@echo "  make docker-cleanup      - Clean up all containers and resources"
+	@echo "  make sonarqube-clean     - Clean SonarQube data"
 	@echo ""
 	@echo "📋 ACCESS POINTS:"
 	@echo "  - Laravel API: http://localhost:8081"
@@ -454,5 +457,11 @@ help:
 	@echo "  - Redis: localhost:6379"
 
 # Default target
-.PHONY: help
+.PHONY: help local-setup install-commit-tools setup-git-hooks commit validate-commit release
+.PHONY: check-ports check-ports-standalone check-sonarqube-ports check-sonarqube-ports-standalone
+.PHONY: docker-cleanup docker-setup-env docker-verify-env docker-up docker-down docker-restart
+.PHONY: test test-coverage _test-container-running _test-setup _test-clear-cache
+.PHONY: lint lint-dirty analyze artisan shell test-shell logs status health
+.PHONY: sonarqube-setup sonarqube-start sonarqube-stop sonarqube-setup-env sonarqube-setup-token
+.PHONY: sonarqube-analyze sonarqube-dashboard sonarqube-clean _sonarqube-setup-env
 .DEFAULT_GOAL := help

@@ -12,10 +12,7 @@ use App\Models\Article;
 use App\Models\Comment;
 use App\Models\User;
 use App\Services\CommentService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 describe('CommentService', function () {
     beforeEach(function () {

@@ -10,91 +10,56 @@ use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/User/BlockUserController', function () {
     it('can block a user successfully', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToBlock = User::factory()->create();
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.users.block', $userToBlock));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'id',
-                    'name',
-                    'email',
-                    'blocked_at',
-                    'status',
-                ],
-            ]);
-
-        $this->assertDatabaseHas('users', [
-            'id' => $userToBlock->id,
+        expect($response)->toHaveApiSuccessStructure([
+            'id',
+            'name',
+            'email',
+            'blocked_at',
+            'status',
         ]);
-        $this->assertNotNull($userToBlock->fresh()->blocked_at);
 
+        $this->assertDatabaseHas('users', ['id' => $userToBlock->id]);
         $userToBlock->refresh();
         expect($userToBlock->blocked_at)->not->toBeNull();
     });
 
     it('can block an already banned user', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToBlock = User::factory()->create(['banned_at' => now()]);
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.users.block', $userToBlock));
 
-        // Assert
-        $response->assertStatus(200);
-
+        expect($response->getStatusCode())->toBe(200);
         $userToBlock->refresh();
-        expect($userToBlock->blocked_at)->not->toBeNull();
-        expect($userToBlock->banned_at)->not->toBeNull();
+        expect($userToBlock->blocked_at)->not->toBeNull()
+            ->and($userToBlock->banned_at)->not->toBeNull();
     });
 
     it('returns 404 when user does not exist', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.users.block', 99999));
 
-        // Assert
-        $response->assertStatus(404)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.user_not_found'),
-            ]);
+        expect($response->getStatusCode())->toBe(404)
+            ->and($response->json('status'))->toBeFalse()
+            ->and($response->json('message'))->toBe(__('common.user_not_found'));
     });
 
     it('returns 403 when user lacks block_users permission', function () {
-        // Arrange
-        $user = User::factory()->create();
-        $subscriberRole = Role::where('name', UserRole::SUBSCRIBER->value)->first();
-        attachRoleAndRefreshCache($user, $subscriberRole);
-
+        $user = createUserWithRole(UserRole::SUBSCRIBER->value);
         $userToBlock = User::factory()->create();
 
-        // Act
         $response = $this->actingAs($user)
             ->postJson(route('api.v1.admin.users.block', $userToBlock));
 
-        // Assert
         $response->assertStatus(403);
     });
 

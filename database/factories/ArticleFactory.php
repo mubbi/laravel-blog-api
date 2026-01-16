@@ -36,7 +36,7 @@ final class ArticleFactory extends Factory
             'excerpt' => $this->faker->optional()->text(200),
             'content_markdown' => $this->faker->paragraphs(3, true),
             'content_html' => $this->faker->optional()->randomHtml(),
-            'featured_image' => $this->faker->optional()->imageUrl(),
+            'featured_media_id' => null, // Can be overridden in tests when needed
             'status' => $this->faker->randomElement(ArticleStatus::cases())->value,
             'published_at' => $this->faker->optional()->dateTimeThisYear(),
             'meta_title' => $this->faker->optional()->sentence,

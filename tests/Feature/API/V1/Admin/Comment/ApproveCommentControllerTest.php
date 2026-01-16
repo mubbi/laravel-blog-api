@@ -16,48 +16,30 @@ use Illuminate\Support\Facades\Log;
 
 describe('API/V1/Admin/Comment/ApproveCommentController', function () {
     it('can approve a pending comment successfully', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
         ]);
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved after review',
             ]);
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'id',
-                    'content',
-                    'status',
-                    'status_display',
-                    'is_approved',
-                    'approved_by',
-                    'approved_at',
-                    'report_count',
-                    'created_at',
-                    'updated_at',
-                ],
-            ])
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'id' => $comment->id,
-                    'status' => CommentStatus::APPROVED->value,
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure([
+            'id',
+            'content',
+            'status',
+            'status_display',
+            'is_approved',
+            'approved_by',
+            'approved_at',
+            'report_count',
+            'created_at',
+            'updated_at',
+        ])->and($response->json('data.id'))->toBe($comment->id)
+            ->and($response->json('data.status'))->toBe(CommentStatus::APPROVED->value);
 
-        // Verify database update
         $this->assertDatabaseHas('comments', [
             'id' => $comment->id,
             'status' => CommentStatus::APPROVED->value,
@@ -66,30 +48,18 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
     });
 
     it('can approve a comment without admin note', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
         ]);
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.comments.approve', $comment));
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'id' => $comment->id,
-                    'status' => CommentStatus::APPROVED->value,
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure()
+            ->and($response->json('data.id'))->toBe($comment->id)
+            ->and($response->json('data.status'))->toBe(CommentStatus::APPROVED->value);
 
-        // Verify database update
         $this->assertDatabaseHas('comments', [
             'id' => $comment->id,
             'status' => CommentStatus::APPROVED->value,
@@ -97,57 +67,35 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
     });
 
     it('can approve an already approved comment', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $comment = Comment::factory()->create([
             'status' => CommentStatus::APPROVED->value,
         ]);
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Re-approved',
             ]);
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'id' => $comment->id,
-                    'status' => CommentStatus::APPROVED->value,
-                ],
-            ]);
+        expect($response->getStatusCode())->toBe(200)
+            ->and($response->json('data.id'))->toBe($comment->id)
+            ->and($response->json('data.status'))->toBe(CommentStatus::APPROVED->value);
     });
 
     it('can approve a rejected comment', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $comment = Comment::factory()->create([
             'status' => CommentStatus::REJECTED->value,
         ]);
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved after reconsideration',
             ]);
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJson([
-                'status' => true,
-                'data' => [
-                    'id' => $comment->id,
-                    'status' => CommentStatus::APPROVED->value,
-                ],
-            ]);
+        expect($response->getStatusCode())->toBe(200)
+            ->and($response->json('data.id'))->toBe($comment->id)
+            ->and($response->json('data.status'))->toBe(CommentStatus::APPROVED->value);
     });
 
     it('returns 404 when comment does not exist', function () {
@@ -238,38 +186,25 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
     });
 
     it('handles service exception and logs error', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
         ]);
 
-        // Mock CommentService to throw exception
         $this->mock(\App\Services\Interfaces\CommentServiceInterface::class, function ($mock) {
             $mock->shouldReceive('approveComment')
                 ->with(\Mockery::type('int'), \Mockery::type(ApproveCommentDTO::class), \Mockery::type('int'))
                 ->andThrow(new \Exception('Service error'));
         });
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
-        // Assert
-        $response->assertStatus(500)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.something_went_wrong'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(500)
+            ->and($response->json('message'))->toBe(__('common.something_went_wrong'));
 
-        // Verify error was logged
         Log::shouldReceive('error')->with(
             'ApproveCommentController: Exception occurred',
             \Mockery::type('array')
@@ -277,16 +212,11 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
     });
 
     it('handles ModelNotFoundException and returns 404', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
         ]);
 
-        // Mock CommentServiceInterface to throw ModelNotFoundException
         $this->mock(\App\Services\Interfaces\CommentServiceInterface::class, function ($mock) use ($comment) {
             $exception = new ModelNotFoundException;
             $exception->setModel(Comment::class);
@@ -295,28 +225,17 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
                 ->andThrow($exception);
         });
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Test note',
             ]);
 
-        // Assert
-        $response->assertStatus(404)
-            ->assertJson([
-                'status' => false,
-                'message' => __('common.comment_not_found'),
-                'data' => null,
-                'error' => null,
-            ]);
+        expect($response)->toHaveApiErrorStructure(404)
+            ->and($response->json('message'))->toBe(__('common.comment_not_found'));
     });
 
     it('updates comment timestamps when approved', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
             'updated_at' => now()->subDay(),
@@ -324,73 +243,54 @@ describe('API/V1/Admin/Comment/ApproveCommentController', function () {
 
         $originalUpdatedAt = $comment->updated_at;
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
-        // Assert
-        $response->assertStatus(200);
-
-        // Verify timestamp was updated
+        expect($response->getStatusCode())->toBe(200);
         $comment->refresh();
         expect($comment->updated_at->timestamp)->toBeGreaterThan($originalUpdatedAt->timestamp);
     });
 
     it('maintains other comment fields when approving', function () {
-        // Arrange
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
+        $originalContent = 'Original content';
+        $userId = User::factory()->create()->id;
+        $articleId = Article::factory()->create()->id;
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
-            'content' => 'Original content',
-            'user_id' => User::factory()->create()->id,
-            'article_id' => Article::factory()->create()->id,
+            'content' => $originalContent,
+            'user_id' => $userId,
+            'article_id' => $articleId,
         ]);
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
-        // Assert
-        $response->assertStatus(200);
-
-        // Verify other fields remain unchanged
+        expect($response->getStatusCode())->toBe(200);
         $comment->refresh();
-        expect($comment->content)->toBe('Original content');
-        expect($comment->user_id)->toBe($comment->user_id);
-        expect($comment->article_id)->toBe($comment->article_id);
+        expect($comment->content)->toBe($originalContent)
+            ->and($comment->user_id)->toBe($userId)
+            ->and($comment->article_id)->toBe($articleId);
     });
 
     it('dispatches CommentApprovedEvent when comment is approved', function () {
-        // Arrange
         Event::fake([CommentApprovedEvent::class]);
-
-        $admin = User::factory()->create();
-        $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
-        attachRoleAndRefreshCache($admin, $adminRole);
-
+        $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $comment = Comment::factory()->create([
             'status' => CommentStatus::PENDING->value,
         ]);
 
-        // Act
         $response = $this->actingAs($admin)
             ->postJson(route('api.v1.admin.comments.approve', $comment), [
                 'admin_note' => 'Approved',
             ]);
 
-        // Assert
-        $response->assertStatus(200);
-
-        Event::assertDispatched(CommentApprovedEvent::class, function ($event) use ($comment) {
-            return $event->comment->id === $comment->id
-                && $event->comment->status === CommentStatus::APPROVED;
-        });
+        expect($response->getStatusCode())->toBe(200);
+        Event::assertDispatched(CommentApprovedEvent::class, fn ($event) => $event->comment->id === $comment->id
+            && $event->comment->status === CommentStatus::APPROVED);
     });
 });

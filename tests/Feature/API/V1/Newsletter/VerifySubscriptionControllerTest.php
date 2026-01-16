@@ -26,28 +26,16 @@ describe('API/V1/Newsletter/VerifySubscriptionController', function () {
             'email' => 'verify@example.com',
         ]);
 
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'status',
-                'message',
-                'data' => [
-                    'id',
-                    'email',
-                    'is_verified',
-                    'subscribed_at',
-                    'created_at',
-                    'updated_at',
-                ],
-            ])
-            ->assertJson([
-                'status' => true,
-                'message' => __('common.subscriber_verified_successfully'),
-                'data' => [
-                    'email' => 'verify@example.com',
-                    'is_verified' => true,
-                ],
-            ]);
+        expect($response)->toHaveApiSuccessStructure([
+            'id',
+            'email',
+            'is_verified',
+            'subscribed_at',
+            'created_at',
+            'updated_at',
+        ])->and($response->json('message'))->toBe(__('common.subscriber_verified_successfully'))
+            ->and($response->json('data.email'))->toBe('verify@example.com')
+            ->and($response->json('data.is_verified'))->toBeTrue();
 
         // Verify subscriber was verified
         $subscriber->refresh();

@@ -7,9 +7,6 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Policies\CommentPolicy;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('CommentPolicy', function () {
     beforeEach(function () {
