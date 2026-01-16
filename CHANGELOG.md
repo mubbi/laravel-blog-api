@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.3.0](https://github.com/mubbi/laravel-blog-api/compare/v2.2.0...v2.3.0) (2026-01-16)
+
+
+### Features
+
+* media management APIs ([6110758](https://github.com/mubbi/laravel-blog-api/commit/6110758cee08969ed24a17424ba0c7c5cdce8296))
+* register API ([a096de0](https://github.com/mubbi/laravel-blog-api/commit/a096de0f992892130752e057d74b05d1b9395b3e))
+
 ## [2.2.0](https://github.com/mubbi/laravel-blog-api/compare/v2.1.0...v2.2.0) (2026-01-14)
 
 
