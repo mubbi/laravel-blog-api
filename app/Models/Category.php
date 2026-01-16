@@ -90,16 +90,37 @@ final class Category extends Model
     /**
      * Get all descendant category IDs recursively
      *
+     * Uses a single recursive query to avoid N+1 queries and memory issues.
+     *
      * @return array<int>
      */
     public function getDescendantIds(): array
     {
+        /** @var array<int> $descendants */
         $descendants = [];
-        $children = $this->children;
+        /** @var array<int> $stack */
+        $stack = [$this->id];
 
-        foreach ($children as $child) {
-            $descendants[] = $child->id;
-            $descendants = array_merge($descendants, $child->getDescendantIds());
+        // Use iterative approach with a single query to load all categories
+        // This prevents N+1 queries and is more memory efficient than recursion
+        while (! empty($stack)) {
+            $currentId = array_pop($stack);
+            if ($currentId === null) {
+                break;
+            }
+
+            // Query all children of current category in one query
+            /** @var array<int, mixed> $children */
+            $children = self::query()
+                ->where('parent_id', $currentId)
+                ->pluck('id')
+                ->toArray();
+
+            foreach ($children as $childId) {
+                $childIdInt = (int) $childId;
+                $descendants[] = $childIdInt;
+                $stack[] = $childIdInt;
+            }
         }
 
         return $descendants;

@@ -262,7 +262,7 @@ final class MediaService implements MediaServiceInterface
 
         // Search by name
         if ($dto->search !== null) {
-            $query->where(function ($q) use ($dto): void {
+            $query->where(function (\Illuminate\Database\Eloquent\Builder $q) use ($dto): void {
                 $q->where('name', 'like', "%{$dto->search}%")
                     ->orWhere('file_name', 'like', "%{$dto->search}%")
                     ->orWhere('alt_text', 'like', "%{$dto->search}%");

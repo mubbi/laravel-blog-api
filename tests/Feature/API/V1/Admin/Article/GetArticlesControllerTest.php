@@ -182,18 +182,34 @@ describe('API/V1/Article/GetArticlesController', function () {
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
         attachRoleAndRefreshCache($admin, $adminRole);
 
-        $article1 = Article::factory()->create(['title' => 'PHP Best Practices']);
-        $article2 = Article::factory()->create(['title' => 'Laravel Tutorial']);
+        // Create articles with search term in title for full-text search
+        // Using "Laravel" which meets MySQL InnoDB minimum token size (3 chars)
+        $searchTerm = 'Laravel';
+        $article1 = Article::factory()->create([
+            'title' => "{$searchTerm} Best Practices Guide",
+            'subtitle' => "Learn {$searchTerm} framework development",
+            'excerpt' => "This comprehensive article covers {$searchTerm} best practices",
+            'content_markdown' => "This comprehensive guide covers {$searchTerm} best practices and coding standards for modern web development.",
+            'status' => ArticleStatus::DRAFT->value,
+        ]);
+        $article2 = Article::factory()->create([
+            'title' => 'PHP Programming Tutorial',
+            'content_markdown' => 'Learn PHP programming from scratch with examples.',
+            'status' => ArticleStatus::DRAFT->value,
+        ]);
 
-        // Act
+        // Optimize table to force full-text index update (InnoDB updates indexes asynchronously)
+        \Illuminate\Support\Facades\DB::statement('OPTIMIZE TABLE articles');
+
+        // Act - search for "Laravel" which should match article1
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.articles.index', ['search' => 'PHP']));
+            ->getJson(route('api.v1.articles.index', ['search' => $searchTerm]));
 
         // Assert
         $response->assertStatus(200);
         $responseData = $response->json('data.articles');
-        $this->assertCount(1, $responseData);
-        $this->assertEquals($article1->id, $responseData[0]['id']);
+        $this->assertCount(1, $responseData, 'Should find exactly one article matching "Laravel"');
+        $this->assertEquals($article1->id, $responseData[0]['id'], 'Should return the article with Laravel in title');
     });
 
     it('can sort articles by different fields', function () {

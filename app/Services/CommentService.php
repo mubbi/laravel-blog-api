@@ -252,9 +252,10 @@ final class CommentService implements CommentServiceInterface
     ): \Illuminate\Pagination\LengthAwarePaginator {
         $articleId = $article->id;
         $query = $this->commentRepository->query()
+            ->with(['user:id,name,email'])
             ->where('article_id', $articleId)
-            ->when($parentId !== null, fn ($q) => $q->where('parent_comment_id', $parentId))
-            ->when($parentId === null, fn ($q) => $q->whereNull('parent_comment_id'))
+            ->when($parentId !== null, fn (\Illuminate\Database\Eloquent\Builder $q): \Illuminate\Database\Eloquent\Builder => $q->where('parent_comment_id', $parentId))
+            ->when($parentId === null, fn (\Illuminate\Database\Eloquent\Builder $q): \Illuminate\Database\Eloquent\Builder => $q->whereNull('parent_comment_id'))
             ->orderBy('created_at');
 
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
@@ -262,7 +263,6 @@ final class CommentService implements CommentServiceInterface
         /** @var \Illuminate\Database\Eloquent\Collection<int, Comment> $comments */
         $comments = $paginator->getCollection();
 
-        $comments->load(['user']);
         $comments->loadCount('replies');
 
         // Collect IDs of parent comments
@@ -275,7 +275,7 @@ final class CommentService implements CommentServiceInterface
         // Fetch replies in batch (LIMIT repliesPerPage per parent)
         $replies = $this->commentRepository->query()
             ->whereIn('parent_comment_id', $parentCommentIds)
-            ->with('user')
+            ->with(['user:id,name,email'])
             ->withCount('replies')
             ->orderBy('created_at')
             ->take($maxReplies)
@@ -283,7 +283,7 @@ final class CommentService implements CommentServiceInterface
             ->groupBy('parent_comment_id');
 
         // Attach limited replies to each comment
-        $comments->each(function (Comment $comment) use ($replies, $repliesPerPage) {
+        $comments->each(function (Comment $comment) use ($replies, $repliesPerPage): void {
             $replyCollection = $replies[$comment->id] ?? collect();
             $limitedReplies = $replyCollection->take($repliesPerPage);
             $comment->setRelation('replies_page', $limitedReplies);

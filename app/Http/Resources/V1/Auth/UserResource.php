@@ -34,14 +34,7 @@ class UserResource extends JsonResource
             'website' => $this->resource->website,
             'roles' => $this->whenLoaded('roles', function () {
                 return $this->resource->roles->pluck('slug')->toArray();
-            }, function () {
-                // Fallback: load roles if not loaded
-                if (! $this->resource->relationLoaded('roles')) {
-                    $this->resource->load('roles');
-                }
-
-                return $this->resource->roles->pluck('slug')->toArray();
-            }),
+            }, []),
             'permissions' => $this->whenLoaded('roles', function () {
                 /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Role> $roles */
                 $roles = $this->resource->roles;
@@ -51,8 +44,6 @@ class UserResource extends JsonResource
                 }
 
                 // Check if permissions are already loaded on roles to avoid N+1 queries
-                // After isEmpty() check, first() is guaranteed to return a Role or null
-                // but we check relationLoaded on the first role if it exists
                 $needsPermissionLoad = true;
                 foreach ($roles as $role) {
                     if ($role->relationLoaded('permissions')) {
@@ -75,28 +66,7 @@ class UserResource extends JsonResource
                 }
 
                 return array_values(array_unique($permissionSlugs));
-            }, function () {
-                // Fallback: load roles and permissions if not loaded
-                if (! $this->resource->relationLoaded('roles')) {
-                    $this->resource->load('roles.permissions');
-                }
-
-                /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Role> $roles */
-                $roles = $this->resource->roles;
-
-                if ($roles->isEmpty()) {
-                    return [];
-                }
-
-                $permissionSlugs = [];
-                foreach ($roles as $role) {
-                    foreach ($role->permissions as $permission) {
-                        $permissionSlugs[] = $permission->slug;
-                    }
-                }
-
-                return array_values(array_unique($permissionSlugs));
-            }),
+            }, []),
             $this->mergeWhen(
                 isset($this->resource->access_token),
                 fn () => [

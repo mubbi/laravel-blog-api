@@ -78,8 +78,16 @@ describe('API/V1/Article/GetArticlesController', function () {
 
     it('can search articles', function () {
         $user = User::factory()->create();
-        $article = createPublishedArticle($user, $user, ['title' => 'Laravel Testing Guide']);
+        $article = createPublishedArticle($user, $user, [
+            'title' => 'Laravel Testing Guide',
+            'subtitle' => 'Learn Laravel testing',
+            'excerpt' => 'This guide covers Laravel testing best practices',
+            'content_markdown' => 'This comprehensive guide covers Laravel testing best practices and patterns for modern web development.',
+        ]);
         createPublishedArticle($user, $user, ['title' => 'PHP Best Practices']);
+
+        // Optimize table to force full-text index update (InnoDB updates indexes asynchronously)
+        \Illuminate\Support\Facades\DB::statement('OPTIMIZE TABLE articles');
 
         $response = $this->getJson(route('api.v1.articles.index', ['search' => 'Laravel']));
 

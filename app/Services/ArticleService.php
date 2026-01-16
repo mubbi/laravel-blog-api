@@ -50,7 +50,7 @@ final class ArticleService implements ArticleServiceInterface
         /** @var Article $article */
         $article = $this->cacheService->remember(
             $cacheKey,
-            function () use ($slug) {
+            function () use ($slug): Article {
                 return $this->articleRepository->query()
                     ->with([
                         'author:id,name,email,avatar_url,bio,twitter,facebook,linkedin,github,website',
@@ -184,7 +184,10 @@ final class ArticleService implements ArticleServiceInterface
         ?int $userId,
         ?string $ipAddress
     ): ArticleLike {
-        return DB::transaction(function () use ($articleId, $reactionType, $userId, $ipAddress) {
+        // Load article before transaction for event dispatching
+        $article = $this->articleRepository->findOrFail($articleId);
+
+        $reaction = DB::transaction(function () use ($articleId, $reactionType, $userId, $ipAddress): ArticleLike {
             // Check if user/IP already has this reaction
             $existingReaction = $this->findExistingReaction($articleId, $reactionType, $userId, $ipAddress);
 
@@ -208,9 +211,8 @@ final class ArticleService implements ArticleServiceInterface
         });
 
         // Dispatch events after transaction commits
-        $article = $this->articleRepository->findOrFail($articleId);
         DB::afterCommit(function () use ($article, $reaction, $reactionType): void {
-            if ($reactionType === \App\Enums\ArticleReactionType::LIKE) {
+            if ($reactionType === ArticleReactionType::LIKE) {
                 \Illuminate\Support\Facades\Event::dispatch(new \App\Events\Article\ArticleLikedEvent($article, $reaction));
             } else {
                 \Illuminate\Support\Facades\Event::dispatch(new \App\Events\Article\ArticleDislikedEvent($article, $reaction));
@@ -236,8 +238,8 @@ final class ArticleService implements ArticleServiceInterface
     ): ?ArticleLike {
         return ArticleLike::where('article_id', $articleId)
             ->where('type', $reactionType->value)
-            ->when($userId !== null, fn ($q) => $q->where('user_id', $userId)->whereNull('ip_address'))
-            ->when($userId === null, fn ($q) => $q->whereNull('user_id')->where('ip_address', $ipAddress))
+            ->when($userId !== null, fn (\Illuminate\Database\Eloquent\Builder $q): \Illuminate\Database\Eloquent\Builder => $q->where('user_id', $userId)->whereNull('ip_address'))
+            ->when($userId === null, fn (\Illuminate\Database\Eloquent\Builder $q): \Illuminate\Database\Eloquent\Builder => $q->whereNull('user_id')->where('ip_address', $ipAddress))
             ->first();
     }
 
@@ -257,8 +259,8 @@ final class ArticleService implements ArticleServiceInterface
     ): void {
         ArticleLike::where('article_id', $articleId)
             ->where('type', $reactionType->value)
-            ->when($userId !== null, fn ($q) => $q->where('user_id', $userId)->whereNull('ip_address'))
-            ->when($userId === null, fn ($q) => $q->whereNull('user_id')->where('ip_address', $ipAddress))
+            ->when($userId !== null, fn (\Illuminate\Database\Eloquent\Builder $q): \Illuminate\Database\Eloquent\Builder => $q->where('user_id', $userId)->whereNull('ip_address'))
+            ->when($userId === null, fn (\Illuminate\Database\Eloquent\Builder $q): \Illuminate\Database\Eloquent\Builder => $q->whereNull('user_id')->where('ip_address', $ipAddress))
             ->delete();
     }
 }

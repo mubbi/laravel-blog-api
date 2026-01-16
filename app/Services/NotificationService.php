@@ -252,20 +252,20 @@ final class NotificationService implements NotificationServiceInterface
                     ->whereNull('banned_at')
                     ->whereNull('blocked_at')
                     ->pluck('id')
-                    ->map(fn ($id) => (int) $id)
+                    ->map(fn (mixed $id): int => (int) $id)
                     ->toArray();
                 $userIds = array_merge($userIds, $allUserIds);
             } elseif ($audience->audience_type === 'role' && $audience->audience_id !== null) {
                 // Get users with specific role
                 /** @var array<int> $roleUserIds */
                 $roleUserIds = $this->userRepository->query()
-                    ->whereHas('roles', function (Builder $query) use ($audience) {
+                    ->whereHas('roles', function (Builder $query) use ($audience): void {
                         $query->where('roles.id', $audience->audience_id);
                     })
                     ->whereNull('banned_at')
                     ->whereNull('blocked_at')
                     ->pluck('id')
-                    ->map(fn ($id) => (int) $id)
+                    ->map(fn (mixed $id): int => (int) $id)
                     ->toArray();
                 $userIds = array_merge($userIds, $roleUserIds);
             } elseif ($audience->audience_type === 'user' && $audience->audience_id !== null) {
