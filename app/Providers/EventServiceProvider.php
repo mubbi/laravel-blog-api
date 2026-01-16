@@ -31,6 +31,9 @@ use App\Events\Comment\CommentCreatedEvent;
 use App\Events\Comment\CommentDeletedEvent;
 use App\Events\Comment\CommentReportedEvent;
 use App\Events\Comment\CommentUpdatedEvent;
+use App\Events\Media\MediaDeletedEvent;
+use App\Events\Media\MediaMetadataUpdatedEvent;
+use App\Events\Media\MediaUploadedEvent;
 use App\Events\Newsletter\NewsletterSubscriberCreatedEvent;
 use App\Events\Newsletter\NewsletterSubscriberDeletedEvent;
 use App\Events\Newsletter\NewsletterSubscriberUnsubscriptionRequestedEvent;
@@ -75,6 +78,9 @@ use App\Listeners\Comment\HandleCommentCreatedListener;
 use App\Listeners\Comment\HandleCommentDeletedListener;
 use App\Listeners\Comment\HandleCommentReportedListener;
 use App\Listeners\Comment\HandleCommentUpdatedListener;
+use App\Listeners\Media\HandleMediaDeletedListener;
+use App\Listeners\Media\HandleMediaMetadataUpdatedListener;
+use App\Listeners\Media\HandleMediaUploadedListener;
 use App\Listeners\Newsletter\HandleNewsletterSubscriberCreatedListener;
 use App\Listeners\Newsletter\HandleNewsletterSubscriberDeletedListener;
 use App\Listeners\Newsletter\HandleNewsletterSubscriberUnsubscriptionRequestedListener;
@@ -233,6 +239,17 @@ final class EventServiceProvider extends ServiceProvider
         ],
         TagDeletedEvent::class => [
             HandleTagDeletedListener::class,
+        ],
+
+        // Media Events
+        MediaUploadedEvent::class => [
+            HandleMediaUploadedListener::class,
+        ],
+        MediaMetadataUpdatedEvent::class => [
+            HandleMediaMetadataUpdatedListener::class,
+        ],
+        MediaDeletedEvent::class => [
+            HandleMediaDeletedListener::class,
         ],
 
         // Notification Events

@@ -32,7 +32,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
                     'articles' => [
                         '*' => [
                             'id', 'slug', 'title', 'subtitle', 'excerpt', 'content_markdown',
-                            'content_html', 'featured_image', 'status', 'status_display',
+                            'content_html', 'featured_media', 'status', 'status_display',
                             'published_at', 'meta_title', 'meta_description', 'is_featured',
                             'is_pinned', 'featured_at', 'pinned_at', 'report_count',
                             'last_reported_at', 'report_reason', 'created_at', 'updated_at',

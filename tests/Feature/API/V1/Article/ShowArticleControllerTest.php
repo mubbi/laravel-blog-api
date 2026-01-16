@@ -36,7 +36,7 @@ describe('API/V1/Article/ShowArticleController', function () {
                     'excerpt',
                     'content_html',
                     'content_markdown',
-                    'featured_image',
+                    'featured_media',
                     'status',
                     'published_at',
                     'meta_title',

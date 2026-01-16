@@ -137,6 +137,15 @@ return [
     'file_not_found' => 'File not found.',
     'file_too_large' => 'File size exceeds the maximum allowed limit.',
     'invalid_file_type' => 'Invalid file type. Allowed types: :allowed_types',
+    'file_required' => 'File is required.',
+    'file_size_exceeds_limit' => 'File size exceeds the maximum allowed limit (10MB).',
+    'failed_to_upload_file' => 'Failed to upload file. Please try again.',
+
+    // Media Management
+    'media_not_found' => 'Media not found.',
+    'media_uploaded_successfully' => 'Media uploaded successfully.',
+    'media_updated_successfully' => 'Media updated successfully.',
+    'media_deleted_successfully' => 'Media deleted successfully.',
 
     // Import/Export
     'import_started_successfully' => 'Import process started successfully.',

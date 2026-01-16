@@ -228,7 +228,7 @@ describe('API/V1/Admin/Article/CreateArticleController', function () {
             'excerpt' => 'Test excerpt',
             'content_markdown' => '# Test Content',
             'content_html' => '<h1>Test Content</h1>',
-            'featured_image' => 'https://example.com/image.jpg',
+            'featured_media_id' => null,
             'meta_title' => 'Meta Title',
             'meta_description' => 'Meta Description',
         ];
@@ -246,7 +246,7 @@ describe('API/V1/Admin/Article/CreateArticleController', function () {
             'title' => $articleData['title'],
             'subtitle' => $articleData['subtitle'],
             'excerpt' => $articleData['excerpt'],
-            'featured_image' => $articleData['featured_image'],
+            'featured_media_id' => $articleData['featured_media_id'],
             'meta_title' => $articleData['meta_title'],
             'meta_description' => $articleData['meta_description'],
         ]);

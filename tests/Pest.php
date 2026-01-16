@@ -59,3 +59,47 @@ function attachRoleAndRefreshCache(User $user, Role $role): void
     $user->load('roles.permissions');
     $user->clearCache();
 }
+
+/**
+ * Get a role by name from the database
+ */
+function getRoleByName(string $roleName): Role
+{
+    /** @var Role $role */
+    $role = Role::where('name', $roleName)->first();
+
+    return $role;
+}
+
+/**
+ * Create a user with a specific role attached and cache refreshed
+ */
+function createUserWithRole(string $roleName): User
+{
+    $user = User::factory()->create();
+    $role = getRoleByName($roleName);
+    attachRoleAndRefreshCache($user, $role);
+
+    return $user;
+}
+
+/**
+ * Create a fake image file for testing without requiring GD extension
+ * Returns a minimal valid JPEG file content
+ */
+function createFakeImageFile(string $filename = 'test-image.jpg', int $width = 800, int $height = 600): \Illuminate\Http\UploadedFile
+{
+    // Create minimal valid JPEG content (JPEG SOI + APP0 marker + EOI marker)
+    // This creates a valid JPEG structure that will pass basic MIME type validation
+    $jpegContent = "\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00";
+    $jpegContent .= "\xFF\xD9"; // JPEG EOI marker
+
+    // Use createWithContent if available (Laravel 10+)
+    $factory = \Illuminate\Http\UploadedFile::fake();
+    if (method_exists($factory, 'createWithContent')) {
+        return $factory->createWithContent($filename, $jpegContent);
+    }
+
+    // Fallback: use create() with MIME type
+    return $factory->create($filename, 10, 'image/jpeg');
+}

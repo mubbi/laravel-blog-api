@@ -81,6 +81,11 @@ return [
     'tag_updated' => 'Tag updated',
     'tag_deleted' => 'Tag deleted',
 
+    // Media Log Messages
+    'media_uploaded' => 'Media uploaded',
+    'media_metadata_updated' => 'Media metadata updated',
+    'media_deleted' => 'Media deleted',
+
     // Notification Log Messages
     'notification_created' => 'Notification created',
     'notification_sent' => 'Notification sent',

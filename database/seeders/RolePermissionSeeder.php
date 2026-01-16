@@ -93,7 +93,7 @@ final class RolePermissionSeeder extends Seeder
             // Newsletter
             'subscribe_newsletter', 'unsubscribe_newsletter',
             // Media Management
-            'upload_media', 'view_media',
+            'upload_media', 'view_media', 'delete_media', 'edit_media',
             // Social/Community
             'follow_users', 'unfollow_users', 'view_user_profiles',
             // General

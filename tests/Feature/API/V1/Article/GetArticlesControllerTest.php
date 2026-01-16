@@ -38,7 +38,7 @@ describe('API/V1/Article/GetArticlesController', function () {
                             'title',
                             'subtitle',
                             'excerpt',
-                            'featured_image',
+                            'featured_media',
                             'status',
                             'published_at',
                             'created_at',

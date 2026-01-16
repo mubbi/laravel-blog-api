@@ -27,7 +27,7 @@ describe('CreateArticleDTO', function () {
             excerpt: 'Test excerpt',
             contentMarkdown: '# Content',
             contentHtml: '<h1>Content</h1>',
-            featuredImage: 'https://example.com/image.jpg',
+            featuredMediaId: 1,
             status: ArticleStatus::PUBLISHED,
             publishedAt: $publishedAt,
             metaTitle: 'Meta Title',
@@ -46,7 +46,7 @@ describe('CreateArticleDTO', function () {
         expect($dto->excerpt)->toBe('Test excerpt');
         expect($dto->contentMarkdown)->toBe('# Content');
         expect($dto->contentHtml)->toBe('<h1>Content</h1>');
-        expect($dto->featuredImage)->toBe('https://example.com/image.jpg');
+        expect($dto->featuredMediaId)->toBe(1);
         expect($dto->status)->toBe(ArticleStatus::PUBLISHED);
         expect($dto->publishedAt)->toBe($publishedAt);
         expect($dto->metaTitle)->toBe('Meta Title');
@@ -67,7 +67,7 @@ describe('CreateArticleDTO', function () {
             excerpt: null,
             contentMarkdown: '# Content',
             contentHtml: null,
-            featuredImage: null,
+            featuredMediaId: null,
             status: ArticleStatus::DRAFT,
             publishedAt: null,
             metaTitle: null,
@@ -83,7 +83,7 @@ describe('CreateArticleDTO', function () {
         expect($dto->subtitle)->toBeNull();
         expect($dto->excerpt)->toBeNull();
         expect($dto->contentHtml)->toBeNull();
-        expect($dto->featuredImage)->toBeNull();
+        expect($dto->featuredMediaId)->toBeNull();
         expect($dto->publishedAt)->toBeNull();
         expect($dto->metaTitle)->toBeNull();
         expect($dto->metaDescription)->toBeNull();
@@ -103,7 +103,7 @@ describe('CreateArticleDTO', function () {
             excerpt: 'Test excerpt',
             contentMarkdown: '# Content',
             contentHtml: '<h1>Content</h1>',
-            featuredImage: 'https://example.com/image.jpg',
+            featuredMediaId: 1,
             status: ArticleStatus::PUBLISHED,
             publishedAt: $publishedAt,
             metaTitle: 'Meta Title',
@@ -126,7 +126,7 @@ describe('CreateArticleDTO', function () {
             'excerpt' => 'Test excerpt',
             'content_markdown' => '# Content',
             'content_html' => '<h1>Content</h1>',
-            'featured_image' => 'https://example.com/image.jpg',
+            'featured_media_id' => 1,
             'status' => ArticleStatus::PUBLISHED->value,
             'published_at' => $publishedAt,
             'meta_title' => 'Meta Title',
@@ -145,7 +145,7 @@ describe('CreateArticleDTO', function () {
             excerpt: null,
             contentMarkdown: '# Content',
             contentHtml: null,
-            featuredImage: null,
+            featuredMediaId: null,
             status: ArticleStatus::DRAFT,
             publishedAt: null,
             metaTitle: null,
@@ -164,7 +164,7 @@ describe('CreateArticleDTO', function () {
         expect($array['subtitle'])->toBeNull();
         expect($array['excerpt'])->toBeNull();
         expect($array['content_html'])->toBeNull();
-        expect($array['featured_image'])->toBeNull();
+        expect($array['featured_media_id'])->toBeNull();
         expect($array['published_at'])->toBeNull();
         expect($array['meta_title'])->toBeNull();
         expect($array['meta_description'])->toBeNull();
@@ -180,7 +180,7 @@ describe('CreateArticleDTO', function () {
             excerpt: null,
             contentMarkdown: '# Content',
             contentHtml: null,
-            featuredImage: null,
+            featuredMediaId: null,
             status: ArticleStatus::SCHEDULED,
             publishedAt: null,
             metaTitle: null,
