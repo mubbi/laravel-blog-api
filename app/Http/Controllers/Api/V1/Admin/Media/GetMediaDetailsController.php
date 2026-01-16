@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Api\V1\Media;
+namespace App\Http\Controllers\Api\V1\Admin\Media;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Media\GetMediaDetailsRequest;
@@ -14,7 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-#[Group('Media Management', weight: 3)]
+#[Group('Admin - Media Management', weight: 4)]
 final class GetMediaDetailsController extends Controller
 {
     public function __construct(
@@ -22,24 +22,25 @@ final class GetMediaDetailsController extends Controller
     ) {}
 
     /**
-     * Get Media Details
+     * Get Media Details (Admin)
      *
      * Retrieves detailed information about a specific media file including metadata,
-     * file information, and uploader details. Users can view their own media details,
-     * while users with `manage_media` permission can view any media details.
+     * file information, and uploader details. This admin endpoint provides full access
+     * to any media file in the system, regardless of who uploaded it.
      *
      * **Authentication & Authorization:**
      * Requires a valid Bearer token with `access-api` ability and `view_media` permission.
-     * Users can view their own media, while users with `manage_media` permission can view any media.
+     * Administrators with `manage_media` permission can view any media details.
      *
      * **Route Parameters:**
      * - `media` (Media, required): The media model instance to retrieve (route model binding)
      *
      * **Response:**
-     * Returns the media object with all details including URL, metadata, and relationships.
+     * Returns the media object with all details including URL, metadata, uploader information,
+     * and relationships.
      *
-     * **Note:** Regular users can only view their own media. Users with `manage_media` permission
-     * can view any media. For admin access, use the admin media endpoints.
+     * **Note:** This admin endpoint allows viewing any media file. For user-specific media
+     * access with ownership checks, use the user media endpoints.
      *
      * @response array{status: true, message: string, data: MediaResource}
      */

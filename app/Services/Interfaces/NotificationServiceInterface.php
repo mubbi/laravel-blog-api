@@ -46,4 +46,11 @@ interface NotificationServiceInterface
      * @return array<string, int|array<string, int>>
      */
     public function getNotificationStats(): array;
+
+    /**
+     * Distribute notification to users by creating UserNotification records
+     *
+     * @return int Number of UserNotification records created
+     */
+    public function distributeToUsers(Notification $notification): int;
 }

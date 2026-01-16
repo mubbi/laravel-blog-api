@@ -3,17 +3,21 @@
 declare(strict_types=1);
 
 use App\Enums\ArticleStatus;
+use App\Enums\NotificationType;
 use App\Enums\UserRole;
 use App\Events\Article\ArticleApprovedEvent;
 use App\Models\Article;
+use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserNotification;
 use Illuminate\Support\Facades\Event;
 
 describe('API/V1/Admin/Article/ApproveArticleController', function () {
     it('can approve a draft article', function () {
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
-        $article = Article::factory()->create(['status' => ArticleStatus::DRAFT]);
+        $author = User::factory()->create();
+        $article = Article::factory()->for($author, 'author')->create(['status' => ArticleStatus::DRAFT]);
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
@@ -148,5 +152,37 @@ describe('API/V1/Admin/Article/ApproveArticleController', function () {
             return $event->article->id === $article->id
                 && $event->article->status === ArticleStatus::PUBLISHED;
         });
+    });
+
+    it('creates notification for article author when article is approved', function () {
+        // Reset event fake by faking an event that won't be dispatched in this test
+        // This resets the global fake and allows all other events to be dispatched
+        // With QUEUE_CONNECTION=sync, queued listeners run immediately
+        Event::fake([\App\Events\Article\ArticleCreatedEvent::class]);
+
+        $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
+        $author = User::factory()->create();
+        $article = Article::factory()->for($author, 'author')->create(['status' => ArticleStatus::DRAFT]);
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$auth['tokenString'],
+        ])->postJson(route('api.v1.admin.articles.approve', $article));
+
+        expect($response->getStatusCode())->toBe(200);
+
+        // Verify notification was created
+        $notification = Notification::where('type', NotificationType::ARTICLE_PUBLISHED->value)
+            ->whereJsonContains('message->title', __('notifications.article_published.title'))
+            ->first();
+
+        expect($notification)->not->toBeNull();
+
+        // Verify user notification was created for the author
+        $userNotification = UserNotification::where('user_id', $author->id)
+            ->where('notification_id', $notification->id)
+            ->first();
+
+        expect($userNotification)->not->toBeNull()
+            ->and($userNotification->is_read)->toBeFalse();
     });
 });

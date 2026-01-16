@@ -89,4 +89,5 @@ return [
     // Notification Log Messages
     'notification_created' => 'Notification created',
     'notification_sent' => 'Notification sent',
+    'notification_distributed' => 'Notification distributed to users',
 ];

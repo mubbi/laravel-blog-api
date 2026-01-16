@@ -47,6 +47,15 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
             Route::delete('/{comment}', \App\Http\Controllers\Api\V1\Comment\DeleteCommentController::class)->name('api.v1.comments.destroy');
             Route::post('/{comment}/report', \App\Http\Controllers\Api\V1\Comment\ReportCommentController::class)->name('api.v1.comments.report');
         });
+
+        // User Notifications
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', \App\Http\Controllers\Api\V1\User\Notification\GetUserNotificationsController::class)->name('api.v1.user.notifications.index');
+            Route::get('/unread-count', \App\Http\Controllers\Api\V1\User\Notification\GetUnreadNotificationsCountController::class)->name('api.v1.user.notifications.unread-count');
+            Route::post('/mark-all-read', \App\Http\Controllers\Api\V1\User\Notification\MarkAllNotificationsAsReadController::class)->name('api.v1.user.notifications.mark-all-read');
+            Route::post('/{userNotification}/mark-read', \App\Http\Controllers\Api\V1\User\Notification\MarkNotificationAsReadController::class)->name('api.v1.user.notifications.mark-read');
+            Route::delete('/{userNotification}', \App\Http\Controllers\Api\V1\User\Notification\DeleteNotificationController::class)->name('api.v1.user.notifications.destroy');
+        });
     });
 
     // Admin Routes (admin-specific rate limiting)
@@ -109,10 +118,10 @@ Route::prefix('v1')->middleware(['throttle:api', 'api.logger'])->group(function 
 
         // Media Management
         Route::prefix('media')->group(function () {
-            Route::get('/', \App\Http\Controllers\Api\V1\Media\GetMediaLibraryController::class)->name('api.v1.admin.media.index');
-            Route::get('/{media}', \App\Http\Controllers\Api\V1\Media\GetMediaDetailsController::class)->name('api.v1.admin.media.show');
-            Route::put('/{media}', \App\Http\Controllers\Api\V1\Media\UpdateMediaMetadataController::class)->name('api.v1.admin.media.update');
-            Route::delete('/{media}', \App\Http\Controllers\Api\V1\Media\DeleteMediaController::class)->name('api.v1.admin.media.destroy');
+            Route::get('/', \App\Http\Controllers\Api\V1\Admin\Media\GetMediaLibraryController::class)->name('api.v1.admin.media.index');
+            Route::get('/{media}', \App\Http\Controllers\Api\V1\Admin\Media\GetMediaDetailsController::class)->name('api.v1.admin.media.show');
+            Route::put('/{media}', \App\Http\Controllers\Api\V1\Admin\Media\UpdateMediaMetadataController::class)->name('api.v1.admin.media.update');
+            Route::delete('/{media}', \App\Http\Controllers\Api\V1\Admin\Media\DeleteMediaController::class)->name('api.v1.admin.media.destroy');
         });
     });
 
