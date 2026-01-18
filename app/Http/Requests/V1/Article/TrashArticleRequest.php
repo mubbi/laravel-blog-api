@@ -8,7 +8,7 @@ final class TrashArticleRequest extends ArticleActionRequest
 {
     public function authorize(): bool
     {
-        return $this->canPerformAction('delete_others_posts', 'delete_posts');
+        return $this->canPerformAction('delete_others_posts', 'trash_posts');
     }
 
     /**

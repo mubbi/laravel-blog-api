@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\V1\Article;
+namespace App\Http\Requests\V1\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class UnpinArticleRequest extends FormRequest
+final class GetMeRequest extends FormRequest
 {
     public function authorize(): bool
     {
         $user = $this->user();
 
-        return $user !== null && $user->hasPermission('pin_posts');
+        return $user !== null && $user->hasPermission('view_own_profile');
     }
 
     /**
@@ -22,8 +22,16 @@ final class UnpinArticleRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            // No additional validation rules needed for unpinning
-        ];
+        return [];
+    }
+
+    /**
+     * Get the default values for missing parameters
+     *
+     * @return array<string, mixed>
+     */
+    public function withDefaults(): array
+    {
+        return [];
     }
 }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\CommentStatus;
+use App\Enums\UserRole;
 use App\Events\Comment\CommentCreatedEvent;
 use App\Models\Article;
 use App\Models\Comment;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Event;
 describe('API/V1/Comment/CreateCommentController', function () {
     it('can create a comment successfully', function () {
         Event::fake();
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $article = Article::factory()->create();
 
         $response = $this->withHeaders([
@@ -45,7 +46,7 @@ describe('API/V1/Comment/CreateCommentController', function () {
 
     it('can create a reply comment successfully', function () {
         Event::fake();
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $article = Article::factory()->create();
         $parentComment = Comment::factory()->create([
             'article_id' => $article->id,
@@ -73,7 +74,7 @@ describe('API/V1/Comment/CreateCommentController', function () {
     });
 
     it('returns 422 when content is missing', function () {
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $article = Article::factory()->create();
 
         $response = $this->withHeaders([
@@ -88,7 +89,7 @@ describe('API/V1/Comment/CreateCommentController', function () {
     });
 
     it('returns 422 when content exceeds max length', function () {
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $article = Article::factory()->create();
 
         $response = $this->withHeaders([
@@ -105,7 +106,7 @@ describe('API/V1/Comment/CreateCommentController', function () {
     });
 
     it('returns 422 when parent_comment_id does not exist', function () {
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $article = Article::factory()->create();
 
         $response = $this->withHeaders([
@@ -123,7 +124,7 @@ describe('API/V1/Comment/CreateCommentController', function () {
     });
 
     it('returns 500 when parent comment belongs to different article', function () {
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $article1 = Article::factory()->create();
         $article2 = Article::factory()->create();
         $parentComment = Comment::factory()->create([
@@ -152,7 +153,7 @@ describe('API/V1/Comment/CreateCommentController', function () {
     });
 
     it('returns 500 when service throws exception', function () {
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $article = Article::factory()->create();
 
         $this->mock(CommentServiceInterface::class, function ($mock) {
@@ -172,7 +173,7 @@ describe('API/V1/Comment/CreateCommentController', function () {
 
     it('creates comment with minimum content length', function () {
         Event::fake();
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $article = Article::factory()->create();
 
         $response = $this->withHeaders([
@@ -187,7 +188,7 @@ describe('API/V1/Comment/CreateCommentController', function () {
 
     it('creates comment with maximum content length', function () {
         Event::fake();
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $article = Article::factory()->create();
         $maxContent = str_repeat('a', 5000);
 

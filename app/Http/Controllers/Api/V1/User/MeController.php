@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\V1\User\GetMeRequest;
 use App\Http\Resources\V1\Auth\UserResource;
 use App\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Throwable;
 
 #[Group('User', weight: 0)]
@@ -32,7 +32,7 @@ final class MeController extends Controller
      *
      * @response array{status: true, message: string, data: UserResource}
      */
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(GetMeRequest $request): JsonResponse
     {
         try {
             /**
@@ -41,6 +41,7 @@ final class MeController extends Controller
 
             /** @var User $user */
             $user = $request->user();
+            assert($user !== null);
             $user->load(['roles.permissions']);
 
             return response()->apiSuccess(

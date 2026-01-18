@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Category;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\V1\Category\GetCategoriesRequest;
 use App\Http\Resources\V1\Category\CategoryResource;
 use App\Services\Interfaces\CategoryServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -38,7 +38,7 @@ final class GetCategoriesController extends Controller
      *
      * @response array{status: true, message: string, data: CategoryResource[]}
      */
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(GetCategoriesRequest $request): JsonResponse
     {
         try {
             $categories = $this->categoryService->getAllCategories();

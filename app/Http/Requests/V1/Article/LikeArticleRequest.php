@@ -6,13 +6,18 @@ namespace App\Http\Requests\V1\Article;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class UnpinArticleRequest extends FormRequest
+final class LikeArticleRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        // Public endpoint, but check permission if user is authenticated
         $user = $this->user();
 
-        return $user !== null && $user->hasPermission('pin_posts');
+        if ($user === null) {
+            return true; // Allow public access (tracked by IP)
+        }
+
+        return $user->hasPermission('like_posts');
     }
 
     /**
@@ -22,8 +27,6 @@ final class UnpinArticleRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            // No additional validation rules needed for unpinning
-        ];
+        return [];
     }
 }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\ArticleReactionType;
+use App\Enums\UserRole;
 use App\Events\Article\ArticleLikedEvent;
 use App\Models\ArticleLike;
 use App\Models\User;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Event;
 describe('API/V1/Article/LikeArticleController', function () {
     it('can like an article as authenticated user', function () {
         Event::fake([ArticleLikedEvent::class]);
-        $user = User::factory()->create();
+        $user = createUserWithRole(UserRole::SUBSCRIBER->value);
         $article = createPublishedArticle($user, $user);
 
         $response = $this->actingAs($user, 'sanctum')
@@ -47,7 +48,7 @@ describe('API/V1/Article/LikeArticleController', function () {
     });
 
     it('replaces dislike with like when user previously disliked', function () {
-        $user = User::factory()->create();
+        $user = createUserWithRole(UserRole::SUBSCRIBER->value);
         $article = createPublishedArticle($user, $user);
 
         ArticleLike::create([
@@ -72,7 +73,7 @@ describe('API/V1/Article/LikeArticleController', function () {
     });
 
     it('returns existing like if user already liked the article', function () {
-        $user = User::factory()->create();
+        $user = createUserWithRole(UserRole::SUBSCRIBER->value);
         $article = createPublishedArticle($user, $user);
 
         ArticleLike::create([
@@ -93,7 +94,7 @@ describe('API/V1/Article/LikeArticleController', function () {
     });
 
     it('returns 404 when article not found', function () {
-        $user = User::factory()->create();
+        $user = createUserWithRole(UserRole::SUBSCRIBER->value);
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson(route('api.v1.articles.like', ['article' => 'non-existent-slug']));
@@ -102,7 +103,7 @@ describe('API/V1/Article/LikeArticleController', function () {
     });
 
     it('returns 404 when article is not published', function () {
-        $user = User::factory()->create();
+        $user = createUserWithRole(UserRole::SUBSCRIBER->value);
         $article = createDraftArticle($user);
 
         $response = $this->actingAs($user, 'sanctum')
@@ -114,7 +115,7 @@ describe('API/V1/Article/LikeArticleController', function () {
     });
 
     it('returns 500 when operation fails with exception', function () {
-        $user = User::factory()->create();
+        $user = createUserWithRole(UserRole::SUBSCRIBER->value);
         $article = createPublishedArticle($user, $user);
 
         $this->mock(\App\Services\Interfaces\ArticleServiceInterface::class, function ($mock) {

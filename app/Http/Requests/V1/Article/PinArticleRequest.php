@@ -12,7 +12,7 @@ final class PinArticleRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user !== null && $user->hasPermission('feature_posts');
+        return $user !== null && $user->hasPermission('pin_posts');
     }
 
     /**

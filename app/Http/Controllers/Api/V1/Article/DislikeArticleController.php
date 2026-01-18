@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Article;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\V1\Article\DislikeArticleRequest;
 use App\Models\Article;
 use App\Services\Interfaces\ArticleServiceInterface;
 use App\Support\Helper;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -48,7 +48,7 @@ final class DislikeArticleController extends Controller
      *
      * @response array{status: true, message: string, data: null}
      */
-    public function __invoke(Article $article, Request $request): JsonResponse
+    public function __invoke(Article $article, DislikeArticleRequest $request): JsonResponse
     {
         try {
             $user = $request->user();

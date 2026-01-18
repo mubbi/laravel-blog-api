@@ -56,7 +56,6 @@ final class PermissionSeeder extends Seeder
         'like_posts',
         'dislike_posts',
         'view_own_posts',
-        'schedule_posts',
 
         // Comment Management
         'comment_moderate',

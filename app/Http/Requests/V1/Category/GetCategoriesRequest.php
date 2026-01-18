@@ -2,14 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\V1\User;
+namespace App\Http\Requests\V1\Category;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/**
- * @property-read int $user_id
- */
-final class ViewUserProfileRequest extends FormRequest
+final class GetCategoriesRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -20,7 +17,7 @@ final class ViewUserProfileRequest extends FormRequest
             return true; // Allow public access
         }
 
-        return $user->hasPermission('view_user_profiles');
+        return $user->hasPermission('view_categories');
     }
 
     /**
@@ -40,6 +37,6 @@ final class ViewUserProfileRequest extends FormRequest
      */
     public function withDefaults(): array
     {
-        return $this->validated();
+        return [];
     }
 }

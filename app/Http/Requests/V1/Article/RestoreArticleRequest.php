@@ -8,7 +8,7 @@ final class RestoreArticleRequest extends ArticleActionRequest
 {
     public function authorize(): bool
     {
-        return $this->canPerformAction('edit_others_posts', 'edit_posts');
+        return $this->canPerformAction('edit_others_posts', 'restore_posts');
     }
 
     /**
