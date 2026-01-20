@@ -56,7 +56,7 @@ This guide provides complete setup and usage instructions for **SonarQube 25.7.0
 
 ```bash
 # Start SonarQube 25.7.0 with PostgreSQL 16
-make docker-sonarqube-start
+make sonarqube-start
 
 # Wait for services to be ready (3-5 minutes)
 # Monitor startup with: docker logs laravel_blog_sonarqube -f
@@ -68,7 +68,7 @@ The server will be available at: **http://localhost:9000**
 
 ```bash
 # Automated environment setup
-make docker-sonarqube-setup-env
+make sonarqube-setup-env
 ```
 
 This will:
@@ -80,7 +80,7 @@ This will:
 
 ```bash
 # Interactive token setup (recommended)
-make docker-sonarqube-setup-token
+make sonarqube-setup-token
 ```
 
 This helper will:
@@ -104,10 +104,10 @@ This helper will:
 
 ```bash
 # Automated environment setup (recommended)
-make docker-sonarqube-setup-env
+make sonarqube-setup-env
 
 # Interactive token setup with helper
-make docker-sonarqube-setup-token
+make sonarqube-setup-token
 
 # Manual setup (alternative)
 export SONAR_TOKEN=squ_your_generated_token_here
@@ -119,7 +119,7 @@ export SONAR_TOKEN=squ_your_generated_token_here
 
 ```bash
 # Complete analysis (recommended) - includes all steps
-make docker-sonarqube-analyze
+make sonarqube-analyze
 ```
 
 This command will:
@@ -133,22 +133,23 @@ This command will:
 
 | Command | Description |
 |---------|-------------|
-| `make docker-sonarqube-start` | Start SonarQube 25.7.0 server |
-| `make docker-sonarqube-stop` | Stop SonarQube server |
-| `make docker-sonarqube-setup-env` | Setup SonarQube environment file |
-| `make docker-sonarqube-setup-token` | Interactive token setup helper |
-| `make docker-sonarqube-analyze` | Complete analysis (recommended) |
-| `make docker-sonarqube-scan` | Run scanner only (server must be running) |
-| `make docker-sonarqube-reports` | Generate reports only |
-| `make docker-sonarqube-dashboard` | Open SonarQube dashboard |
-| `make docker-sonarqube-clean` | Clean all SonarQube data |
-| `make docker-sonarqube-ci` | Run analysis for CI/CD (external server) |
+| `make sonarqube-start` | Start SonarQube 25.7.0 server |
+| `make sonarqube-stop` | Stop SonarQube server |
+| `make sonarqube-setup-env` | Setup SonarQube environment file (`containers/.env.sonarqube`) |
+| `make sonarqube-setup-token` | Interactive token setup helper |
+| `make sonarqube-analyze` | Complete analysis (recommended) |
+| `make phpstan-sonar` | Generate PHPStan JSON report only (`reports/phpstan.json`) |
+| `make test-coverage` | Generate PHPUnit coverage reports (includes `reports/coverage.xml`) |
+| `make sonarqube-scan-local` | Run scanner only (local network mode; starts SonarQube if needed) |
+| `make sonarqube-scan-ci` | Run scanner only for CI/external SonarQube |
+| `make sonarqube-dashboard` | Open SonarQube dashboard |
+| `make sonarqube-clean` | Clean all SonarQube data |
 
 ### Server Management
 
 ```bash
 # Start server
-make docker-sonarqube-start
+make sonarqube-start
 
 # Check server status
 curl -s http://localhost:9000/api/system/status
@@ -157,10 +158,10 @@ curl -s http://localhost:9000/api/system/status
 docker logs laravel_blog_sonarqube -f
 
 # Stop server
-make docker-sonarqube-stop
+make sonarqube-stop
 
 # Clean all data (reset everything)
-make docker-sonarqube-clean
+make sonarqube-clean
 ```
 
 ## 📊 Analysis Results
@@ -246,13 +247,12 @@ services:
 ### Analysis Scripts
 
 **Local Development**: `containers/sonarqube/scripts/sonar-analysis.sh`
-- Complete analysis including PHPStan and PHPUnit
-- Automatic SonarQube server health checking
-- Docker network-based communication
+- Thin wrapper that delegates to `make sonarqube-analyze`
+- Prefer running `make sonarqube-analyze` directly
 
 **CI/CD**: `containers/sonarqube/scripts/sonar-analysis-ci.sh`
-- Lightweight scanner for external SonarQube servers
-- Environment variable based configuration
+- Thin wrapper that delegates to `make sonarqube-scan-ci`
+- Prefer running `make sonarqube-scan-ci` directly
 
 ### Quality Configuration
 
@@ -305,10 +305,10 @@ SONAR_TESTS=tests
 **Setup Commands**:
 ```bash
 # Setup environment file
-make docker-sonarqube-setup-env
+make sonarqube-setup-env
 
 # Interactive token configuration
-make docker-sonarqube-setup-token
+make sonarqube-setup-token
 ```
 
 ## 🐛 Troubleshooting
@@ -320,7 +320,7 @@ make docker-sonarqube-setup-token
 **Solution**: 
 ```bash
 # Use interactive token setup helper
-make docker-sonarqube-setup-token
+make sonarqube-setup-token
 
 # Or regenerate token manually at http://localhost:9000/account/security
 export SONAR_TOKEN=squ_your_new_token
@@ -334,8 +334,8 @@ export SONAR_TOKEN=squ_your_new_token
 curl -s http://localhost:9000/api/system/status
 
 # Restart SonarQube server
-make docker-sonarqube-stop
-make docker-sonarqube-start
+make sonarqube-stop
+make sonarqube-start
 ```
 
 #### 3. Memory Issues
@@ -378,7 +378,7 @@ docker run --rm --network=laravel_blog_sonarqube_sonarqube_network \
 cat containers/.env.sonarqube
 
 # Validate token in environment
-make docker-sonarqube-setup-token
+make sonarqube-setup-token
 ```
 
 ## 🔒 Security Considerations
@@ -408,7 +408,7 @@ For CI/CD environments, use external SonarQube server:
 ```yaml
 - name: SonarQube Analysis
   run: |
-    make docker-sonarqube-ci
+    make sonarqube-scan-ci
   env:
     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
@@ -421,17 +421,17 @@ For CI/CD environments, use external SonarQube server:
 make docker-up
 
 # 2. Setup and start SonarQube
-make docker-sonarqube-setup-env
-make docker-sonarqube-start
+make sonarqube-setup-env
+make sonarqube-start
 
 # 3. Configure token (interactive helper)
-make docker-sonarqube-setup-token
+make sonarqube-setup-token
 
 # 4. Make code changes
 # ... your development work ...
 
 # 5. Run analysis before commit
-make docker-sonarqube-analyze
+make sonarqube-analyze
 
 # 6. Review results at http://localhost:9000
 # 7. Fix any issues found
@@ -442,7 +442,7 @@ make docker-sonarqube-analyze
 
 ```bash
 # One-command setup and analysis
-make docker-sonarqube-analyze
+make sonarqube-analyze
 
 # This will:
 # - Setup environment files if missing
@@ -511,19 +511,19 @@ The current setup includes optimized settings:
 ### Essential Commands
 ```bash
 # Complete automated workflow
-make docker-sonarqube-setup-env          # Setup environment
-make docker-sonarqube-start               # Start server
-make docker-sonarqube-setup-token         # Configure token
-make docker-sonarqube-analyze             # Run analysis
+make sonarqube-setup-env                  # Setup environment
+make sonarqube-start                      # Start server
+make sonarqube-setup-token                # Configure token
+make sonarqube-analyze                    # Run analysis
 
 # Or one-command analysis (recommended)
-make docker-sonarqube-analyze             # Does everything above
+make sonarqube-analyze                    # Does everything above
 # View results at http://localhost:9000
 
 # Maintenance
-make docker-sonarqube-stop                # Stop server
-make docker-sonarqube-clean               # Clean data
-make docker-sonarqube-dashboard           # Open dashboard
+make sonarqube-stop                       # Stop server
+make sonarqube-clean                      # Clean data
+make sonarqube-dashboard                  # Open dashboard
 ```
 
 ### Environment Files
@@ -531,7 +531,7 @@ make docker-sonarqube-dashboard           # Open dashboard
 - **Working**: `containers/.env.sonarqube` (auto-generated)
 
 ### Token Setup
-- **Interactive**: `make docker-sonarqube-setup-token`
+- **Interactive**: `make sonarqube-setup-token`
 - **Manual**: Set `SONAR_TOKEN` in `containers/.env.sonarqube`
 
 ### Key URLs

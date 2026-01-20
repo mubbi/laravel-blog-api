@@ -219,6 +219,9 @@ make sonarqube-setup
 ```bash
 make sonarqube-start      # Start SonarQube server
 make sonarqube-analyze    # Run complete analysis
+make phpstan-sonar        # Generate PHPStan JSON report only (reports/phpstan.json)
+make sonarqube-scan-local # Run scanner only (local network mode)
+make sonarqube-scan-ci    # Run scanner only (CI/external SonarQube)
 make sonarqube-dashboard  # Open dashboard
 make sonarqube-stop       # Stop SonarQube server
 make sonarqube-clean      # Clean SonarQube data (reset)
