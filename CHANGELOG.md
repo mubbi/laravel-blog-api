@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/mubbi/laravel-blog-api/compare/v2.3.0...v2.4.0) (2026-01-20)
+
+
+### Features
+
+* notifications APIs ([2fd0fdb](https://github.com/mubbi/laravel-blog-api/commit/2fd0fdb2344825fa02471d92b99cdc25c22b3952))
+
 ## [2.3.0](https://github.com/mubbi/laravel-blog-api/compare/v2.2.0...v2.3.0) (2026-01-16)
 
 
