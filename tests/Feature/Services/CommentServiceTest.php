@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Data\ApproveCommentDTO;
-use App\Data\DeleteCommentDTO;
-use App\Data\FilterCommentDTO;
+use App\Data\Comment\ApproveCommentDTO;
+use App\Data\Comment\DeleteCommentDTO;
+use App\Data\Comment\FilterCommentDTO;
 use App\Enums\CommentStatus;
 use App\Events\Comment\CommentApprovedEvent;
 use App\Events\Comment\CommentDeletedEvent;
@@ -230,7 +230,7 @@ describe('CommentService', function () {
             Event::fake();
             $user = User::factory()->create();
             $article = Article::factory()->create();
-            $dto = \App\Data\CreateCommentDTO::fromArray([
+            $dto = \App\Data\Comment\CreateCommentDTO::fromArray([
                 'article_id' => $article->id,
                 'content' => 'Test comment',
             ]);
@@ -257,7 +257,7 @@ describe('CommentService', function () {
                 'article_id' => $article->id,
                 'user_id' => User::factory()->create()->id,
             ]);
-            $dto = \App\Data\CreateCommentDTO::fromArray([
+            $dto = \App\Data\Comment\CreateCommentDTO::fromArray([
                 'article_id' => $article->id,
                 'content' => 'Reply comment',
                 'parent_comment_id' => $parentComment->id,
@@ -280,7 +280,7 @@ describe('CommentService', function () {
             $parentComment = Comment::factory()->create([
                 'article_id' => $article1->id,
             ]);
-            $dto = \App\Data\CreateCommentDTO::fromArray([
+            $dto = \App\Data\Comment\CreateCommentDTO::fromArray([
                 'article_id' => $article2->id,
                 'content' => 'Reply comment',
                 'parent_comment_id' => $parentComment->id,
@@ -295,7 +295,7 @@ describe('CommentService', function () {
             // Arrange
             $user = User::factory()->create();
             $article = Article::factory()->create();
-            $dto = \App\Data\CreateCommentDTO::fromArray([
+            $dto = \App\Data\Comment\CreateCommentDTO::fromArray([
                 'article_id' => $article->id,
                 'content' => 'Reply comment',
                 'parent_comment_id' => 99999,
@@ -314,7 +314,7 @@ describe('CommentService', function () {
             $comment = Comment::factory()->create([
                 'content' => 'Original content',
             ]);
-            $dto = \App\Data\UpdateCommentDTO::fromArray([
+            $dto = \App\Data\Comment\UpdateCommentDTO::fromArray([
                 'content' => 'Updated content',
             ]);
 
@@ -336,7 +336,7 @@ describe('CommentService', function () {
             $comment = Comment::factory()->create([
                 'report_count' => 0,
             ]);
-            $dto = new \App\Data\ReportCommentDTO(
+            $dto = new \App\Data\Comment\ReportCommentDTO(
                 reason: 'Inappropriate content'
             );
 
@@ -358,7 +358,7 @@ describe('CommentService', function () {
             $comment = Comment::factory()->create([
                 'report_count' => 2,
             ]);
-            $dto = new \App\Data\ReportCommentDTO(
+            $dto = new \App\Data\Comment\ReportCommentDTO(
                 reason: null
             );
 

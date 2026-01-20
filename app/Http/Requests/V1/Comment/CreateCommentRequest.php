@@ -14,8 +14,9 @@ final class CreateCommentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Only authenticated users can create comments
-        return $this->user() !== null;
+        $user = $this->user();
+
+        return $user !== null && $user->hasPermission('create_comments');
     }
 
     /**

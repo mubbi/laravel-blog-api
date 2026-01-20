@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\UserRole;
 use App\Events\Comment\CommentReportedEvent;
 use App\Models\Comment;
 use Illuminate\Support\Facades\Event;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Event;
 describe('API/V1/Comment/ReportCommentController', function () {
     it('can report a comment successfully with reason', function () {
         Event::fake();
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $comment = Comment::factory()->create([
             'report_count' => 0,
         ]);
@@ -36,7 +37,7 @@ describe('API/V1/Comment/ReportCommentController', function () {
 
     it('can report a comment without reason', function () {
         Event::fake();
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $comment = Comment::factory()->create([
             'report_count' => 2,
         ]);
@@ -53,8 +54,8 @@ describe('API/V1/Comment/ReportCommentController', function () {
 
     it('increments report count on multiple reports', function () {
         Event::fake();
-        $auth1 = createAuthenticatedUser();
-        $auth2 = createAuthenticatedUser();
+        $auth1 = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
+        $auth2 = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $comment = Comment::factory()->create([
             'report_count' => 0,
         ]);
@@ -79,7 +80,7 @@ describe('API/V1/Comment/ReportCommentController', function () {
     });
 
     it('returns 422 when reason exceeds max length', function () {
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $comment = Comment::factory()->create();
 
         $response = $this->withHeaders([
@@ -106,7 +107,7 @@ describe('API/V1/Comment/ReportCommentController', function () {
     });
 
     it('returns 404 when comment does not exist', function () {
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
@@ -118,7 +119,7 @@ describe('API/V1/Comment/ReportCommentController', function () {
     });
 
     it('returns 500 when service throws exception', function () {
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $comment = Comment::factory()->create();
 
         $this->mock(\App\Services\Interfaces\CommentServiceInterface::class, function ($mock) {
@@ -138,7 +139,7 @@ describe('API/V1/Comment/ReportCommentController', function () {
 
     it('updates last_reported_at timestamp', function () {
         Event::fake();
-        $auth = createAuthenticatedUser();
+        $auth = createAuthenticatedUserWithRole(UserRole::SUBSCRIBER->value);
         $comment = Comment::factory()->create([
             'last_reported_at' => null,
         ]);

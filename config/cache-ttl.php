@@ -31,5 +31,10 @@ return [
         'tags:list' => env('CACHE_TTL_TAGS', 86400), // 24 hours
         'categories:list' => env('CACHE_TTL_CATEGORIES', 86400), // 24 hours
         'article_by_slug' => env('CACHE_TTL_ARTICLE_BY_SLUG', 3600), // 1 hour
+        'article_by_id' => env('CACHE_TTL_ARTICLE_BY_ID', 3600), // 1 hour
+        'user_roles' => env('CACHE_TTL_USER_ROLES', 3600), // 1 hour
+        'user_permissions' => env('CACHE_TTL_USER_PERMISSIONS', 3600), // 1 hour
+        'all_roles_with_permissions' => env('CACHE_TTL_ALL_ROLES', 3600), // 1 hour
+        'all_permissions' => env('CACHE_TTL_ALL_PERMISSIONS', 3600), // 1 hour
     ],
 ];

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Tag;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\V1\Tag\GetTagsRequest;
 use App\Http\Resources\V1\Tag\TagResource;
 use App\Services\Interfaces\TagServiceInterface;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -38,7 +38,7 @@ final class GetTagsController extends Controller
      *
      * @response array{status: true, message: string, data: TagResource[]}
      */
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(GetTagsRequest $request): JsonResponse
     {
         try {
             $tags = $this->tagService->getAllTags();

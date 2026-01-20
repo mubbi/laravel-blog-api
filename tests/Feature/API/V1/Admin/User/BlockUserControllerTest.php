@@ -8,13 +8,13 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/User/BlockUserController', function () {
+describe('API/V1/User/BlockUserController', function () {
     it('can block a user successfully', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToBlock = User::factory()->create();
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.block', $userToBlock));
+            ->postJson(route('api.v1.users.block', $userToBlock));
 
         expect($response)->toHaveApiSuccessStructure([
             'id',
@@ -34,7 +34,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
         $userToBlock = User::factory()->create(['banned_at' => now()]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.block', $userToBlock));
+            ->postJson(route('api.v1.users.block', $userToBlock));
 
         expect($response->getStatusCode())->toBe(200);
         $userToBlock->refresh();
@@ -46,7 +46,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.block', 99999));
+            ->postJson(route('api.v1.users.block', 99999));
 
         expect($response->getStatusCode())->toBe(404)
             ->and($response->json('status'))->toBeFalse()
@@ -58,7 +58,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
         $userToBlock = User::factory()->create();
 
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.users.block', $userToBlock));
+            ->postJson(route('api.v1.users.block', $userToBlock));
 
         $response->assertStatus(403);
     });
@@ -68,7 +68,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
         $userToBlock = User::factory()->create();
 
         // Act
-        $response = $this->postJson(route('api.v1.admin.users.block', $userToBlock));
+        $response = $this->postJson(route('api.v1.users.block', $userToBlock));
 
         // Assert
         $response->assertStatus(401);
@@ -82,7 +82,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.block', $admin));
+            ->postJson(route('api.v1.users.block', $admin));
 
         // Assert
         $response->assertStatus(403)
@@ -109,7 +109,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.block', $userToBlock));
+            ->postJson(route('api.v1.users.block', $userToBlock));
 
         // Assert
         $response->assertStatus(200);
@@ -134,7 +134,7 @@ describe('API/V1/Admin/User/BlockUserController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.block', $userToBlock));
+            ->postJson(route('api.v1.users.block', $userToBlock));
 
         // Assert
         $response->assertStatus(200);

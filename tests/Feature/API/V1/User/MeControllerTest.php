@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 
@@ -11,6 +12,8 @@ describe('API/V1/User/MeController', function () {
             'name' => 'John Doe',
             'email' => 'john@example.com',
         ]);
+        $role = getRoleByName(UserRole::SUBSCRIBER->value);
+        attachRoleAndRefreshCache($user, $role);
 
         Sanctum::actingAs($user, ['access-api']);
 
@@ -64,6 +67,8 @@ describe('API/V1/User/MeController', function () {
             'github' => 'https://github.com/janesmith',
             'website' => 'https://janesmith.dev',
         ]);
+        $role = getRoleByName(UserRole::SUBSCRIBER->value);
+        attachRoleAndRefreshCache($user, $role);
 
         Sanctum::actingAs($user, ['access-api']);
 
@@ -88,6 +93,8 @@ describe('API/V1/User/MeController', function () {
             'github' => null,
             'website' => null,
         ]);
+        $role = getRoleByName(UserRole::SUBSCRIBER->value);
+        attachRoleAndRefreshCache($user, $role);
 
         Sanctum::actingAs($user, ['access-api']);
 
@@ -106,6 +113,8 @@ describe('API/V1/User/MeController', function () {
             'email' => 'verified@example.com',
             'email_verified_at' => now(),
         ]);
+        $role = getRoleByName(UserRole::SUBSCRIBER->value);
+        attachRoleAndRefreshCache($user, $role);
 
         Sanctum::actingAs($user, ['access-api']);
 
@@ -123,6 +132,8 @@ describe('API/V1/User/MeController', function () {
             'email' => 'unverified@example.com',
             'email_verified_at' => null,
         ]);
+        $role = getRoleByName(UserRole::SUBSCRIBER->value);
+        attachRoleAndRefreshCache($user, $role);
 
         Sanctum::actingAs($user, ['access-api']);
 
@@ -141,6 +152,8 @@ describe('API/V1/User/MeController', function () {
             'email' => 'longbio@example.com',
             'bio' => $longBio,
         ]);
+        $role = getRoleByName(UserRole::SUBSCRIBER->value);
+        attachRoleAndRefreshCache($user, $role);
 
         Sanctum::actingAs($user, ['access-api']);
 
@@ -156,6 +169,8 @@ describe('API/V1/User/MeController', function () {
             'name' => 'José María O\'Connor-Smith',
             'email' => 'special@example.com',
         ]);
+        $role = getRoleByName(UserRole::SUBSCRIBER->value);
+        attachRoleAndRefreshCache($user, $role);
 
         Sanctum::actingAs($user, ['access-api']);
 
@@ -169,6 +184,8 @@ describe('API/V1/User/MeController', function () {
     it('handles user with very long email address', function () {
         $longEmail = 'very.long.email.address.with.many.subdomains@very.long.domain.name.example.com';
         $user = User::factory()->create(['email' => $longEmail]);
+        $role = getRoleByName(UserRole::SUBSCRIBER->value);
+        attachRoleAndRefreshCache($user, $role);
 
         Sanctum::actingAs($user, ['access-api']);
 
@@ -207,6 +224,8 @@ describe('API/V1/User/MeController', function () {
             'email' => 'banned@example.com',
             'banned_at' => now(),
         ]);
+        $role = getRoleByName(UserRole::SUBSCRIBER->value);
+        attachRoleAndRefreshCache($user, $role);
 
         Sanctum::actingAs($user, ['access-api']);
 
@@ -223,6 +242,8 @@ describe('API/V1/User/MeController', function () {
             'email' => 'blocked@example.com',
             'blocked_at' => now(),
         ]);
+        $role = getRoleByName(UserRole::SUBSCRIBER->value);
+        attachRoleAndRefreshCache($user, $role);
 
         Sanctum::actingAs($user, ['access-api']);
 

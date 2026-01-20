@@ -13,28 +13,26 @@ containers/sonarqube/
 ├── config/                      # SonarQube configuration
 │   ├── quality-gate.json       # Custom quality gate definition
 │   └── quality-profile.json    # Custom quality profile for PHP
-└── docker-compose.sonarqube.yml # Docker Compose for SonarQube server
 ```
+
+> Note: SonarQube server is defined in `containers/docker-compose.sonarqube.yml` (project root `containers/` directory).
 
 ## 🚀 Scripts
 
 ### `scripts/sonar-analysis.sh`
-- **Purpose**: Complete analysis for local development
-- **Usage**: Called by `make docker-sonarqube-analyze`
+- **Purpose**: Wrapper for local analysis
+- **Usage**: Delegates to `make sonarqube-analyze`
 - **Features**: 
-  - Starts SonarQube server if needed
-  - Runs PHPStan analysis
-  - Executes PHPUnit tests with coverage
-  - Uploads results to SonarQube
-  - Uses SonarQube Docker network for communication
+  - Keeps the Makefile as the single source of truth for the workflow
+  - Useful if you want to run the script directly, but **prefer using `make` targets**
 
 ### `scripts/sonar-analysis-ci.sh`
-- **Purpose**: Analysis for CI/CD environments
-- **Usage**: Called by `make docker-sonarqube-ci` or GitHub Actions
+- **Purpose**: Wrapper for CI/external SonarQube scanning
+- **Usage**: Delegates to `make sonarqube-scan-ci`
 - **Features**:
   - Assumes external SonarQube server
-  - Uses SONAR_HOST_URL environment variable
-  - Lightweight scanner-only execution
+  - Uses `SONAR_HOST_URL` + `SONAR_TOKEN`
+  - Scanner-only execution (reports must already exist if you want them included)
 
 ## ⚙️ Configuration Files
 
@@ -58,11 +56,14 @@ Custom PHP quality profile with rules for:
 
 ### Local Development
 ```bash
-# Start SonarQube and run complete analysis
-make docker-sonarqube-analyze
+# Complete workflow (recommended)
+make sonarqube-analyze
 
-# Run scanner only (server must be running)
-make docker-sonarqube-scan
+# Generate PHPStan JSON report only (reports/phpstan.json)
+make phpstan-sonar
+
+# Run scanner only (local network mode; will start SonarQube if needed)
+make sonarqube-scan-local
 ```
 
 ### CI/CD
@@ -70,16 +71,16 @@ make docker-sonarqube-scan
 # External SonarQube server
 export SONAR_HOST_URL=https://sonarqube.example.com
 export SONAR_TOKEN=squ_your_token
-make docker-sonarqube-ci
+make sonarqube-scan-ci
 ```
 
 ### Direct Script Execution
 ```bash
-# Local analysis
-export SONAR_TOKEN=squ_your_token
+# Local analysis (delegates to Makefile)
+export SONAR_TOKEN=squ_your_token # or set it in containers/.env.sonarqube
 ./containers/sonarqube/scripts/sonar-analysis.sh
 
-# CI analysis
+# CI analysis (delegates to Makefile)
 export SONAR_HOST_URL=https://sonarqube.example.com
 export SONAR_TOKEN=squ_your_token
 ./containers/sonarqube/scripts/sonar-analysis-ci.sh
@@ -102,8 +103,8 @@ Generated reports are stored in the project root:
 ## 🔗 Integration
 
 These files are integrated with:
-- **Makefile**: Commands reference scripts in this directory
-- **GitHub Actions**: CI workflow uses `sonar-analysis-ci.sh`
+- **Makefile**: Owns the SonarQube workflow via `sonarqube-*` targets
+- **GitHub Actions**: CI workflow can call `make sonarqube-scan-ci`
 - **Docker Compose**: SonarQube server configuration
 - **Project Root**: `sonar-project.properties` references these reports
 

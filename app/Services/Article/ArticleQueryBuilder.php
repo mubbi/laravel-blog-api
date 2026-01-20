@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Article;
 
-use App\Data\FilterArticleDTO;
+use App\Data\Article\FilterArticleDTO;
 use App\Models\Article;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -56,14 +56,14 @@ final class ArticleQueryBuilder
 
         // Filter by categories (support multiple categories)
         if ($dto->categorySlugs !== null) {
-            $query->whereHas('categories', function (Builder $q) use ($dto) {
+            $query->whereHas('categories', function (Builder $q) use ($dto): void {
                 $q->whereIn('slug', $dto->categorySlugs);
             });
         }
 
         // Filter by tags (support multiple tags)
         if ($dto->tagSlugs !== null) {
-            $query->whereHas('tags', function (Builder $q) use ($dto) {
+            $query->whereHas('tags', function (Builder $q) use ($dto): void {
                 $q->whereIn('slug', $dto->tagSlugs);
             });
         }

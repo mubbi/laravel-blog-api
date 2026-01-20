@@ -14,6 +14,7 @@ use App\Repositories\Contracts\NotificationRepositoryInterface;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\TagRepositoryInterface;
+use App\Repositories\Contracts\UserNotificationRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\EloquentArticleRepository;
 use App\Repositories\Eloquent\EloquentCategoryRepository;
@@ -25,6 +26,7 @@ use App\Repositories\Eloquent\EloquentNotificationRepository;
 use App\Repositories\Eloquent\EloquentPermissionRepository;
 use App\Repositories\Eloquent\EloquentRoleRepository;
 use App\Repositories\Eloquent\EloquentTagRepository;
+use App\Repositories\Eloquent\EloquentUserNotificationRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -102,6 +104,11 @@ final class RepositoryServiceProvider extends ServiceProvider
         $this->app->scoped(
             NotificationAudienceRepositoryInterface::class,
             EloquentNotificationAudienceRepository::class
+        );
+
+        $this->app->scoped(
+            UserNotificationRepositoryInterface::class,
+            EloquentUserNotificationRepository::class
         );
 
         // Authorization repositories

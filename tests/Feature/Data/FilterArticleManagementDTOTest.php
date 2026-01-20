@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Data\FilterArticleManagementDTO;
+use App\Data\Article\FilterArticleManagementDTO;
 use App\Enums\ArticleStatus;
 
 describe('FilterArticleManagementDTO', function () {

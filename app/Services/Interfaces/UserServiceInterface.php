@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
-use App\Data\CreateUserDTO;
-use App\Data\FilterUserDTO;
-use App\Data\FilterUserFollowersDTO;
-use App\Data\UpdateUserDTO;
+use App\Data\User\CreateUserDTO;
+use App\Data\User\FilterUserDTO;
+use App\Data\User\FilterUserFollowersDTO;
+use App\Data\User\UpdateUserDTO;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;

@@ -258,6 +258,12 @@ artisan:
 	@echo "Usage: make artisan ARGS='migrate --seed'"
 	docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) php artisan $(ARGS)
 
+# Dump database schema and prune migrations
+schema-dump:
+	@echo "SCHEMA DUMP: Dumping database schema and pruning migrations..."
+	docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) php artisan schema:dump --prune
+	@echo "SUCCESS: Database schema dumped and pruned successfully!"
+
 # =============================================================================
 # Container Utilities
 # =============================================================================
@@ -374,26 +380,116 @@ sonarqube-setup-token: _sonarqube-setup-env
 	./$(CONTAINER_DIR)/sonarqube/scripts/setup-sonar-token.sh
 	@echo "SUCCESS: SonarQube token setup completed!"
 
+# Wait for SonarQube to become healthy
+sonarqube-wait:
+	@echo "⏳ SONARQUBE: Waiting for SonarQube to be ready..."
+	@bash -c 'max_attempts=30; attempt=1; while [ $$attempt -le $$max_attempts ]; do if curl -fsS http://localhost:9000/api/system/status >/dev/null 2>&1; then echo "✅ SonarQube is ready"; exit 0; fi; echo "⏳ Attempt $$attempt/$$max_attempts: still starting..."; sleep 10; attempt=$$((attempt+1)); done; echo "❌ SonarQube is not responding after $$max_attempts attempts"; exit 1'
+
+# Run PHPStan and save JSON report for SonarQube
+phpstan-sonar: docker-up
+	@echo "🔍 SONARQUBE: Running PHPStan (JSON report)..."
+	@mkdir -p reports
+	@echo ">> Ensuring .env file exists with APP_KEY..."
+	@docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) bash -c "if [ ! -f .env ]; then if [ -f .env.docker.example ]; then cp .env.docker.example .env; else echo 'ERROR: .env file not found and .env.docker.example does not exist'; exit 1; fi; fi; if ! grep -q 'APP_KEY=base64:' .env 2>/dev/null; then php artisan key:generate --force 2>/dev/null || true; fi"
+	@echo ">> Running PHPStan (errors will NOT fail the build; report is still generated)..."
+	-docker-compose -f $(DOCKER_COMPOSE_MAIN) exec -T $(CONTAINER_MAIN) ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=json > reports/phpstan.json
+	@echo "✅ SUCCESS: PHPStan JSON report saved to reports/phpstan.json"
+
+# Run SonarQube scanner in Docker, using SonarQube network (local setup)
+sonarqube-scan-local: sonarqube-start sonarqube-wait
+	@echo "📊 SONARQUBE: Running SonarQube Scanner (local network mode)..."
+	@bash -c 'set -euo pipefail; \
+		PROJECT_ROOT="$$(pwd)"; \
+		if [ -f "$(CONTAINER_DIR)/.env.sonarqube" ]; then set -a; . "$(CONTAINER_DIR)/.env.sonarqube"; set +a; \
+		elif [ -f ".env.sonarqube" ]; then set -a; . ".env.sonarqube"; set +a; fi; \
+		if [ -z "$${SONAR_TOKEN:-}" ] || [ "$${SONAR_TOKEN:-}" = "your_token_here" ]; then \
+			echo "❌ SONAR_TOKEN is not configured. Please run: make sonarqube-setup-token"; \
+			exit 1; \
+		fi; \
+		SONAR_TOKEN="$$(printf "%s" "$$SONAR_TOKEN" | tr -d "\r")"; \
+		mkdir -p reports; \
+		NETWORK="$$(docker network ls --format "{{.Name}}" | grep -E "laravel_blog_sonarqube_sonarqube_network$$" | head -1 || true)"; \
+		if [ -z "$$NETWORK" ]; then NETWORK="$$(docker network ls --format "{{.Name}}" | grep "sonarqube_network" | head -1 || true)"; fi; \
+		if [ -z "$$NETWORK" ]; then \
+			echo "❌ SonarQube network not found. Make sure SonarQube is running."; \
+			echo "Available networks:"; \
+			docker network ls; \
+			exit 1; \
+		fi; \
+		echo "🔗 Using SonarQube network: $$NETWORK"; \
+		set +e; \
+		docker run --rm \
+			--network="$$NETWORK" \
+			--mount type=bind,source="$$PROJECT_ROOT",target=/usr/src \
+			-e "SONAR_TOKEN=$$SONAR_TOKEN" \
+			sonarsource/sonar-scanner-cli:latest \
+			sh -c "cd /usr/src && sonar-scanner -Dsonar.host.url=http://sonarqube:9000 -Dsonar.token=$$SONAR_TOKEN -Dsonar.qualitygate.wait=false -Dsonar.qualitygate.timeout=600 -Dsonar.verbose=true" \
+			2>&1 | tee "reports/sonar-scanner.log"; \
+		rc="$${PIPESTATUS[0]}"; \
+		set -e; \
+		if [ "$$rc" -ne 0 ]; then \
+			echo "❌ SonarQube scanner failed (exit code: $$rc)"; \
+			echo "📄 See: reports/sonar-scanner.log"; \
+			exit "$$rc"; \
+		fi; \
+		echo "✅ SonarQube analysis completed (local)";'
+
+# Run SonarQube scanner in Docker (CI mode / external SonarQube)
+sonarqube-scan-ci:
+	@echo "📊 SONARQUBE: Running SonarQube Scanner (CI mode)..."
+	@bash -c 'set -euo pipefail; \
+		PROJECT_ROOT="$$(pwd)"; \
+		if [ -f "$(CONTAINER_DIR)/.env.sonarqube" ]; then set -a; . "$(CONTAINER_DIR)/.env.sonarqube"; set +a; \
+		elif [ -f ".env.sonarqube" ]; then set -a; . ".env.sonarqube"; set +a; fi; \
+		if [ -z "$${SONAR_TOKEN:-}" ] || [ "$${SONAR_TOKEN:-}" = "your_token_here" ]; then \
+			echo "❌ SONAR_TOKEN not set. Please set it as an environment variable or in containers/.env.sonarqube"; \
+			exit 1; \
+		fi; \
+		if [ -z "$${SONAR_HOST_URL:-}" ]; then \
+			echo "⚠️  SONAR_HOST_URL not set. Using default: http://localhost:9000"; \
+			SONAR_HOST_URL="http://localhost:9000"; \
+		fi; \
+		SONAR_TOKEN="$$(printf "%s" "$$SONAR_TOKEN" | tr -d "\r")"; \
+		SONAR_HOST_URL="$$(printf "%s" "$$SONAR_HOST_URL" | tr -d "\r")"; \
+		mkdir -p reports; \
+		docker run --rm \
+			-v "$$PROJECT_ROOT:/usr/src" \
+			-w /usr/src \
+			sonarsource/sonar-scanner-cli:latest \
+			sonar-scanner \
+			-Dsonar.host.url="$$SONAR_HOST_URL" \
+			-Dsonar.token="$$SONAR_TOKEN" \
+			-Dsonar.projectBaseDir=/usr/src; \
+		echo "✅ SonarQube analysis completed (CI)"; \
+		echo "📊 View results at: $$SONAR_HOST_URL";'
+
 # Run complete SonarQube analysis
 sonarqube-analyze: _sonarqube-setup-env sonarqube-start
 	@echo "SONARQUBE: Running complete quality analysis..."
-	@echo "⚠️  Make sure to set SONAR_TOKEN environment variable first!"
+	@echo "ℹ️  SONAR_TOKEN is required for analysis"
 	@echo "   Generate token at: http://localhost:9000/account/security"
-	@if grep -q "^SONAR_TOKEN=" $(CONTAINER_DIR)/.env.sonarqube && ! grep -q "^SONAR_TOKEN=your_token_here" $(CONTAINER_DIR)/.env.sonarqube; then \
+	@if [ -n "$$SONAR_TOKEN" ]; then \
+		echo "✅ SONAR_TOKEN is set in your environment"; \
+	elif [ -f $(CONTAINER_DIR)/.env.sonarqube ] && grep -q "^SONAR_TOKEN=" $(CONTAINER_DIR)/.env.sonarqube && ! grep -q "^SONAR_TOKEN=your_token_here" $(CONTAINER_DIR)/.env.sonarqube; then \
+		echo "✅ SONAR_TOKEN is configured in containers/.env.sonarqube"; \
+	elif [ -f .env.sonarqube ] && grep -q "^SONAR_TOKEN=" .env.sonarqube && ! grep -q "^SONAR_TOKEN=your_token_here" .env.sonarqube; then \
 		echo "✅ SONAR_TOKEN is configured in .env.sonarqube"; \
 	else \
 		echo "❌ SONAR_TOKEN is not configured. Please run: make sonarqube-setup-token"; \
 		echo "   Current token status:"; \
-		grep -n "SONAR_TOKEN" $(CONTAINER_DIR)/.env.sonarqube || echo "   No SONAR_TOKEN found"; \
+		if [ -f $(CONTAINER_DIR)/.env.sonarqube ]; then grep -n "SONAR_TOKEN" $(CONTAINER_DIR)/.env.sonarqube || true; else echo "   containers/.env.sonarqube not found"; fi; \
+		if [ -f .env.sonarqube ]; then grep -n "SONAR_TOKEN" .env.sonarqube || true; else echo "   .env.sonarqube not found"; fi; \
 		exit 1; \
 	fi
-	./$(CONTAINER_DIR)/sonarqube/scripts/sonar-analysis.sh
+	$(MAKE) -s phpstan-sonar
+	$(MAKE) -s test-coverage
+	$(MAKE) -s sonarqube-scan-local
 	@echo "SUCCESS: SonarQube analysis completed!"
 
 # View SonarQube dashboard
 sonarqube-dashboard:
 	@echo "📊 Opening SonarQube dashboard..."
-	open http://localhost:9000 || echo "Please open http://localhost:9000 in your browser"
+	@bash -c 'if command -v cmd.exe >/dev/null 2>&1; then cmd.exe /c start http://localhost:9000 >/dev/null 2>&1 || true; elif command -v xdg-open >/dev/null 2>&1; then xdg-open http://localhost:9000 >/dev/null 2>&1 || true; elif command -v open >/dev/null 2>&1; then open http://localhost:9000 >/dev/null 2>&1 || true; else echo "Please open http://localhost:9000 in your browser"; fi'
 
 # Clean SonarQube data (reset everything)
 sonarqube-clean:
@@ -439,12 +535,17 @@ help:
 	@echo ""
 	@echo "🛠️  UTILITIES:"
 	@echo "  make artisan ARGS='...' - Run artisan command (e.g., ARGS='migrate --seed')"
+	@echo "  make schema-dump        - Dump database schema and prune migrations"
 	@echo "  make check-ports         - Check port availability"
 	@echo "  make check-ports-standalone - Check ports (standalone, non-blocking)"
 	@echo ""
 	@echo "🔍 SONARQUBE (OPTIONAL):"
 	@echo "  make sonarqube-start     - Start SonarQube server"
+	@echo "  make sonarqube-setup-token - Help configure SONAR_TOKEN"
 	@echo "  make sonarqube-analyze   - Run code quality analysis"
+	@echo "  make phpstan-sonar       - Generate PHPStan JSON report (reports/phpstan.json)"
+	@echo "  make sonarqube-scan-local - Run SonarQube scanner only (local network mode)"
+	@echo "  make sonarqube-scan-ci   - Run SonarQube scanner only (CI/external SonarQube)"
 	@echo "  make sonarqube-dashboard - Open SonarQube dashboard"
 	@echo "  make sonarqube-stop      - Stop SonarQube server"
 	@echo "  make sonarqube-clean     - Clean SonarQube data"
@@ -461,7 +562,8 @@ help:
 .PHONY: check-ports check-ports-standalone check-sonarqube-ports check-sonarqube-ports-standalone
 .PHONY: docker-cleanup docker-setup-env docker-verify-env docker-up docker-down docker-restart
 .PHONY: test test-coverage _test-container-running _test-setup _test-clear-cache
-.PHONY: lint lint-dirty analyze artisan shell test-shell logs status health
+.PHONY: lint lint-dirty analyze artisan schema-dump shell test-shell logs status health
 .PHONY: sonarqube-setup sonarqube-start sonarqube-stop sonarqube-setup-env sonarqube-setup-token
+.PHONY: sonarqube-wait phpstan-sonar sonarqube-scan-local sonarqube-scan-ci
 .PHONY: sonarqube-analyze sonarqube-dashboard sonarqube-clean _sonarqube-setup-env
 .DEFAULT_GOAL := help

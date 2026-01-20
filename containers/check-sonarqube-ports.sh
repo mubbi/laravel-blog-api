@@ -79,10 +79,6 @@ check_port() {
             fi
             ;;
     esac
-                return 0
-            fi
-            ;;
-    esac
 
     if [ "$port_in_use" = true ]; then
         echo -e "${RED}❌ PORT $port ($description) is already in use${NC}"

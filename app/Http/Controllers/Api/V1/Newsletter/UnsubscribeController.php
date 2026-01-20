@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Newsletter;
 
-use App\Data\UnsubscribeNewsletterDTO;
+use App\Data\Newsletter\UnsubscribeNewsletterDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\Newsletter\UnsubscribeRequest;
 use App\Services\Interfaces\NewsletterServiceInterface;

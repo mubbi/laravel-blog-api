@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
-use App\Data\FilterMediaDTO;
-use App\Data\UpdateMediaMetadataDTO;
-use App\Data\UploadMediaDTO;
+use App\Data\Media\FilterMediaDTO;
+use App\Data\Media\UpdateMediaMetadataDTO;
+use App\Data\Media\UploadMediaDTO;
 use App\Models\Media;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;

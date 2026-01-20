@@ -9,7 +9,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/Notification/CreateNotificationController', function () {
+describe('API/V1/Notification/CreateNotificationController', function () {
     it('can create a system notification successfully', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $notificationData = [
@@ -23,7 +23,7 @@ describe('API/V1/Admin/Notification/CreateNotificationController', function () {
         ];
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.notifications.store'), $notificationData);
+            ->postJson(route('api.v1.notifications.store'), $notificationData);
 
         expect($response->getStatusCode())->toBe(201)
             ->and($response)->toHaveApiSuccessStructure([
@@ -56,7 +56,7 @@ describe('API/V1/Admin/Notification/CreateNotificationController', function () {
 
         // Act
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.notifications.store'), $notificationData);
+            ->postJson(route('api.v1.notifications.store'), $notificationData);
 
         // Assert
         $response->assertStatus(403);
@@ -71,7 +71,7 @@ describe('API/V1/Admin/Notification/CreateNotificationController', function () {
         ];
 
         // Act
-        $response = $this->postJson(route('api.v1.admin.notifications.store'), $notificationData);
+        $response = $this->postJson(route('api.v1.notifications.store'), $notificationData);
 
         // Assert
         $response->assertStatus(401);
@@ -97,7 +97,7 @@ describe('API/V1/Admin/Notification/CreateNotificationController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.notifications.store'), $notificationData);
+            ->postJson(route('api.v1.notifications.store'), $notificationData);
 
         // Assert
         expect($response)->toHaveApiSuccessStructure()

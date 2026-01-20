@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
-use App\Data\ReportArticleDTO;
+use App\Data\Article\ReportArticleDTO;
 use App\Models\Article;
 
 interface ArticleReportServiceInterface

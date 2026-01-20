@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Data\FilterUserDTO;
+use App\Data\User\FilterUserDTO;
 
 describe('FilterUserDTO', function () {
     it('can be created with default values', function () {

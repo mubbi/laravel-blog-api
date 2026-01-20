@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Interfaces;
 
-use App\Data\CreateCategoryDTO;
-use App\Data\DeleteCategoryDTO;
-use App\Data\UpdateCategoryDTO;
+use App\Data\Category\CreateCategoryDTO;
+use App\Data\Category\DeleteCategoryDTO;
+use App\Data\Category\UpdateCategoryDTO;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Collection;
 

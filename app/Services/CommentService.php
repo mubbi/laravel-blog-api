@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Data\ApproveCommentDTO;
-use App\Data\CreateCommentDTO;
-use App\Data\DeleteCommentDTO;
-use App\Data\FilterCommentDTO;
-use App\Data\ReportCommentDTO;
-use App\Data\UpdateCommentDTO;
+use App\Data\Comment\ApproveCommentDTO;
+use App\Data\Comment\CreateCommentDTO;
+use App\Data\Comment\DeleteCommentDTO;
+use App\Data\Comment\FilterCommentDTO;
+use App\Data\Comment\ReportCommentDTO;
+use App\Data\Comment\UpdateCommentDTO;
 use App\Enums\CommentStatus;
 use App\Events\Comment\CommentApprovedEvent;
 use App\Events\Comment\CommentCreatedEvent;
@@ -252,9 +252,10 @@ final class CommentService implements CommentServiceInterface
     ): \Illuminate\Pagination\LengthAwarePaginator {
         $articleId = $article->id;
         $query = $this->commentRepository->query()
+            ->with(['user:id,name,email'])
             ->where('article_id', $articleId)
-            ->when($parentId !== null, fn ($q) => $q->where('parent_comment_id', $parentId))
-            ->when($parentId === null, fn ($q) => $q->whereNull('parent_comment_id'))
+            ->when($parentId !== null, fn (\Illuminate\Database\Eloquent\Builder $q): \Illuminate\Database\Eloquent\Builder => $q->where('parent_comment_id', $parentId))
+            ->when($parentId === null, fn (\Illuminate\Database\Eloquent\Builder $q): \Illuminate\Database\Eloquent\Builder => $q->whereNull('parent_comment_id'))
             ->orderBy('created_at');
 
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
@@ -262,23 +263,27 @@ final class CommentService implements CommentServiceInterface
         /** @var \Illuminate\Database\Eloquent\Collection<int, Comment> $comments */
         $comments = $paginator->getCollection();
 
-        $comments->load(['user']);
         $comments->loadCount('replies');
 
         // Collect IDs of parent comments
         $parentCommentIds = $comments->pluck('id');
 
+        // Safety limit: prevent loading too many replies at once
+        // Max replies = number of parent comments * replies per page, capped at reasonable limit
+        $maxReplies = min($parentCommentIds->count() * $repliesPerPage, 100);
+
         // Fetch replies in batch (LIMIT repliesPerPage per parent)
         $replies = $this->commentRepository->query()
             ->whereIn('parent_comment_id', $parentCommentIds)
-            ->with('user')
+            ->with(['user:id,name,email'])
             ->withCount('replies')
             ->orderBy('created_at')
+            ->take($maxReplies)
             ->get()
             ->groupBy('parent_comment_id');
 
         // Attach limited replies to each comment
-        $comments->each(function (Comment $comment) use ($replies, $repliesPerPage) {
+        $comments->each(function (Comment $comment) use ($replies, $repliesPerPage): void {
             $replyCollection = $replies[$comment->id] ?? collect();
             $limitedReplies = $replyCollection->take($repliesPerPage);
             $comment->setRelation('replies_page', $limitedReplies);

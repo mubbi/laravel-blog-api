@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
-use App\Data\RegisterDTO;
+use App\Data\User\RegisterDTO;
 use App\Http\Controllers\Controller as BaseController;
 use App\Http\Requests\V1\Auth\RegisterRequest;
 use App\Http\Resources\V1\Auth\UserResource;

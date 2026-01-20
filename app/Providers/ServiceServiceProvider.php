@@ -24,11 +24,13 @@ use App\Services\Interfaces\MediaServiceInterface;
 use App\Services\Interfaces\NewsletterServiceInterface;
 use App\Services\Interfaces\NotificationServiceInterface;
 use App\Services\Interfaces\TagServiceInterface;
+use App\Services\Interfaces\UserNotificationServiceInterface;
 use App\Services\Interfaces\UserServiceInterface;
 use App\Services\MediaService;
 use App\Services\NewsletterService;
 use App\Services\NotificationService;
 use App\Services\TagService;
+use App\Services\UserNotificationService;
 use App\Services\UserService;
 use Illuminate\Support\ServiceProvider;
 
@@ -126,6 +128,11 @@ final class ServiceServiceProvider extends ServiceProvider
         $this->app->scoped(
             NotificationServiceInterface::class,
             NotificationService::class
+        );
+
+        $this->app->scoped(
+            UserNotificationServiceInterface::class,
+            UserNotificationService::class
         );
 
         // Utility services

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Data\CreateArticleDTO;
+use App\Data\Article\CreateArticleDTO;
 use App\Enums\ArticleStatus;
 
 describe('CreateArticleDTO', function () {

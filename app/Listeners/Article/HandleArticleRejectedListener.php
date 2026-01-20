@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Listeners\Article;
 
+use App\Data\Notification\CreateNotificationDTO;
+use App\Enums\NotificationType;
 use App\Events\Article\ArticleRejectedEvent;
+use App\Services\Interfaces\NotificationServiceInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
@@ -12,6 +15,10 @@ use Illuminate\Support\Facades\Log;
 final class HandleArticleRejectedListener implements ShouldQueue
 {
     use InteractsWithQueue;
+
+    public function __construct(
+        private readonly NotificationServiceInterface $notificationService
+    ) {}
 
     /**
      * Handle the event.
@@ -24,7 +31,31 @@ final class HandleArticleRejectedListener implements ShouldQueue
             'approved_by' => $event->article->approved_by,
         ]);
 
-        // Add your business logic here
-        // For example: Send notification to author with rejection reason, etc.
+        // Create notification for article author when article is rejected
+        $article = $event->article;
+        $author = $article->author;
+
+        if ($author === null) {
+            return;
+        }
+
+        $dto = new CreateNotificationDTO(
+            type: NotificationType::SYSTEM_ALERT,
+            message: [
+                'title' => __('notifications.article_rejected.title'),
+                'body' => __('notifications.article_rejected.body', ['title' => $article->title]),
+                'priority' => 'high',
+            ],
+            audiences: ['specific_users'],
+            userIds: [$author->id],
+        );
+
+        $this->notificationService->createNotification($dto);
+
+        Log::info(__('log.notification_created'), [
+            'type' => NotificationType::SYSTEM_ALERT->value,
+            'article_id' => $article->id,
+            'user_id' => $author->id,
+        ]);
     }
 }

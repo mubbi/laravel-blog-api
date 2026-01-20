@@ -13,7 +13,14 @@ final class ViewUserProfileRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // Public endpoint, but requires authentication for private profiles
+        // Public endpoint, but check permission if user is authenticated
+        $user = $this->user();
+
+        if ($user === null) {
+            return true; // Allow public access
+        }
+
+        return $user->hasPermission('view_user_profiles');
     }
 
     /**

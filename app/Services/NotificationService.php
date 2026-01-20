@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Data\CreateNotificationDTO;
-use App\Data\FilterNotificationDTO;
+use App\Data\Notification\CreateNotificationDTO;
+use App\Data\Notification\FilterNotificationDTO;
 use App\Enums\NotificationType;
 use App\Events\Notification\NotificationCreatedEvent;
 use App\Events\Notification\NotificationSentEvent;
 use App\Models\Notification;
+use App\Models\User;
 use App\Repositories\Contracts\NotificationAudienceRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
+use App\Repositories\Contracts\UserNotificationRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Interfaces\NotificationServiceInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -25,7 +28,9 @@ final class NotificationService implements NotificationServiceInterface
     public function __construct(
         private readonly NotificationRepositoryInterface $notificationRepository,
         private readonly NotificationAudienceRepositoryInterface $notificationAudienceRepository,
-        private readonly RoleRepositoryInterface $roleRepository
+        private readonly RoleRepositoryInterface $roleRepository,
+        private readonly UserNotificationRepositoryInterface $userNotificationRepository,
+        private readonly UserRepositoryInterface $userRepository
     ) {}
 
     /**
@@ -168,5 +173,107 @@ final class NotificationService implements NotificationServiceInterface
                 'system_alert' => $this->notificationRepository->countByType(NotificationType::SYSTEM_ALERT->value),
             ],
         ];
+    }
+
+    /**
+     * Distribute notification to users by creating UserNotification records
+     *
+     * @return int Number of UserNotification records created
+     */
+    public function distributeToUsers(Notification $notification): int
+    {
+        // Ensure audiences are loaded
+        if (! $notification->relationLoaded('audiences')) {
+            $notification->load('audiences');
+        }
+
+        $userIds = $this->resolveUserIds($notification);
+
+        if (empty($userIds)) {
+            return 0;
+        }
+
+        // Remove duplicates
+        $userIds = array_unique($userIds);
+
+        // Get existing UserNotification records to avoid duplicates
+        $existingUserIds = $this->userNotificationRepository->query()
+            ->where('notification_id', $notification->id)
+            ->whereIn('user_id', $userIds)
+            ->pluck('user_id')
+            ->toArray();
+
+        // Filter out users who already have this notification
+        $newUserIds = array_diff($userIds, $existingUserIds);
+
+        if (empty($newUserIds)) {
+            return 0;
+        }
+
+        // Bulk create UserNotification records
+        $userNotifications = [];
+        foreach ($newUserIds as $userId) {
+            $userNotifications[] = [
+                'notification_id' => $notification->id,
+                'user_id' => $userId,
+                'is_read' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        // Use chunking for large batches to avoid memory issues
+        $chunks = array_chunk($userNotifications, 500);
+        $totalCreated = 0;
+
+        foreach ($chunks as $chunk) {
+            DB::table('user_notifications')->insert($chunk);
+            $totalCreated += count($chunk);
+        }
+
+        return $totalCreated;
+    }
+
+    /**
+     * Resolve user IDs from notification audiences
+     *
+     * @return array<int>
+     */
+    private function resolveUserIds(Notification $notification): array
+    {
+        /** @var array<int> $userIds */
+        $userIds = [];
+
+        foreach ($notification->audiences as $audience) {
+            if ($audience->audience_type === 'all') {
+                // Get all active users
+                /** @var array<int> $allUserIds */
+                $allUserIds = $this->userRepository->query()
+                    ->whereNull('banned_at')
+                    ->whereNull('blocked_at')
+                    ->pluck('id')
+                    ->map(fn (mixed $id): int => (int) $id)
+                    ->toArray();
+                $userIds = array_merge($userIds, $allUserIds);
+            } elseif ($audience->audience_type === 'role' && $audience->audience_id !== null) {
+                // Get users with specific role
+                /** @var array<int> $roleUserIds */
+                $roleUserIds = $this->userRepository->query()
+                    ->whereHas('roles', function (Builder $query) use ($audience): void {
+                        $query->where('roles.id', $audience->audience_id);
+                    })
+                    ->whereNull('banned_at')
+                    ->whereNull('blocked_at')
+                    ->pluck('id')
+                    ->map(fn (mixed $id): int => (int) $id)
+                    ->toArray();
+                $userIds = array_merge($userIds, $roleUserIds);
+            } elseif ($audience->audience_type === 'user' && $audience->audience_id !== null) {
+                // Specific user
+                $userIds[] = (int) $audience->audience_id;
+            }
+        }
+
+        return $userIds;
     }
 }

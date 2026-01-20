@@ -13,8 +13,9 @@ final class ReportCommentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Only authenticated users can report comments
-        return $this->user() !== null;
+        $user = $this->user();
+
+        return $user !== null && $user->hasPermission('report_comments');
     }
 
     /**

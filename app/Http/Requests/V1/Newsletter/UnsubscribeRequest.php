@@ -13,7 +13,14 @@ final class UnsubscribeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        // Public endpoint with email verification, but check permission if user is authenticated
+        $user = $this->user();
+
+        if ($user === null) {
+            return true; // Allow public access with email verification
+        }
+
+        return $user->hasPermission('unsubscribe_newsletter');
     }
 
     /**

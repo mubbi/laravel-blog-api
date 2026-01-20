@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Data\FilterMediaDTO;
-use App\Data\UpdateMediaMetadataDTO;
-use App\Data\UploadMediaDTO;
+use App\Data\Media\FilterMediaDTO;
+use App\Data\Media\UpdateMediaMetadataDTO;
+use App\Data\Media\UploadMediaDTO;
 use App\Events\Media\MediaDeletedEvent;
 use App\Events\Media\MediaMetadataUpdatedEvent;
 use App\Events\Media\MediaUploadedEvent;
@@ -262,7 +262,7 @@ final class MediaService implements MediaServiceInterface
 
         // Search by name
         if ($dto->search !== null) {
-            $query->where(function ($q) use ($dto): void {
+            $query->where(function (\Illuminate\Database\Eloquent\Builder $q) use ($dto): void {
                 $q->where('name', 'like', "%{$dto->search}%")
                     ->orWhere('file_name', 'like', "%{$dto->search}%")
                     ->orWhere('alt_text', 'like', "%{$dto->search}%");

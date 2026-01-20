@@ -10,13 +10,13 @@ use App\Models\Role;
 use App\Models\Tag;
 use App\Models\User;
 
-describe('API/V1/Admin/Article/GetArticlesController', function () {
+describe('API/V1/Article/GetArticlesController', function () {
     it('can get paginated list of articles', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         Article::factory()->count(5)->create();
 
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.articles.index'));
+            ->getJson(route('api.v1.articles.index'));
 
         expect($response)->toHaveApiSuccessStructure([
             'articles' => [
@@ -42,7 +42,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         Article::factory()->create(['status' => ArticleStatus::DRAFT]);
 
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.articles.index', ['status' => ArticleStatus::PUBLISHED->value]));
+            ->getJson(route('api.v1.articles.index', ['status' => ArticleStatus::PUBLISHED->value]));
 
         expect($response)->toHaveApiSuccessStructure()
             ->and($response->json('data.articles'))->toHaveCount(1)
@@ -57,7 +57,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         Article::factory()->create(['created_by' => $author2->id]);
 
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.articles.index', ['author_id' => $author1->id]));
+            ->getJson(route('api.v1.articles.index', ['author_id' => $author1->id]));
 
         expect($response)->toHaveApiSuccessStructure()
             ->and($response->json('data.articles'))->toHaveCount(1)
@@ -81,7 +81,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.articles.index', ['category_id' => $category1->id]));
+            ->getJson(route('api.v1.articles.index', ['category_id' => $category1->id]));
 
         // Assert
         $response->assertStatus(200);
@@ -107,7 +107,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.articles.index', ['tag_id' => $tag1->id]));
+            ->getJson(route('api.v1.articles.index', ['tag_id' => $tag1->id]));
 
         // Assert
         $response->assertStatus(200);
@@ -127,7 +127,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.articles.index', ['is_featured' => true]));
+            ->getJson(route('api.v1.articles.index', ['is_featured' => true]));
 
         // Assert
         $response->assertStatus(200);
@@ -147,7 +147,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.articles.index', ['is_pinned' => true]));
+            ->getJson(route('api.v1.articles.index', ['is_pinned' => true]));
 
         // Assert
         $response->assertStatus(200);
@@ -167,7 +167,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.articles.index', ['has_reports' => true]));
+            ->getJson(route('api.v1.articles.index', ['has_reports' => true]));
 
         // Assert
         $response->assertStatus(200);
@@ -182,18 +182,34 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         $adminRole = Role::where('name', UserRole::ADMINISTRATOR->value)->first();
         attachRoleAndRefreshCache($admin, $adminRole);
 
-        $article1 = Article::factory()->create(['title' => 'PHP Best Practices']);
-        $article2 = Article::factory()->create(['title' => 'Laravel Tutorial']);
+        // Create articles with search term in title for full-text search
+        // Using "Laravel" which meets MySQL InnoDB minimum token size (3 chars)
+        $searchTerm = 'Laravel';
+        $article1 = Article::factory()->create([
+            'title' => "{$searchTerm} Best Practices Guide",
+            'subtitle' => "Learn {$searchTerm} framework development",
+            'excerpt' => "This comprehensive article covers {$searchTerm} best practices",
+            'content_markdown' => "This comprehensive guide covers {$searchTerm} best practices and coding standards for modern web development.",
+            'status' => ArticleStatus::DRAFT->value,
+        ]);
+        $article2 = Article::factory()->create([
+            'title' => 'PHP Programming Tutorial',
+            'content_markdown' => 'Learn PHP programming from scratch with examples.',
+            'status' => ArticleStatus::DRAFT->value,
+        ]);
 
-        // Act
+        // Optimize table to force full-text index update (InnoDB updates indexes asynchronously)
+        \Illuminate\Support\Facades\DB::statement('OPTIMIZE TABLE articles');
+
+        // Act - search for "Laravel" which should match article1
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.articles.index', ['search' => 'PHP']));
+            ->getJson(route('api.v1.articles.index', ['search' => $searchTerm]));
 
         // Assert
         $response->assertStatus(200);
         $responseData = $response->json('data.articles');
-        $this->assertCount(1, $responseData);
-        $this->assertEquals($article1->id, $responseData[0]['id']);
+        $this->assertCount(1, $responseData, 'Should find exactly one article matching "Laravel"');
+        $this->assertEquals($article1->id, $responseData[0]['id'], 'Should return the article with Laravel in title');
     });
 
     it('can sort articles by different fields', function () {
@@ -207,7 +223,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.articles.index', [
+            ->getJson(route('api.v1.articles.index', [
                 'sort_by' => 'title',
                 'sort_direction' => 'asc',
             ]));
@@ -230,7 +246,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.articles.index', ['per_page' => 10]));
+            ->getJson(route('api.v1.articles.index', ['per_page' => 10]));
 
         // Assert
         $response->assertStatus(200);
@@ -240,25 +256,41 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
         $this->assertEquals(3, $responseData['meta']['last_page']);
     });
 
-    it('returns 401 when user is not authenticated', function () {
-        // Act
-        $response = $this->getJson(route('api.v1.admin.articles.index'));
+    it('returns public data when user is not authenticated', function () {
+        // Act - unauthenticated users can access, but get only published articles
+        $response = $this->getJson(route('api.v1.articles.index'));
 
-        // Assert
-        $response->assertStatus(401);
+        // Assert - should return 200 with public data structure
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'status',
+                'message',
+                'data' => [
+                    'articles',
+                    'meta',
+                ],
+            ]);
     });
 
-    it('returns 403 when user does not have permission', function () {
+    it('returns public data when user does not have permission', function () {
         // Arrange
         $user = User::factory()->create();
         // User has no roles, so no permissions
 
-        // Act
+        // Act - users without permission get public data (only published articles)
         $response = $this->actingAs($user)
-            ->getJson(route('api.v1.admin.articles.index'));
+            ->getJson(route('api.v1.articles.index'));
 
-        // Assert
-        $response->assertStatus(403);
+        // Assert - should return 200 with public data
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'status',
+                'message',
+                'data' => [
+                    'articles',
+                    'meta',
+                ],
+            ]);
     });
 
     it('returns 500 when service throws exception', function () {
@@ -275,7 +307,7 @@ describe('API/V1/Admin/Article/GetArticlesController', function () {
 
         // Act
         $response = $this->actingAs($admin)
-            ->getJson(route('api.v1.admin.articles.index'));
+            ->getJson(route('api.v1.articles.index'));
 
         // Assert
         $response->assertStatus(500)

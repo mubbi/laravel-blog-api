@@ -339,17 +339,17 @@ final class Article extends Model
 
     /**
      * Scope a query to search articles by title, subtitle, excerpt, or content.
+     * Uses full-text index for title, subtitle, excerpt when possible, falls back to LIKE for content_markdown.
      *
      * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
+     * @param  string  $search  The search term
      * @return \Illuminate\Database\Eloquent\Builder<Article>
      */
     public function scopeSearch($query, string $search)
     {
-        return $query->where(function ($q) use ($search) {
-            $q->where('title', 'like', "%{$search}%")
-                ->orWhere('subtitle', 'like', "%{$search}%")
-                ->orWhere('excerpt', 'like', "%{$search}%")
-                ->orWhere('content_markdown', 'like', "%{$search}%");
-        });
+        // Use full-text search for indexed columns (title, subtitle, excerpt)
+        // Full-text indexes exist on: title, subtitle, excerpt (composite) and content_markdown (separate)
+        return $query->whereFullText(['title', 'subtitle', 'excerpt'], $search)
+            ->orWhereFullText('content_markdown', $search);
     }
 }

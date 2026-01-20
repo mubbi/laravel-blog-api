@@ -5,21 +5,22 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Constants\CacheKeys;
-use App\Data\ReportArticleDTO;
+use App\Data\Article\ReportArticleDTO;
 use App\Events\Article\ArticleReportedEvent;
 use App\Events\Article\ArticleReportsClearedEvent;
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use App\Services\Interfaces\ArticleManagementServiceInterface;
 use App\Services\Interfaces\ArticleReportServiceInterface;
-use Illuminate\Support\Facades\Cache;
+use App\Services\Interfaces\CacheServiceInterface;
 use Illuminate\Support\Facades\Event;
 
 final class ArticleReportService implements ArticleReportServiceInterface
 {
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,
-        private readonly ArticleManagementServiceInterface $articleManagementService
+        private readonly ArticleManagementServiceInterface $articleManagementService,
+        private readonly CacheServiceInterface $cacheService
     ) {}
 
     /**
@@ -70,7 +71,7 @@ final class ArticleReportService implements ArticleReportServiceInterface
      */
     private function invalidateArticleCache(Article $article): void
     {
-        Cache::forget(CacheKeys::articleBySlug($article->slug));
-        Cache::forget(CacheKeys::articleById($article->id));
+        $this->cacheService->forget(CacheKeys::articleBySlug($article->slug));
+        $this->cacheService->forget(CacheKeys::articleById($article->id));
     }
 }

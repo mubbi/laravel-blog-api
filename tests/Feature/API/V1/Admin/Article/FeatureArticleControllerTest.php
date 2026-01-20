@@ -9,7 +9,7 @@ use App\Events\Article\ArticleUnfeaturedEvent;
 use App\Models\Article;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/Article/FeatureArticleController', function () {
+describe('API/V1/Article/FeatureArticleController', function () {
     it('can feature a published article', function () {
         $auth = createAuthenticatedUserWithRole(UserRole::ADMINISTRATOR->value);
         $article = Article::factory()->create([
@@ -19,7 +19,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.feature', $article));
+        ])->postJson(route('api.v1.articles.feature', $article));
 
         expect($response)->toHaveApiSuccessStructure([
             'id', 'slug', 'title', 'status', 'status_display', 'published_at',
@@ -41,7 +41,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.feature', $article));
+        ])->postJson(route('api.v1.articles.feature', $article));
 
         expect($response->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('articles', [
@@ -59,7 +59,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.feature', $article));
+        ])->postJson(route('api.v1.articles.feature', $article));
 
         expect($response->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('articles', [
@@ -77,7 +77,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.feature', $article));
+        ])->postJson(route('api.v1.articles.feature', $article));
 
         expect($response->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('articles', [
@@ -95,7 +95,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.feature', $article));
+        ])->postJson(route('api.v1.articles.feature', $article));
 
         expect($response->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('articles', [
@@ -109,7 +109,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.feature', 99999));
+        ])->postJson(route('api.v1.articles.feature', 99999));
 
         expect($response->getStatusCode())->toBe(404)
             ->and($response->json('status'))->toBeFalse()
@@ -119,7 +119,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
     it('returns 401 when user is not authenticated', function () {
         $article = Article::factory()->create();
 
-        $response = $this->postJson(route('api.v1.admin.articles.feature', $article));
+        $response = $this->postJson(route('api.v1.articles.feature', $article));
 
         $response->assertStatus(401);
     });
@@ -130,7 +130,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.feature', $article));
+        ])->postJson(route('api.v1.articles.feature', $article));
 
         $response->assertStatus(403);
     });
@@ -144,7 +144,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
 
         $response1 = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.feature', $article));
+        ])->postJson(route('api.v1.articles.feature', $article));
 
         expect($response1->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('articles', [
@@ -154,7 +154,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
 
         $response2 = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.feature', $article));
+        ])->postJson(route('api.v1.articles.feature', $article));
 
         expect($response2->getStatusCode())->toBe(200);
         $this->assertDatabaseHas('articles', [
@@ -179,7 +179,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.feature', $article));
+        ])->postJson(route('api.v1.articles.feature', $article));
 
         expect($response->getStatusCode())->toBe(200);
         $article->refresh();
@@ -203,7 +203,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.feature', $article));
+        ])->postJson(route('api.v1.articles.feature', $article));
 
         expect($response->getStatusCode())->toBe(200);
         Event::assertDispatched(ArticleFeaturedEvent::class, fn ($event) => $event->article->id === $article->id
@@ -220,7 +220,7 @@ describe('API/V1/Admin/Article/FeatureArticleController', function () {
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$auth['tokenString'],
-        ])->postJson(route('api.v1.admin.articles.feature', $article));
+        ])->postJson(route('api.v1.articles.feature', $article));
 
         expect($response->getStatusCode())->toBe(200);
         Event::assertDispatched(ArticleUnfeaturedEvent::class, fn ($event) => $event->article->id === $article->id

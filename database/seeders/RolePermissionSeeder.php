@@ -33,7 +33,7 @@ final class RolePermissionSeeder extends Seeder
             // Article/Post Management
             'view_posts', 'create_posts', 'edit_posts', 'delete_posts', 'publish_posts', 'edit_others_posts', 'delete_others_posts',
             'approve_posts', 'feature_posts', 'pin_posts', 'archive_posts', 'restore_posts', 'trash_posts', 'report_posts',
-            'like_posts', 'dislike_posts', 'view_own_posts', 'schedule_posts',
+            'like_posts', 'dislike_posts', 'view_own_posts',
             // Comment Management
             'comment_moderate', 'create_comments', 'edit_comments', 'delete_comments', 'approve_comments', 'report_comments',
             'view_comments', 'edit_own_comments', 'delete_own_comments',
@@ -61,7 +61,7 @@ final class RolePermissionSeeder extends Seeder
             // Article/Post Management
             'view_posts', 'create_posts', 'edit_posts', 'delete_posts', 'publish_posts', 'edit_others_posts', 'delete_others_posts',
             'feature_posts', 'pin_posts', 'archive_posts', 'restore_posts', 'trash_posts', 'report_posts',
-            'like_posts', 'dislike_posts', 'view_own_posts', 'schedule_posts',
+            'like_posts', 'dislike_posts', 'view_own_posts',
             // Comment Management
             'comment_moderate', 'create_comments', 'edit_comments', 'delete_comments', 'approve_comments', 'report_comments',
             'view_comments', 'edit_own_comments', 'delete_own_comments',
@@ -86,12 +86,14 @@ final class RolePermissionSeeder extends Seeder
             'edit_profile', 'view_own_profile',
             // Article/Post Management
             'view_posts', 'create_posts', 'edit_posts', 'delete_posts', 'publish_posts', 'archive_posts', 'restore_posts', 'trash_posts', 'report_posts',
-            'like_posts', 'dislike_posts', 'view_own_posts', 'schedule_posts',
+            'like_posts', 'dislike_posts', 'view_own_posts',
             // Comment Management
             'create_comments', 'edit_comments', 'delete_comments', 'report_comments',
             'view_comments', 'edit_own_comments', 'delete_own_comments',
             // Newsletter
             'subscribe_newsletter', 'unsubscribe_newsletter',
+            // Notifications
+            'read_notifications', 'delete_notifications',
             // Media Management
             'upload_media', 'view_media', 'delete_media', 'edit_media',
             // Social/Community

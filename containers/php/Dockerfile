@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     nginx \
     supervisor \
+    mariadb-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js and npm for commit tools
@@ -76,6 +77,14 @@ RUN chmod +x /usr/local/bin/start-services.sh
 RUN chmod +x /usr/local/bin/start-main-app.sh
 RUN chmod +x /usr/local/bin/start-queue-worker.sh
 RUN chmod +x /usr/local/bin/fix-permissions.sh
+
+# Copy mysqldump wrapper script (adds --skip-ssl flag)
+COPY php/mysqldump-wrapper.sh /usr/local/bin/mysqldump
+RUN chmod +x /usr/local/bin/mysqldump
+
+# Copy mysql wrapper script (adds --skip-ssl flag for schema loading)
+COPY php/mysql-wrapper.sh /usr/local/bin/mysql
+RUN chmod +x /usr/local/bin/mysql
 
 # Create necessary Laravel directories and set proper permissions
 RUN mkdir -p /var/www/html/storage/app/public \

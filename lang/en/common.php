@@ -99,6 +99,8 @@ return [
     'notification_updated_successfully' => 'Notification updated successfully.',
     'notification_deleted_successfully' => 'Notification deleted successfully.',
     'notification_sent_successfully' => 'Notification sent successfully.',
+    'notification_marked_as_read' => 'Notification marked as read.',
+    'all_notifications_marked_as_read' => 'All notifications marked as read.',
     // Additional notification keys for consistency
     'notification_created' => 'Notification created successfully.',
 

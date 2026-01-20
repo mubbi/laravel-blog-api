@@ -8,13 +8,13 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
-describe('API/V1/Admin/User/UnblockUserController', function () {
+describe('API/V1/User/UnblockUserController', function () {
     it('can unblock a user successfully', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
         $userToUnblock = User::factory()->create(['blocked_at' => now()]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
+            ->postJson(route('api.v1.users.unblock', $userToUnblock));
 
         expect($response)->toHaveApiSuccessStructure([
             'id',
@@ -41,7 +41,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         ]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
+            ->postJson(route('api.v1.users.unblock', $userToUnblock));
 
         expect($response->getStatusCode())->toBe(200);
         $userToUnblock->refresh();
@@ -54,7 +54,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         $userToUnblock = User::factory()->create(['blocked_at' => null]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
+            ->postJson(route('api.v1.users.unblock', $userToUnblock));
 
         expect($response->getStatusCode())->toBe(200);
         $userToUnblock->refresh();
@@ -65,7 +65,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         $admin = createUserWithRole(UserRole::ADMINISTRATOR->value);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', 99999));
+            ->postJson(route('api.v1.users.unblock', 99999));
 
         expect($response->getStatusCode())->toBe(404)
             ->and($response->json('status'))->toBeFalse()
@@ -77,7 +77,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         $userToUnblock = User::factory()->create(['blocked_at' => now()]);
 
         $response = $this->actingAs($user)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
+            ->postJson(route('api.v1.users.unblock', $userToUnblock));
 
         $response->assertStatus(403);
     });
@@ -85,7 +85,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
     it('returns 401 when not authenticated', function () {
         $userToUnblock = User::factory()->create(['blocked_at' => now()]);
 
-        $response = $this->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
+        $response = $this->postJson(route('api.v1.users.unblock', $userToUnblock));
 
         $response->assertStatus(401);
     });
@@ -96,7 +96,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         attachRoleAndRefreshCache($admin, $adminRole);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $admin));
+            ->postJson(route('api.v1.users.unblock', $admin));
 
         expect($response->getStatusCode())->toBe(403)
             ->and($response->json('status'))->toBeFalse()
@@ -119,7 +119,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         ]));
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
+            ->postJson(route('api.v1.users.unblock', $userToUnblock));
 
         expect($response->getStatusCode())->toBe(200);
         $userToUnblock->refresh();
@@ -135,7 +135,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         $userToUnblock = User::factory()->create(['blocked_at' => now()->subMonths(3)]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
+            ->postJson(route('api.v1.users.unblock', $userToUnblock));
 
         expect($response->getStatusCode())->toBe(200);
         $userToUnblock->refresh();
@@ -147,7 +147,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         $userToUnblock = User::factory()->create(['blocked_at' => now()->subHours(2)]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
+            ->postJson(route('api.v1.users.unblock', $userToUnblock));
 
         expect($response->getStatusCode())->toBe(200);
         $userToUnblock->refresh();
@@ -160,7 +160,7 @@ describe('API/V1/Admin/User/UnblockUserController', function () {
         $userToUnblock = User::factory()->create(['blocked_at' => now()]);
 
         $response = $this->actingAs($admin)
-            ->postJson(route('api.v1.admin.users.unblock', $userToUnblock));
+            ->postJson(route('api.v1.users.unblock', $userToUnblock));
 
         expect($response->getStatusCode())->toBe(200);
         Event::assertDispatched(UserUnblockedEvent::class, fn ($event) => $event->user->id === $userToUnblock->id
